@@ -5,6 +5,7 @@ export * from './from-grid-event';
 export * from './table-grid-utils.service';
 export * from './types';
 export * from './utils/platform';
+export * from './utils/run-in-zone';
 export * from './utils/select-stream';
 export * from './utils/share-replay-refcount';
 export * from './wrapper/interfaces';
