@@ -1,1 +1,1 @@
-# data-grid
+# Koobiq AgGrid

@@ -1,0 +1,40 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+        "rootDir": ".",
+        "sourceMap": true,
+        "declaration": false,
+        "moduleResolution": "node",
+        "emitDecoratorMetadata": true,
+        "forceConsistentCasingInFileNames": true,
+        "experimentalDecorators": true,
+        "importHelpers": true,
+        "useDefineForClassFields": false,
+        "strict": false,
+        "allowJs": true,
+        "target": "es2015",
+        "module": "esnext",
+        "lib": [
+            "es2020",
+            "dom"
+        ],
+        "skipLibCheck": true,
+        "skipDefaultLibCheck": true,
+        "baseUrl": ".",
+        "paths": {
+            "@koobiq/ag-grid": [
+                "packages/ag-grid/src/index.ts"
+            ],
+            "@koobiq/data-view": [
+                "packages/data-view/src/index.ts"
+            ],
+            "@koobiq/table-grid": [
+                "packages/table-grid/src/index.ts"
+            ]
+        }
+    },
+    "exclude": [
+        "node_modules",
+        "tmp"
+    ]
+}
