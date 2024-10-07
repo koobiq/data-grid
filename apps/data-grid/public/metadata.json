@@ -1,0 +1,542 @@
+[
+    {
+        "id": "52081",
+        "description": [
+            "52081",
+            "reNgine 2.2.0 - Command Injection (Authenticated)"
+        ],
+        "type_id": "WebApps",
+        "platform_id": "Multiple",
+        "author_id": [
+            "12197",
+            "Caner Tercan"
+        ],
+        "date_published": "2024-10-01",
+        "verified": 0,
+        "application_path": "",
+        "application_md5": "",
+        "port": 0,
+        "screenshot_path": "",
+        "screenshot_thumb_path": "",
+        "tags": [],
+        "code": [],
+        "type": {
+            "id": "6",
+            "name": "webapps",
+            "display": "WebApps"
+        },
+        "platform": {
+            "id": "24",
+            "platform": "Multiple"
+        },
+        "author": {
+            "id": "12197",
+            "name": "Caner Tercan"
+        },
+        "download": "<a href=\"/download/52081\" aria-label=\"Download52081\"><i class=\"mdi mdi-download mdi-18px\" style=\"color: #132f50\"></i></a>"
+    },
+    {
+        "id": "52080",
+        "description": [
+            "52080",
+            "openSIS 9.1 - SQLi (Authenticated)"
+        ],
+        "type_id": "WebApps",
+        "platform_id": "PHP",
+        "author_id": [
+            "12196",
+            "Devrim Dıragumandan"
+        ],
+        "date_published": "2024-10-01",
+        "verified": 0,
+        "application_path": "",
+        "application_md5": "",
+        "port": 0,
+        "screenshot_path": "",
+        "screenshot_thumb_path": "",
+        "tags": [],
+        "code": [],
+        "type": {
+            "id": "6",
+            "name": "webapps",
+            "display": "WebApps"
+        },
+        "platform": {
+            "id": "31",
+            "platform": "PHP"
+        },
+        "author": {
+            "id": "12196",
+            "name": "Devrim Dıragumandan"
+        },
+        "download": "<a href=\"/download/52080\" aria-label=\"Download52080\"><i class=\"mdi mdi-download mdi-18px\" style=\"color: #132f50\"></i></a>"
+    },
+    {
+        "id": "52079",
+        "description": [
+            "52079",
+            "dizqueTV 1.5.3 - Remote Code Execution (RCE)"
+        ],
+        "type_id": "WebApps",
+        "platform_id": "JSP",
+        "author_id": [
+            "12195",
+            "Ahmed Said Saud Al-Busaidi"
+        ],
+        "date_published": "2024-10-01",
+        "verified": 0,
+        "application_path": "",
+        "application_md5": "",
+        "port": 0,
+        "screenshot_path": "",
+        "screenshot_thumb_path": "",
+        "tags": [],
+        "code": [],
+        "type": {
+            "id": "6",
+            "name": "webapps",
+            "display": "WebApps"
+        },
+        "platform": {
+            "id": "15",
+            "platform": "JSP"
+        },
+        "author": {
+            "id": "12195",
+            "name": "Ahmed Said Saud Al-Busaidi"
+        },
+        "download": "<a href=\"/download/52079\" aria-label=\"Download52079\"><i class=\"mdi mdi-download mdi-18px\" style=\"color: #132f50\"></i></a>"
+    },
+    {
+        "id": "52078",
+        "description": [
+            "52078",
+            "NoteMark &lt; 0.13.0 - Stored XSS"
+        ],
+        "type_id": "WebApps",
+        "platform_id": "Multiple",
+        "author_id": [
+            "12194",
+            "Alessio Romano (sfoffo)"
+        ],
+        "date_published": "2024-08-28",
+        "verified": 0,
+        "application_path": "",
+        "application_md5": "",
+        "port": 0,
+        "screenshot_path": "",
+        "screenshot_thumb_path": "",
+        "tags": [],
+        "code": [],
+        "type": {
+            "id": "6",
+            "name": "webapps",
+            "display": "WebApps"
+        },
+        "platform": {
+            "id": "24",
+            "platform": "Multiple"
+        },
+        "author": {
+            "id": "12194",
+            "name": "Alessio Romano (sfoffo)"
+        },
+        "download": "<a href=\"/download/52078\" aria-label=\"Download52078\"><i class=\"mdi mdi-download mdi-18px\" style=\"color: #132f50\"></i></a>"
+    },
+    {
+        "id": "52077",
+        "description": [
+            "52077",
+            "Gitea 1.22.0 - Stored XSS"
+        ],
+        "type_id": "WebApps",
+        "platform_id": "Multiple",
+        "author_id": [
+            "12189",
+            "Catalin Iovita, Alexandru Postolache"
+        ],
+        "date_published": "2024-08-28",
+        "verified": 0,
+        "application_path": "",
+        "application_md5": "",
+        "port": 0,
+        "screenshot_path": "",
+        "screenshot_thumb_path": "",
+        "tags": [],
+        "code": [],
+        "type": {
+            "id": "6",
+            "name": "webapps",
+            "display": "WebApps"
+        },
+        "platform": {
+            "id": "24",
+            "platform": "Multiple"
+        },
+        "author": {
+            "id": "12189",
+            "name": "Catalin Iovita, Alexandru Postolache"
+        },
+        "download": "<a href=\"/download/52077\" aria-label=\"Download52077\"><i class=\"mdi mdi-download mdi-18px\" style=\"color: #132f50\"></i></a>"
+    },
+    {
+        "id": "52076",
+        "description": [
+            "52076",
+            "Invesalius3 - Remote Code Execution"
+        ],
+        "type_id": "WebApps",
+        "platform_id": "Python",
+        "author_id": [
+            "12193",
+            "Alessio Romano (sfoffo), Riccardo Degli Esposti (partywave)"
+        ],
+        "date_published": "2024-08-28",
+        "verified": 0,
+        "application_path": "",
+        "application_md5": "",
+        "port": 0,
+        "screenshot_path": "",
+        "screenshot_thumb_path": "",
+        "tags": [],
+        "code": [],
+        "type": {
+            "id": "6",
+            "name": "webapps",
+            "display": "WebApps"
+        },
+        "platform": {
+            "id": "60",
+            "platform": "Python"
+        },
+        "author": {
+            "id": "12193",
+            "name": "Alessio Romano (sfoffo), Riccardo Degli Esposti (partywave)"
+        },
+        "download": "<a href=\"/download/52076\" aria-label=\"Download52076\"><i class=\"mdi mdi-download mdi-18px\" style=\"color: #132f50\"></i></a>"
+    },
+    {
+        "id": "52075",
+        "description": [
+            "52075",
+            "Windows TCP/IP - RCE Checker and Denial of Service"
+        ],
+        "type_id": "DoS",
+        "platform_id": "Windows",
+        "author_id": [
+            "8006",
+            "Photubias"
+        ],
+        "date_published": "2024-08-28",
+        "verified": 0,
+        "application_path": "",
+        "application_md5": "",
+        "port": 0,
+        "screenshot_path": "",
+        "screenshot_thumb_path": "",
+        "tags": [],
+        "code": [],
+        "type": {
+            "id": "1",
+            "name": "dos",
+            "display": "DoS"
+        },
+        "platform": {
+            "id": "45",
+            "platform": "Windows"
+        },
+        "author": {
+            "id": "8006",
+            "name": "Photubias"
+        },
+        "download": "<a href=\"/download/52075\" aria-label=\"Download52075\"><i class=\"mdi mdi-download mdi-18px\" style=\"color: #132f50\"></i></a>"
+    },
+    {
+        "id": "52074",
+        "description": [
+            "52074",
+            "Aurba 501 - Authenticated RCE"
+        ],
+        "type_id": "WebApps",
+        "platform_id": "Linux",
+        "author_id": [
+            "11030",
+            "Hosein Vita"
+        ],
+        "date_published": "2024-08-24",
+        "verified": 0,
+        "application_path": "",
+        "application_md5": "",
+        "port": 0,
+        "screenshot_path": "",
+        "screenshot_thumb_path": "",
+        "tags": [],
+        "code": [],
+        "type": {
+            "id": "6",
+            "name": "webapps",
+            "display": "WebApps"
+        },
+        "platform": {
+            "id": "16",
+            "platform": "Linux"
+        },
+        "author": {
+            "id": "11030",
+            "name": "Hosein Vita"
+        },
+        "download": "<a href=\"/download/52074\" aria-label=\"Download52074\"><i class=\"mdi mdi-download mdi-18px\" style=\"color: #132f50\"></i></a>"
+    },
+    {
+        "id": "52073",
+        "description": [
+            "52073",
+            "HughesNet HT2000W Satellite Modem - Password Reset"
+        ],
+        "type_id": "WebApps",
+        "platform_id": "Hardware",
+        "author_id": [
+            "12192",
+            "Simon Greenblatt"
+        ],
+        "date_published": "2024-08-24",
+        "verified": 0,
+        "application_path": "",
+        "application_md5": "",
+        "port": 0,
+        "screenshot_path": "",
+        "screenshot_thumb_path": "",
+        "tags": [],
+        "code": [],
+        "type": {
+            "id": "6",
+            "name": "webapps",
+            "display": "WebApps"
+        },
+        "platform": {
+            "id": "12",
+            "platform": "Hardware"
+        },
+        "author": {
+            "id": "12192",
+            "name": "Simon Greenblatt"
+        },
+        "download": "<a href=\"/download/52073\" aria-label=\"Download52073\"><i class=\"mdi mdi-download mdi-18px\" style=\"color: #132f50\"></i></a>"
+    },
+    {
+        "id": "52072",
+        "description": [
+            "52072",
+            "Elber Wayber Analog/Digital Audio STL 4.00 - Device Config Disclosure"
+        ],
+        "type_id": "WebApps",
+        "platform_id": "Hardware",
+        "author_id": [
+            "1361",
+            "LiquidWorm"
+        ],
+        "date_published": "2024-08-24",
+        "verified": 0,
+        "application_path": "",
+        "application_md5": "",
+        "port": 0,
+        "screenshot_path": "",
+        "screenshot_thumb_path": "",
+        "tags": [],
+        "code": [],
+        "type": {
+            "id": "6",
+            "name": "webapps",
+            "display": "WebApps"
+        },
+        "platform": {
+            "id": "12",
+            "platform": "Hardware"
+        },
+        "author": {
+            "id": "1361",
+            "name": "LiquidWorm"
+        },
+        "download": "<a href=\"/download/52072\" aria-label=\"Download52072\"><i class=\"mdi mdi-download mdi-18px\" style=\"color: #132f50\"></i></a>"
+    },
+    {
+        "id": "52071",
+        "description": [
+            "52071",
+            "Elber Wayber Analog/Digital Audio STL 4.00 - Authentication Bypass"
+        ],
+        "type_id": "WebApps",
+        "platform_id": "Hardware",
+        "author_id": [
+            "1361",
+            "LiquidWorm"
+        ],
+        "date_published": "2024-08-24",
+        "verified": 0,
+        "application_path": "",
+        "application_md5": "",
+        "port": 0,
+        "screenshot_path": "",
+        "screenshot_thumb_path": "",
+        "tags": [],
+        "code": [],
+        "type": {
+            "id": "6",
+            "name": "webapps",
+            "display": "WebApps"
+        },
+        "platform": {
+            "id": "12",
+            "platform": "Hardware"
+        },
+        "author": {
+            "id": "1361",
+            "name": "LiquidWorm"
+        },
+        "download": "<a href=\"/download/52071\" aria-label=\"Download52071\"><i class=\"mdi mdi-download mdi-18px\" style=\"color: #132f50\"></i></a>"
+    },
+    {
+        "id": "52070",
+        "description": [
+            "52070",
+            "Elber ESE DVB-S/S2 Satellite Receiver 1.5.x - Device Config"
+        ],
+        "type_id": "WebApps",
+        "platform_id": "Hardware",
+        "author_id": [
+            "1361",
+            "LiquidWorm"
+        ],
+        "date_published": "2024-08-24",
+        "verified": 0,
+        "application_path": "",
+        "application_md5": "",
+        "port": 0,
+        "screenshot_path": "",
+        "screenshot_thumb_path": "",
+        "tags": [],
+        "code": [],
+        "type": {
+            "id": "6",
+            "name": "webapps",
+            "display": "WebApps"
+        },
+        "platform": {
+            "id": "12",
+            "platform": "Hardware"
+        },
+        "author": {
+            "id": "1361",
+            "name": "LiquidWorm"
+        },
+        "download": "<a href=\"/download/52070\" aria-label=\"Download52070\"><i class=\"mdi mdi-download mdi-18px\" style=\"color: #132f50\"></i></a>"
+    },
+    {
+        "id": "52069",
+        "description": [
+            "52069",
+            "Elber ESE DVB-S/S2 Satellite Receiver 1.5.x - Authentication Bypass"
+        ],
+        "type_id": "WebApps",
+        "platform_id": "Hardware",
+        "author_id": [
+            "1361",
+            "LiquidWorm"
+        ],
+        "date_published": "2024-08-24",
+        "verified": 0,
+        "application_path": "",
+        "application_md5": "",
+        "port": 0,
+        "screenshot_path": "",
+        "screenshot_thumb_path": "",
+        "tags": [],
+        "code": [],
+        "type": {
+            "id": "6",
+            "name": "webapps",
+            "display": "WebApps"
+        },
+        "platform": {
+            "id": "12",
+            "platform": "Hardware"
+        },
+        "author": {
+            "id": "1361",
+            "name": "LiquidWorm"
+        },
+        "download": "<a href=\"/download/52069\" aria-label=\"Download52069\"><i class=\"mdi mdi-download mdi-18px\" style=\"color: #132f50\"></i></a>"
+    },
+    {
+        "id": "52068",
+        "description": [
+            "52068",
+            "Helpdeskz v2.0.2 - Stored XSS"
+        ],
+        "type_id": "WebApps",
+        "platform_id": "PHP",
+        "author_id": [
+            "12190",
+            "Md. Sadikul Islam"
+        ],
+        "date_published": "2024-08-23",
+        "verified": 0,
+        "application_path": "",
+        "application_md5": "",
+        "port": 0,
+        "screenshot_path": "",
+        "screenshot_thumb_path": "",
+        "tags": [],
+        "code": [],
+        "type": {
+            "id": "6",
+            "name": "webapps",
+            "display": "WebApps"
+        },
+        "platform": {
+            "id": "31",
+            "platform": "PHP"
+        },
+        "author": {
+            "id": "12190",
+            "name": "Md. Sadikul Islam"
+        },
+        "download": "<a href=\"/download/52068\" aria-label=\"Download52068\"><i class=\"mdi mdi-download mdi-18px\" style=\"color: #132f50\"></i></a>"
+    },
+    {
+        "id": "52067",
+        "description": [
+            "52067",
+            "Calibre-web 0.6.21 - Stored XSS"
+        ],
+        "type_id": "WebApps",
+        "platform_id": "Multiple",
+        "author_id": [
+            "12189",
+            "Catalin Iovita, Alexandru Postolache"
+        ],
+        "date_published": "2024-08-23",
+        "verified": 0,
+        "application_path": "",
+        "application_md5": "",
+        "port": 0,
+        "screenshot_path": "",
+        "screenshot_thumb_path": "",
+        "tags": [],
+        "code": [],
+        "type": {
+            "id": "6",
+            "name": "webapps",
+            "display": "WebApps"
+        },
+        "platform": {
+            "id": "24",
+            "platform": "Multiple"
+        },
+        "author": {
+            "id": "12189",
+            "name": "Catalin Iovita, Alexandru Postolache"
+        },
+        "download": "<a href=\"/download/52067\" aria-label=\"Download52067\"><i class=\"mdi mdi-download mdi-18px\" style=\"color: #132f50\"></i></a>"
+    }
+]

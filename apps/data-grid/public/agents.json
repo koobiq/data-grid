@@ -1,0 +1,3319 @@
+{
+  "data": {
+    "agents": [
+      {
+        "agent": {
+          "id": "d3c2be82a78856033d551651805052e1",
+          "connected": false,
+          "last_connected_at": "2024-07-23T18:59:15Z",
+          "group_id": "506ea01971208f3bf77b9a45d87e31fd",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T18:59:35Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_39216_3476_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "506ea01971208f3bf77b9a45d87e31fd",
+          "name": "Нагрузочное тестирование 506ea01971208f3bf77b9a45d87e31fd",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "0a17a53139c08cfe8031b5fd78c19551",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:14Z",
+          "group_id": "63333c88a8c9cf539f4fd100b42e1610",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:34Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_92184_3475_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "63333c88a8c9cf539f4fd100b42e1610",
+          "name": "Нагрузочное тестирование 63333c88a8c9cf539f4fd100b42e1610",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "30a3a145cfd4df1814d762341e4c8029",
+          "connected": false,
+          "last_connected_at": "2024-07-23T18:59:17Z",
+          "group_id": "c074e23e5412cdd5197eb0c125f3577b",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T18:59:37Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_136278_3474_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "c074e23e5412cdd5197eb0c125f3577b",
+          "name": "Нагрузочное тестирование c074e23e5412cdd5197eb0c125f3577b",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "734f9be6ef0ec2cb32e2a14034b25b85",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:34Z",
+          "group_id": "a6b088960f6040a417a2256d590a7ba3",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:55Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_41805_3473_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "a6b088960f6040a417a2256d590a7ba3",
+          "name": "Нагрузочное тестирование a6b088960f6040a417a2256d590a7ba3",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "333f6e7873ecec059cbdf7226f77a9c0",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:37Z",
+          "group_id": "b0940de42d3fd7c804fb986988e6ced7",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:54Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_96278_3472_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "b0940de42d3fd7c804fb986988e6ced7",
+          "name": "Нагрузочное тестирование b0940de42d3fd7c804fb986988e6ced7",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "cb82aae5573491d7f7f4525b79d9bd55",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:37Z",
+          "group_id": "e6a8821d50b30a980adf4d3fe972f8fe",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:54Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_25873_3471_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "e6a8821d50b30a980adf4d3fe972f8fe",
+          "name": "Нагрузочное тестирование e6a8821d50b30a980adf4d3fe972f8fe",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "1d91dde3c06c69cd1d3af200e8a8fa4b",
+          "connected": false,
+          "last_connected_at": "2024-08-13T12:29:31Z",
+          "group_id": "62934f9188e6d3b8234dc8727f90550d",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-08-13T12:29:37Z"
+        },
+        "agent_info": {
+          "ip": "192.168.14.88",
+          "net": {
+            "hostname": "edr-generator",
+            "ips": [
+              "127.0.0.1/8",
+              "10.20.157.235/24",
+              "192.168.14.88/24",
+              "192.168.16.1/20",
+              "172.17.0.1/16"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Debian GNU/Linux 10",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "virt",
+              "groups": [
+                "virt",
+                "cdrom",
+                "floppy",
+                "audio",
+                "dip",
+                "video",
+                "plugdev",
+                "netdev"
+              ]
+            },
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            },
+            {
+              "name": "sync",
+              "groups": [
+                "nogroup"
+              ]
+            },
+            {
+              "name": "gitlab-runner",
+              "groups": [
+                "gitlab-runner"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "62934f9188e6d3b8234dc8727f90550d",
+          "name": "Нагрузочное тестирование 62934f9188e6d3b8234dc8727f90550d",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "dde202c22d91e260a92a716052cf04f1",
+          "connected": false,
+          "last_connected_at": "2024-07-26T07:31:51Z",
+          "group_id": "7de119c9ab72ff13852ef9de69bbf643",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-26T07:31:53Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_75036_3469_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "7de119c9ab72ff13852ef9de69bbf643",
+          "name": "Нагрузочное тестирование 7de119c9ab72ff13852ef9de69bbf643",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "016196a4a8776370255538ab9930f111",
+          "connected": false,
+          "last_connected_at": "2024-07-23T18:59:14Z",
+          "group_id": "3e015544bcd70d099f4784ff909c3710",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T18:59:34Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_268023_3468_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "3e015544bcd70d099f4784ff909c3710",
+          "name": "Нагрузочное тестирование 3e015544bcd70d099f4784ff909c3710",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "cc5321a9868a4b1ded76ca75a550758a",
+          "connected": false,
+          "last_connected_at": "2024-07-26T07:31:30Z",
+          "group_id": "fe8b562e3dd390c1a2b5bc6dd92ba819",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-26T07:31:50Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_33593_3467_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "fe8b562e3dd390c1a2b5bc6dd92ba819",
+          "name": "Нагрузочное тестирование fe8b562e3dd390c1a2b5bc6dd92ba819",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "8946a48d33647a8a7145df9c8b9c8ce5",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:14Z",
+          "group_id": "6ad9f4e0e05834797f277326bca510a4",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:34Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_276124_3466_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "6ad9f4e0e05834797f277326bca510a4",
+          "name": "Нагрузочное тестирование 6ad9f4e0e05834797f277326bca510a4",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "edf1e201500fcb89d5ea88aef74ec06e",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:36Z",
+          "group_id": "277a66d3d3c4be0fa1b38e507db35b4d",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:55Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_280738_3465_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "277a66d3d3c4be0fa1b38e507db35b4d",
+          "name": "Нагрузочное тестирование 277a66d3d3c4be0fa1b38e507db35b4d",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "d5d18edd07bb8fe26bddf69efdd2d0b4",
+          "connected": false,
+          "last_connected_at": "2024-08-13T12:29:31Z",
+          "group_id": "5eed90edfab42c3600f73539b0ed3ead",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-08-13T12:29:37Z"
+        },
+        "agent_info": {
+          "ip": "192.168.14.88",
+          "net": {
+            "hostname": "edr-generator",
+            "ips": [
+              "127.0.0.1/8",
+              "10.20.157.235/24",
+              "192.168.14.88/24",
+              "192.168.16.1/20",
+              "172.17.0.1/16"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Debian GNU/Linux 10",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            },
+            {
+              "name": "virt",
+              "groups": [
+                "virt",
+                "cdrom",
+                "floppy",
+                "audio",
+                "dip",
+                "video",
+                "plugdev",
+                "netdev"
+              ]
+            },
+            {
+              "name": "gitlab-runner",
+              "groups": [
+                "gitlab-runner"
+              ]
+            },
+            {
+              "name": "sync",
+              "groups": [
+                "nogroup"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "5eed90edfab42c3600f73539b0ed3ead",
+          "name": "Нагрузочное тестирование 5eed90edfab42c3600f73539b0ed3ead",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "87867c027048ea1e56f9eefb51d9a0ff",
+          "connected": false,
+          "last_connected_at": "2024-07-26T07:31:51Z",
+          "group_id": "196d6396f0b007a9051068adae7a2542",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-26T07:31:55Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_131957_3463_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "196d6396f0b007a9051068adae7a2542",
+          "name": "Нагрузочное тестирование 196d6396f0b007a9051068adae7a2542",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "6bc60bf14e60b2ca774753e7c764beaf",
+          "connected": false,
+          "last_connected_at": "2024-07-23T18:59:37Z",
+          "group_id": "132ffe1f37bbe26d8c1d82631cf40a51",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T18:59:55Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_230592_3462_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "132ffe1f37bbe26d8c1d82631cf40a51",
+          "name": "Нагрузочное тестирование 132ffe1f37bbe26d8c1d82631cf40a51",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "f303880dc133455d2649c1176e14f7aa",
+          "connected": false,
+          "last_connected_at": "2024-08-13T12:29:31Z",
+          "group_id": "599cb2caef4f4b39c035d4a477de9851",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-08-13T12:29:37Z"
+        },
+        "agent_info": {
+          "ip": "192.168.14.88",
+          "net": {
+            "hostname": "edr-generator",
+            "ips": [
+              "127.0.0.1/8",
+              "10.20.157.235/24",
+              "192.168.14.88/24",
+              "192.168.16.1/20",
+              "172.17.0.1/16"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Debian GNU/Linux 10",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            },
+            {
+              "name": "gitlab-runner",
+              "groups": [
+                "gitlab-runner"
+              ]
+            },
+            {
+              "name": "virt",
+              "groups": [
+                "virt",
+                "cdrom",
+                "floppy",
+                "audio",
+                "dip",
+                "video",
+                "plugdev",
+                "netdev"
+              ]
+            },
+            {
+              "name": "sync",
+              "groups": [
+                "nogroup"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "599cb2caef4f4b39c035d4a477de9851",
+          "name": "Нагрузочное тестирование 599cb2caef4f4b39c035d4a477de9851",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "0e9779f34121abe76dd3e23287a76e8d",
+          "connected": false,
+          "last_connected_at": "2024-08-13T12:29:31Z",
+          "group_id": "b24ce80d1cbd68b3cb2f6532210b13ac",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-08-13T12:29:36Z"
+        },
+        "agent_info": {
+          "ip": "192.168.14.88",
+          "net": {
+            "hostname": "edr-generator",
+            "ips": [
+              "127.0.0.1/8",
+              "10.20.157.235/24",
+              "192.168.14.88/24",
+              "192.168.16.1/20",
+              "172.17.0.1/16"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Debian GNU/Linux 10",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "virt",
+              "groups": [
+                "virt",
+                "cdrom",
+                "floppy",
+                "audio",
+                "dip",
+                "video",
+                "plugdev",
+                "netdev"
+              ]
+            },
+            {
+              "name": "gitlab-runner",
+              "groups": [
+                "gitlab-runner"
+              ]
+            },
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            },
+            {
+              "name": "sync",
+              "groups": [
+                "nogroup"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "b24ce80d1cbd68b3cb2f6532210b13ac",
+          "name": "Нагрузочное тестирование b24ce80d1cbd68b3cb2f6532210b13ac",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "8ce411c82c26a6d8d5ead758aaf447a9",
+          "connected": false,
+          "last_connected_at": "2024-07-26T07:31:51Z",
+          "group_id": "53f6eef7d73210c96b03d008bb227900",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-26T07:31:53Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_84922_3459_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "53f6eef7d73210c96b03d008bb227900",
+          "name": "Нагрузочное тестирование 53f6eef7d73210c96b03d008bb227900",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "099dbb1ff1d2ffe938e7c9efc9346a27",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:15Z",
+          "group_id": "7c028cf5b869a413bd6470a7dab4f043",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:34Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_291039_3458_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "7c028cf5b869a413bd6470a7dab4f043",
+          "name": "Нагрузочное тестирование 7c028cf5b869a413bd6470a7dab4f043",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "f5e7c5479ed868589806b6a7b96fd452",
+          "connected": false,
+          "last_connected_at": "2024-08-13T12:29:31Z",
+          "group_id": "3e34d920fc22126c83bcaaab897bc030",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-08-13T12:29:37Z"
+        },
+        "agent_info": {
+          "ip": "192.168.14.88",
+          "net": {
+            "hostname": "edr-generator",
+            "ips": [
+              "127.0.0.1/8",
+              "10.20.157.235/24",
+              "192.168.14.88/24",
+              "192.168.16.1/20",
+              "172.17.0.1/16"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Debian GNU/Linux 10",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "gitlab-runner",
+              "groups": [
+                "gitlab-runner"
+              ]
+            },
+            {
+              "name": "sync",
+              "groups": [
+                "nogroup"
+              ]
+            },
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            },
+            {
+              "name": "virt",
+              "groups": [
+                "virt",
+                "cdrom",
+                "floppy",
+                "audio",
+                "dip",
+                "video",
+                "plugdev",
+                "netdev"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "3e34d920fc22126c83bcaaab897bc030",
+          "name": "Нагрузочное тестирование 3e34d920fc22126c83bcaaab897bc030",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "5fe5bc8fb6ec4ef6a0200cfa7e855ba7",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:35Z",
+          "group_id": "65e7537c62c572250aa666407c667462",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:54Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_241766_3456_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "65e7537c62c572250aa666407c667462",
+          "name": "Нагрузочное тестирование 65e7537c62c572250aa666407c667462",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "7056920ac27f48c06ea45e1c84311998",
+          "connected": false,
+          "last_connected_at": "2024-07-26T07:31:50Z",
+          "group_id": "884d017c5e13f6a5eef2eaebb99539a1",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-26T07:31:53Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_240324_3455_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "884d017c5e13f6a5eef2eaebb99539a1",
+          "name": "Нагрузочное тестирование 884d017c5e13f6a5eef2eaebb99539a1",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "a4ae7b72c21b16ebfc751b5b9c554cf8",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:35Z",
+          "group_id": "1977b95b7a4e7dd273923acbec848ef8",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:54Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_248971_3454_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "1977b95b7a4e7dd273923acbec848ef8",
+          "name": "Нагрузочное тестирование 1977b95b7a4e7dd273923acbec848ef8",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "34f0c1c19bc28b8053bb78b72346ee92",
+          "connected": false,
+          "last_connected_at": "2024-07-26T07:31:51Z",
+          "group_id": "d3818e3d8fcb57f9628e7c1269ca8199",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-26T07:31:54Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_91335_3503_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "d3818e3d8fcb57f9628e7c1269ca8199",
+          "name": "Нагрузочное тестирование d3818e3d8fcb57f9628e7c1269ca8199",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-05-06T13:08:04Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "a89268df6e0aea1479cbe4a2f7cfcbea",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:17Z",
+          "group_id": "fcaca87be7dfd964e9206a64ad58c960",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:37Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_7890_3502_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "fcaca87be7dfd964e9206a64ad58c960",
+          "name": "Нагрузочное тестирование fcaca87be7dfd964e9206a64ad58c960",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "ffac164a10503af40da0046305e476e0",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:17Z",
+          "group_id": "478c11bb92a12270e0bd1054d69055c4",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:35Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_219395_3501_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "478c11bb92a12270e0bd1054d69055c4",
+          "name": "Нагрузочное тестирование 478c11bb92a12270e0bd1054d69055c4",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "9987c6cbdf6fb7adf30446405771b02d",
+          "connected": false,
+          "last_connected_at": "2024-07-23T18:59:17Z",
+          "group_id": "7515b2faf00fe96e59c82fbe8477fc5c",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T18:59:35Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_208580_3500_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "7515b2faf00fe96e59c82fbe8477fc5c",
+          "name": "Нагрузочное тестирование 7515b2faf00fe96e59c82fbe8477fc5c",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "b44d1c54fec88d900957b8508bfb0e3d",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:15Z",
+          "group_id": "379635dc09f2913543d673ead7d3a292",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:37Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_154829_3499_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "379635dc09f2913543d673ead7d3a292",
+          "name": "Нагрузочное тестирование 379635dc09f2913543d673ead7d3a292",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "ee85e1600e0f3fcc4fde74615d6c6498",
+          "connected": false,
+          "last_connected_at": "2024-07-23T18:59:15Z",
+          "group_id": "d1b10f04bb6beed9ff6c3c72809e753c",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T18:59:35Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_293166_3498_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "d1b10f04bb6beed9ff6c3c72809e753c",
+          "name": "Нагрузочное тестирование d1b10f04bb6beed9ff6c3c72809e753c",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "ba9f529361d5deca72e39ef432e80af9",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:35Z",
+          "group_id": "2dbc0207caeef3909dd8d4756392ef4a",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:57Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_190066_3497_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "2dbc0207caeef3909dd8d4756392ef4a",
+          "name": "Нагрузочное тестирование 2dbc0207caeef3909dd8d4756392ef4a",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "e2c6c0c83ee9a128b43501429573b37d",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:37Z",
+          "group_id": "4b9e69e486a2bfd9d157500d3ead9271",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:55Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_168046_3496_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "4b9e69e486a2bfd9d157500d3ead9271",
+          "name": "Нагрузочное тестирование 4b9e69e486a2bfd9d157500d3ead9271",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "6d272b674ee88debd23beb10651415f5",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:14Z",
+          "group_id": "a714b9451c4095896d7ff1e9fe8981b4",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:35Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_93208_3495_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "a714b9451c4095896d7ff1e9fe8981b4",
+          "name": "Нагрузочное тестирование a714b9451c4095896d7ff1e9fe8981b4",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "0afa86d07e003a0b1dabbba570198bf5",
+          "connected": false,
+          "last_connected_at": "2024-07-26T07:30:30Z",
+          "group_id": "8cee7753088f248da3af1d1b7b440388",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-26T07:30:53Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_66029_3494_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "8cee7753088f248da3af1d1b7b440388",
+          "name": "Нагрузочное тестирование 8cee7753088f248da3af1d1b7b440388",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "a37ae3e2c8f31af016d8dba88e7c2f3c",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:36Z",
+          "group_id": "6f8fa95333f477eb04a2e0ffe4617fa7",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:54Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_138764_3493_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "6f8fa95333f477eb04a2e0ffe4617fa7",
+          "name": "Нагрузочное тестирование 6f8fa95333f477eb04a2e0ffe4617fa7",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "38958711d12ff127a00f3db4f5519023",
+          "connected": false,
+          "last_connected_at": "2024-08-13T12:29:31Z",
+          "group_id": "e9be2f930a41afa46af24dd635150ab1",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-08-13T12:29:36Z"
+        },
+        "agent_info": {
+          "ip": "192.168.14.88",
+          "net": {
+            "hostname": "edr-generator",
+            "ips": [
+              "127.0.0.1/8",
+              "10.20.157.235/24",
+              "192.168.14.88/24",
+              "192.168.16.1/20",
+              "172.17.0.1/16"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Debian GNU/Linux 10",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "gitlab-runner",
+              "groups": [
+                "gitlab-runner"
+              ]
+            },
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            },
+            {
+              "name": "sync",
+              "groups": [
+                "nogroup"
+              ]
+            },
+            {
+              "name": "virt",
+              "groups": [
+                "virt",
+                "cdrom",
+                "floppy",
+                "audio",
+                "dip",
+                "video",
+                "plugdev",
+                "netdev"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "e9be2f930a41afa46af24dd635150ab1",
+          "name": "Нагрузочное тестирование e9be2f930a41afa46af24dd635150ab1",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "6cdffa8d84ee3686f10f0a8020815c28",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:16Z",
+          "group_id": "dd5ba624eacef78e75d87b3b037f7d4e",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:35Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_71386_3491_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "dd5ba624eacef78e75d87b3b037f7d4e",
+          "name": "Нагрузочное тестирование dd5ba624eacef78e75d87b3b037f7d4e",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "25ce67de60072636a09b8f30e1a2f9f8",
+          "connected": false,
+          "last_connected_at": "2024-07-23T18:59:14Z",
+          "group_id": "27cf021ce797668817d8300533e4aa95",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T18:59:35Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_106653_3490_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "27cf021ce797668817d8300533e4aa95",
+          "name": "Нагрузочное тестирование 27cf021ce797668817d8300533e4aa95",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "e56e6b3d27ad5411e5356cfd7bedd618",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:36Z",
+          "group_id": "ceecbce89b8c1c9389077dca928940b3",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:55Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_236205_3489_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "ceecbce89b8c1c9389077dca928940b3",
+          "name": "Нагрузочное тестирование ceecbce89b8c1c9389077dca928940b3",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "229d3f3cdf52845f3fadd220dba83627",
+          "connected": false,
+          "last_connected_at": "2024-08-13T12:29:31Z",
+          "group_id": "44bf2da79da98e24c58afae7cbece562",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-08-13T12:29:37Z"
+        },
+        "agent_info": {
+          "ip": "192.168.14.88",
+          "net": {
+            "hostname": "edr-generator",
+            "ips": [
+              "127.0.0.1/8",
+              "10.20.157.235/24",
+              "192.168.14.88/24",
+              "192.168.16.1/20",
+              "172.17.0.1/16"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Debian GNU/Linux 10",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "gitlab-runner",
+              "groups": [
+                "gitlab-runner"
+              ]
+            },
+            {
+              "name": "sync",
+              "groups": [
+                "nogroup"
+              ]
+            },
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            },
+            {
+              "name": "virt",
+              "groups": [
+                "virt",
+                "cdrom",
+                "floppy",
+                "audio",
+                "dip",
+                "video",
+                "plugdev",
+                "netdev"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "44bf2da79da98e24c58afae7cbece562",
+          "name": "Нагрузочное тестирование 44bf2da79da98e24c58afae7cbece562",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "92204ef0aa701a45ad4b3475575c5fae",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:14Z",
+          "group_id": "ad911a26b201a597cb270dc2c450cef9",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:37Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_292805_3487_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "ad911a26b201a597cb270dc2c450cef9",
+          "name": "Нагрузочное тестирование ad911a26b201a597cb270dc2c450cef9",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "cf618fae26feac786ffe3da272dd04f4",
+          "connected": false,
+          "last_connected_at": "2024-08-13T12:29:31Z",
+          "group_id": "933e961e2ed146dba085a569ae2f9721",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-08-13T12:29:37Z"
+        },
+        "agent_info": {
+          "ip": "192.168.14.88",
+          "net": {
+            "hostname": "edr-generator",
+            "ips": [
+              "127.0.0.1/8",
+              "10.20.157.235/24",
+              "192.168.14.88/24",
+              "192.168.16.1/20",
+              "172.17.0.1/16"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Debian GNU/Linux 10",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            },
+            {
+              "name": "virt",
+              "groups": [
+                "virt",
+                "cdrom",
+                "floppy",
+                "audio",
+                "dip",
+                "video",
+                "plugdev",
+                "netdev"
+              ]
+            },
+            {
+              "name": "gitlab-runner",
+              "groups": [
+                "gitlab-runner"
+              ]
+            },
+            {
+              "name": "sync",
+              "groups": [
+                "nogroup"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "933e961e2ed146dba085a569ae2f9721",
+          "name": "Нагрузочное тестирование 933e961e2ed146dba085a569ae2f9721",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "d79e2eaa8133cf2814f1c6e166113116",
+          "connected": false,
+          "last_connected_at": "2024-08-13T12:29:31Z",
+          "group_id": "dbf8b806921dce8ea2d1eb6754cc2c3c",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-08-13T12:29:37Z"
+        },
+        "agent_info": {
+          "ip": "192.168.14.88",
+          "net": {
+            "hostname": "edr-generator",
+            "ips": [
+              "127.0.0.1/8",
+              "10.20.157.235/24",
+              "192.168.14.88/24",
+              "192.168.16.1/20",
+              "172.17.0.1/16"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Debian GNU/Linux 10",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            },
+            {
+              "name": "virt",
+              "groups": [
+                "virt",
+                "cdrom",
+                "floppy",
+                "audio",
+                "dip",
+                "video",
+                "plugdev",
+                "netdev"
+              ]
+            },
+            {
+              "name": "sync",
+              "groups": [
+                "nogroup"
+              ]
+            },
+            {
+              "name": "gitlab-runner",
+              "groups": [
+                "gitlab-runner"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "dbf8b806921dce8ea2d1eb6754cc2c3c",
+          "name": "Нагрузочное тестирование dbf8b806921dce8ea2d1eb6754cc2c3c",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "cb36fc8d14274a6690df332555a154d6",
+          "connected": false,
+          "last_connected_at": "2024-07-26T07:30:34Z",
+          "group_id": "0325fb696b5967d321218976377fa454",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-26T07:30:53Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_252465_3484_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "0325fb696b5967d321218976377fa454",
+          "name": "Нагрузочное тестирование 0325fb696b5967d321218976377fa454",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-05-06T13:08:33Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "c2d7208ac7910e5b2bb01f1663c39b56",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:15Z",
+          "group_id": "423937b4536a8d16305e1c644a93aab7",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:34Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_298127_3483_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "423937b4536a8d16305e1c644a93aab7",
+          "name": "Нагрузочное тестирование 423937b4536a8d16305e1c644a93aab7",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "9df30e0efa6be9aaf7eaa8723c0060dd",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:36Z",
+          "group_id": "1a5b75b7173f39a60e609498f136ef57",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:54Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_66131_3482_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "1a5b75b7173f39a60e609498f136ef57",
+          "name": "Нагрузочное тестирование 1a5b75b7173f39a60e609498f136ef57",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "9e8569d327e915d8a1156fc34f1d4722",
+          "connected": false,
+          "last_connected_at": "2024-07-26T07:31:50Z",
+          "group_id": "9de9bada4ed53f0359ce2f12098f1edd",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-26T07:31:53Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_192308_3481_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "9de9bada4ed53f0359ce2f12098f1edd",
+          "name": "Нагрузочное тестирование 9de9bada4ed53f0359ce2f12098f1edd",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "41798769cd236d59de2e26d453c9e317",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:36Z",
+          "group_id": "ee248d84d2593fae9d73549dc8f49fe5",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:55Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_189031_3480_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "ee248d84d2593fae9d73549dc8f49fe5",
+          "name": "Нагрузочное тестирование ee248d84d2593fae9d73549dc8f49fe5",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "fb40e3341d980ac0ae1aef3f62162e7b",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:36Z",
+          "group_id": "fdf1f63e51c850b404b1a0cbf0f4c448",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:55Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_240456_3479_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "fdf1f63e51c850b404b1a0cbf0f4c448",
+          "name": "Нагрузочное тестирование fdf1f63e51c850b404b1a0cbf0f4c448",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "62a818ec184ea715929908441c73c0b0",
+          "connected": false,
+          "last_connected_at": "2024-07-23T15:03:37Z",
+          "group_id": "71fc634dc6970d30e542b74959064cf4",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T15:03:55Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_122027_3478_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "71fc634dc6970d30e542b74959064cf4",
+          "name": "Нагрузочное тестирование 71fc634dc6970d30e542b74959064cf4",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      },
+      {
+        "agent": {
+          "id": "fc11b15b5146835efc95aaf6d3d721af",
+          "connected": false,
+          "last_connected_at": "2024-07-23T18:59:55Z",
+          "group_id": "e4ce20fa7011bed7a854ed368dbdd363",
+          "description": "172.20.0.1_linux_generator_d68e02",
+          "status": "authorized",
+          "version": {
+            "major": 3,
+            "minor": 0,
+            "patch": 0,
+            "revision": "0"
+          },
+          "tags": [
+            "loadtest"
+          ],
+          "registered_at": "2024-04-11T14:08:53Z",
+          "updated_at": "2024-07-23T19:00:01Z"
+        },
+        "agent_info": {
+          "ip": "172.20.0.1",
+          "net": {
+            "hostname": "Loadtest_129658_3477_.rd.ptsecurity.com",
+            "ips": [
+              "127.0.0.1/8"
+            ]
+          },
+          "os": {
+            "arch": "amd64",
+            "name": "Ubuntu 16.04",
+            "type": "linux"
+          },
+          "users": [
+            {
+              "name": "root",
+              "groups": [
+                "root"
+              ]
+            }
+          ]
+        },
+        "group": {
+          "id": "e4ce20fa7011bed7a854ed368dbdd363",
+          "name": "Нагрузочное тестирование e4ce20fa7011bed7a854ed368dbdd363",
+          "tags": [
+            "loadtest"
+          ],
+          "created_at": "2024-04-11T14:08:49Z",
+          "updated_at": "2024-04-11T11:08:49Z"
+        },
+        "agent_upgrade_status": {
+          "available_upgrade": {
+            "major": 4,
+            "minor": 0,
+            "patch": 1,
+            "revision": "5870"
+          },
+          "status": "none"
+        }
+      }
+    ],
+    "total": 5024
+  },
+  "status": "success"
+}
