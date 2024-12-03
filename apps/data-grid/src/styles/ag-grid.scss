@@ -1,50 +1,84 @@
 @use '@ag-grid-community/styles' as ag;
 @use 'ag-grid-community/styles/ag-theme-balham.css';
 
-
-$row-height: 40px;
-
 @include ag.grid-styles(
     (
-        theme: balham,
-
-        row-height: $row-height
+        theme: balham
     )
 );
 
 .ag-theme-balham {
     --ag-borders: none;
     --ag-grid-size: 4px;
+    --ag-icon-size: 16px;
+    --ag-row-height: 40px;
     --ag-cell-horizontal-padding: 8px;
 
     // Background/Bg
-    --ag-background-color: #ffffff;
-    // Background/Bg
-    --ag-row-border-color: #ffffff;
+    --ag-background-color: var(--kbq-background-transparent);
+    --ag-odd-row-background-color: var(--kbq-background-transparent);
+
+    // ROW
+    --ag-border-color: tranparent;
     --ag-row-border-style: none;
 
     //Background/Theme-less
-    --ag-selected-row-background-color: #E0EDFF;
+    --ag-selected-row-background-color: var(--kbq-background-theme-fade);
     // States-background/Transparent-hover
-    --ag-row-hover-color: #6C739314;
+    --ag-row-hover-color: var(--kbq-states-background-transparent-hover);
 
     // text-normal
     --ag-font-size: 14px;
-
+    --ag-header-background-color: var(--kbq-background-transparent);
     --ag-header-column-separator-display: block;
     --ag-header-column-separator-width: 1px;
 
     // Line/Contrast-fade
-    --ag-header-column-separator-color: #D3D5DE;
+    --ag-header-column-separator-color: var(--kbq-line-contrast-fade);
     --ag-header-column-separator-height: 66%;
 
     // States-line/Focus-theme
-    --ag-range-selection-border-color: #3385FF;
+    --ag-range-selection-border-color: var(--kbq-line-contrast-fade);
     --ag-range-selection-border-style: dashed;
+
+    --ag-cell-horizontal-border: solid transparent;
 
     .ag-header {
         // Line/Contrast-less
-        border-bottom: 1px solid #0D0E121F;
+        border-bottom: 1px solid var(--kbq-line-contrast-fade);
+    }
+
+    .ag-header-row {
+        color: var(--kbq-foreground-contrast-secondary);
+        font-weight: normal;
+
+        &:hover {
+            .ag-header-cell::after {
+                display: block;
+            }
+        }
+    }
+
+    .ag-header-cell {
+        padding: 0 8px;
+
+        &::before {
+            display: none;
+        }
+
+        &::after {
+            display: none;
+        }
+
+        &:hover {
+            &::before {
+                display: block;
+            }
+        }
+
+        .sort-available {
+            display: flex;
+        }
     }
 
     .ag-row::before {
