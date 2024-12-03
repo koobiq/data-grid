@@ -5,7 +5,7 @@ export type AgentsTableUtils = TableGridUtils<any>;
 export function colName(util: AgentsTableUtils) {
     return util.colDef<string>({
         colId: 'agent',
-        headerValueGetter: () => 'Name',
+        headerValueGetter: () => 'Событие',
         field: 'agent',
         valueFormatter: ({ value }) => value['description']
     });
@@ -14,7 +14,7 @@ export function colName(util: AgentsTableUtils) {
 export function colIP(util: AgentsTableUtils) {
     return util.colDef<number>({
         colId: 'agent_info',
-        headerValueGetter: () => 'IP',
+        headerValueGetter: () => 'IP-адрес',
         field: 'agent_info',
         valueFormatter: ({ value }) => value['ip']
     });
@@ -23,7 +23,7 @@ export function colIP(util: AgentsTableUtils) {
 export function colNameGroup(util: AgentsTableUtils) {
     return util.colDef<string>({
         colId: 'agent_info',
-        headerValueGetter: () => 'Group Name',
+        headerValueGetter: () => 'Информация агента',
         field: 'agent_info',
         width: 100,
         valueFormatter: ({ value }) => value['net']['hostname']
