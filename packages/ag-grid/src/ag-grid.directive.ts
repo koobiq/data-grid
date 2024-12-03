@@ -35,7 +35,7 @@ import { AngularFrameworkOverrides } from './wrapper/angular-framework-overrides
     selector: '[kbqAgGrid]',
     host: {
         '[class.ag-grid]': 'true',
-        '[class.ag-theme-alpine-light]': 'true'
+        '[class.ag-theme-balham]': 'true'
     },
     providers: [AngularFrameworkOverrides, AngularFrameworkComponentWrapper]
 })

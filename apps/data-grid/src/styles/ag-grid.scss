@@ -1,12 +1,18 @@
 @use '@ag-grid-community/styles' as ag;
+@use 'ag-grid-community/styles/ag-theme-balham.css';
+
+
+$row-height: 40px;
 
 @include ag.grid-styles(
     (
-        theme: alpine-light
+        theme: balham,
+
+        row-height: $row-height
     )
 );
 
-.ag-theme-alpine-light {
+.ag-theme-balham {
     --ag-borders: none;
     --ag-grid-size: 4px;
     --ag-cell-horizontal-padding: 8px;
