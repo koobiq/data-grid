@@ -26,6 +26,7 @@ export function colNameGroup(util: AgentsTableUtils) {
         headerValueGetter: () => 'Информация агента',
         field: 'agent_info',
         width: 100,
-        valueFormatter: ({ value }) => value['net']['hostname']
+        valueFormatter: ({ value }) => value['net']['hostname'],
+        flex: 1
     });
 }

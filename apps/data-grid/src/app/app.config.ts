@@ -1,5 +1,5 @@
 import { provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
-import { ApplicationConfig, importProvidersFrom, provideExperimentalZonelessChangeDetection } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule, provideAnimations } from '@angular/platform-browser/animations';
@@ -11,7 +11,5 @@ export const appConfig: ApplicationConfig = {
         provideAnimations(),
         provideRouter(appRoutes),
         provideHttpClient(withFetch(), withInterceptorsFromDi()),
-        importProvidersFrom(BrowserModule, BrowserAnimationsModule, FormsModule),
-        provideExperimentalZonelessChangeDetection()
-    ]
+        importProvidersFrom(BrowserModule, BrowserAnimationsModule, FormsModule)]
 };
