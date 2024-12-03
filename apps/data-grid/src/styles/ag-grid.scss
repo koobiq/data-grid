@@ -1,6 +1,8 @@
 @use '@ag-grid-community/styles' as ag;
 @use 'ag-grid-community/styles/ag-theme-balham.css';
 
+$border-radius: 0; //8px;
+
 @include ag.grid-styles(
     (
         theme: balham
@@ -23,7 +25,7 @@
     --ag-row-border-style: none;
 
     //Background/Theme-less
-    --ag-selected-row-background-color: var(--kbq-background-theme-fade);
+    --ag-selected-row-background-color: var(--kbq-background-theme-less);
     // States-background/Transparent-hover
     --ag-row-hover-color: var(--kbq-states-background-transparent-hover);
 
@@ -43,9 +45,13 @@
 
     --ag-cell-horizontal-border: solid transparent;
 
+    .ag-root-wrapper {
+        border: none;
+    }
+
     .ag-header {
         // Line/Contrast-less
-        border-bottom: 1px solid var(--kbq-line-contrast-fade);
+        border-bottom: 1px solid var(--kbq-line-contrast-less);
     }
 
     .ag-header-row {
@@ -82,7 +88,7 @@
     }
 
     .ag-row::before {
-        border-radius: 8px;
+        border-radius: $border-radius;
     }
 
     .ag-row[aria-selected="true"] {
@@ -98,7 +104,7 @@
     }
 
     .ag-row[aria-selected="true"]:nth-of-type(n + 1):nth-of-type(-n + 1) {
-        border-radius: calc(8px * var(--first-selected-row));
+        border-radius: calc($border-radius * var(--first-selected-row));
     }
 
     .ag-cell {
@@ -106,6 +112,9 @@
         padding-left: 8px;
     }
 
+    .ag-overlay {
+        pointer-events: all;
+    }
 }
 
 .overflow-visible {
