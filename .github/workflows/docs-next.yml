@@ -28,5 +28,7 @@ jobs:
 
       - run: yarn install --frozen-lockfile
 
+      - run: yarn run data-grid:build
+
       - name: Deploy
         run: npx firebase deploy --only hosting:next --token=${{ secrets.FIREBASE_DEPLOY_TOKEN }}
