@@ -51,7 +51,7 @@ export class TableGridPersistenceService {
             return;
         }
         const state = api.getColumnState();
-        this.writeColumnState(api, key, state);
+        await this.writeColumnState(api, key, state);
     }
 
     async savePinnedState(api: GridApi, key: string, identify: (item: any) => string | number) {
@@ -63,7 +63,7 @@ export class TableGridPersistenceService {
         const pinnedTop = gridGetPinnedTopData(api)?.map(identify);
         const pinnedBottom = gridGetPinnedBottomData(api)?.map(identify);
 
-        this.storage.createOrUpdate({
+        await this.storage.createOrUpdate({
             columns: null,
             ...(state || {}),
             id: key,

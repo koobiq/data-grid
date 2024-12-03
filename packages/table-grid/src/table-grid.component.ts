@@ -69,7 +69,7 @@ export class TableGridComponent<T> implements OnInit {
     }
 
     @Input()
-    set identifyBy(value: (it: T) => string | number) {
+    set identifyBy(value: (item: T) => string | number) {
         this.store.patchState({ identifyBy: value });
     }
 
@@ -174,7 +174,7 @@ export class TableGridComponent<T> implements OnInit {
         this.grid
             .onEvent('rowClicked')
             .pipe(
-                filter((it: RowClickedEvent) => !!it.rowPinned),
+                filter((item: RowClickedEvent) => !!item.rowPinned),
                 takeUntil(this.store.destroy$)
             )
             .subscribe((e: RowClickedEvent) => {

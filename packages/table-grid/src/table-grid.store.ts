@@ -15,7 +15,7 @@ export interface TableGridState<T> {
     grid?: AgGrid<T>;
 
     /** Function to identify a unique key for an item in the grid. */
-    identifyBy?: (it: T) => string | number;
+    identifyBy?: (item: T) => string | number;
 
     /** The data to be displayed in the grid. */
     gridData?: T[];
