@@ -7,6 +7,7 @@ export function colName(util: AgentsTableUtils) {
         colId: 'agent',
         headerValueGetter: () => 'Событие',
         field: 'agent',
+        width: 300,
         valueFormatter: ({ value }) => value['description']
     });
 }

@@ -292,7 +292,7 @@ function selectGridOptions(options: GridOptions) {
         defaultColDef: options.defaultColDef ?? {
             resizable: true,
             sortable: true,
-            filter: true
+            filter: false
         },
         includeHiddenColumnsInQuickFilter: options.includeHiddenColumnsInQuickFilter ?? true,
         cacheQuickFilter: true
