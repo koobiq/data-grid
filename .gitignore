@@ -1,0 +1,22 @@
+# Angular
+dist/
+tmp/
+
+# dependencies
+node_modules/
+
+# IDEs and editors
+.idea/
+
+# misc
+.sass-cache/
+connect.lock/
+coverage/
+libpeerconnection.log/
+npm-debug.log
+testem.log
+typings/
+.angular/
+
+# System Files
+.DS_Store/

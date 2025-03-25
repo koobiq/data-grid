@@ -1,0 +1,15 @@
+{
+  "name": "@koobiq/data-grid",
+  "version": "0.0.0",
+  "homepage": "https://github.com/koobiq/data-grid",
+  "bugs": "https://github.com/koobiq/data-grid/issues",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/koobiq/data-grid.git"
+  },
+  "engines": {
+    "yarn": "^1.22.22",
+    "npm": "Please use Yarn instead of NPM to install dependencies."
+  }
+}
