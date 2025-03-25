@@ -11,5 +11,8 @@
   "engines": {
     "yarn": "^1.22.22",
     "npm": "Please use Yarn instead of NPM to install dependencies."
+  },
+  "devDependencies": {
+    "nx": "20.6.3"
   }
 }

@@ -20,3 +20,7 @@ typings/
 
 # System Files
 .DS_Store/
+
+# nx
+.nx/cache
+.nx/workspace-data
