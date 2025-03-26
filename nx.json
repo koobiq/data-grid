@@ -1,4 +1,19 @@
 {
-  "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "nxCloudId": "67e2c1a0ad424c1ca5d11208"
+    "$schema": "./node_modules/nx/schemas/nx-schema.json",
+    "nxCloudId": "67e2c1a0ad424c1ca5d11208",
+    "targetDefaults": {
+        "@angular-devkit/build-angular:application": {
+            "cache": true,
+            "dependsOn": ["^build"],
+            "inputs": ["default", "^default"]
+        }
+    },
+    "generators": {
+        "@nx/angular:application": {
+            "e2eTestRunner": "none",
+            "linter": "none",
+            "style": "scss",
+            "unitTestRunner": "none"
+        }
+    }
 }

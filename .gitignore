@@ -1,6 +1,7 @@
 # Angular
 dist/
 tmp/
+.angular/
 
 # dependencies
 node_modules/
@@ -16,7 +17,6 @@ libpeerconnection.log/
 npm-debug.log
 testem.log
 typings/
-.angular/
 
 # System Files
 .DS_Store/

@@ -1,0 +1,13 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": { "target": "ES2022" },
+    "files": [],
+    "include": [],
+    "references": [{ "path": "./tsconfig.editor.json" }, { "path": "./tsconfig.app.json" }],
+    "angularCompilerOptions": {
+        "enableI18nLegacyMessageIdFormat": false,
+        "strictInjectionParameters": true,
+        "strictInputAccessModifiers": true,
+        "strictTemplates": true
+    }
+}

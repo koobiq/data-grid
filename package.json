@@ -1,18 +1,52 @@
 {
-  "name": "@koobiq/data-grid",
-  "version": "0.0.0",
-  "homepage": "https://github.com/koobiq/data-grid",
-  "bugs": "https://github.com/koobiq/data-grid/issues",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/koobiq/data-grid.git"
-  },
-  "engines": {
-    "yarn": "^1.22.22",
-    "npm": "Please use Yarn instead of NPM to install dependencies."
-  },
-  "devDependencies": {
-    "nx": "20.6.3"
-  }
+    "name": "data-grid",
+    "version": "0.0.0",
+    "homepage": "https://github.com/koobiq/data-grid",
+    "bugs": "https://github.com/koobiq/data-grid/issues",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/koobiq/data-grid.git"
+    },
+    "engines": {
+        "yarn": "^1.22.22",
+        "npm": "Please use Yarn instead of NPM to install dependencies."
+    },
+    "scripts": {
+        "demo:serve": "nx run demo:serve --configuration=development",
+        "-----CI-----": "---------------------------------------------------------------------------------------------",
+        "prettier": "prettier . --check",
+        "prettier:fix": "yarn run prettier --write"
+    },
+    "dependencies": {
+        "@angular/common": "^18.2.0",
+        "@angular/compiler": "^18.2.0",
+        "@angular/core": "^18.2.0",
+        "@angular/forms": "^18.2.0",
+        "@angular/platform-browser": "^18.2.0",
+        "@angular/platform-browser-dynamic": "^18.2.0",
+        "@angular/router": "^18.2.0",
+        "prettier-plugin-multiline-arrays": "^3.0.6",
+        "rxjs": "~7.8.0",
+        "zone.js": "~0.15.0"
+    },
+    "devDependencies": {
+        "@angular-devkit/build-angular": "^18.2.0",
+        "@angular-devkit/core": "^18.2.0",
+        "@angular-devkit/schematics": "^18.2.0",
+        "@angular/cli": "^18.2.0",
+        "@angular/compiler-cli": "^18.2.0",
+        "@angular/language-service": "^18.2.0",
+        "@nx/angular": "20.6.3",
+        "@nx/js": "20.6.3",
+        "@nx/web": "20.6.3",
+        "@schematics/angular": "^18.2.0",
+        "@swc-node/register": "~1.9.1",
+        "@swc/core": "~1.5.7",
+        "@swc/helpers": "~0.5.11",
+        "nx": "20.6.3",
+        "prettier": "^3.5.3",
+        "tslib": "^2.3.0",
+        "typescript": "5.5.4"
+    }
 }
