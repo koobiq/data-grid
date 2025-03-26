@@ -10,12 +10,14 @@
     },
     "engines": {
         "yarn": "^1.22.22",
-        "npm": "Please use Yarn instead of NPM to install dependencies."
+        "npm": "Please use Yarn instead of NPM to install dependencies.",
+        "node": "^18.19.1"
     },
     "scripts": {
+        "prepare": "husky",
         "demo:serve": "nx run demo:serve --configuration=development",
         "-----CI-----": "---------------------------------------------------------------------------------------------",
-        "prettier": "prettier . --check",
+        "prettier": "prettier '**/*.{css,scss,md,yml,json,js,ts,html}' --check",
         "prettier:fix": "yarn run prettier --write"
     },
     "dependencies": {
@@ -37,6 +39,8 @@
         "@angular/cli": "^18.2.0",
         "@angular/compiler-cli": "^18.2.0",
         "@angular/language-service": "^18.2.0",
+        "@commitlint/cli": "^19.8.0",
+        "@commitlint/config-conventional": "^19.8.0",
         "@nx/angular": "20.6.3",
         "@nx/js": "20.6.3",
         "@nx/web": "20.6.3",
@@ -44,6 +48,8 @@
         "@swc-node/register": "~1.9.1",
         "@swc/core": "~1.5.7",
         "@swc/helpers": "~0.5.11",
+        "husky": "^9.1.7",
+        "lint-staged": "^15.5.0",
         "nx": "20.6.3",
         "prettier": "^3.5.3",
         "tslib": "^2.3.0",
