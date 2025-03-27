@@ -40,11 +40,16 @@ const config = {
             }
         },
         {
-            // note: angular template files should have the `*.ng.html` extension
-            files: ['*.ng.html'],
+            files: ['*.html'],
             options: {
                 parser: 'angular',
                 ...organizeAttributesPluginAngularConfig
+            }
+        },
+        {
+            files: ['index.html'],
+            options: {
+                parser: 'html'
             }
         }
     ]
