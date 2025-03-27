@@ -1,28 +1,28 @@
 {
-    "name": "demo",
+    "name": "angular-ag-grid",
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "projectType": "application",
-    "prefix": "demo",
-    "sourceRoot": "apps/demo/src",
+    "prefix": "dev",
+    "sourceRoot": "dev/angular-ag-grid/src",
     "tags": [],
     "targets": {
         "build": {
             "executor": "@angular-devkit/build-angular:application",
             "outputs": ["{options.outputPath}"],
             "options": {
-                "outputPath": "dist/apps/demo",
-                "index": "apps/demo/src/index.html",
-                "browser": "apps/demo/src/main.ts",
+                "outputPath": "dist/dev/angular-ag-grid",
+                "index": "dev/angular-ag-grid/src/index.html",
+                "browser": "dev/angular-ag-grid/src/main.ts",
                 "polyfills": ["zone.js"],
-                "tsConfig": "apps/demo/tsconfig.app.json",
+                "tsConfig": "dev/angular-ag-grid/tsconfig.app.json",
                 "inlineStyleLanguage": "scss",
                 "assets": [
                     {
                         "glob": "**/*",
-                        "input": "apps/demo/public"
+                        "input": "dev/angular-ag-grid/public"
                     }
                 ],
-                "styles": ["apps/demo/src/styles.scss"],
+                "styles": ["dev/angular-ag-grid/src/styles.scss"],
                 "scripts": []
             },
             "configurations": {
@@ -53,10 +53,10 @@
             "executor": "@angular-devkit/build-angular:dev-server",
             "configurations": {
                 "production": {
-                    "buildTarget": "demo:build:production"
+                    "buildTarget": "angular-ag-grid:build:production"
                 },
                 "development": {
-                    "buildTarget": "demo:build:development"
+                    "buildTarget": "angular-ag-grid:build:development"
                 }
             },
             "defaultConfiguration": "development"

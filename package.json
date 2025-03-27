@@ -16,7 +16,8 @@
     },
     "scripts": {
         "prepare": "husky",
-        "demo:serve": "nx run demo:serve --configuration=development",
+        "-----DEV-----": "--------------------------------------------------------------------------------------------",
+        "dev": "nx run angular-ag-grid:serve --configuration=development",
         "-----CI-----": "---------------------------------------------------------------------------------------------",
         "prettier": "prettier '**/*.{css,scss,md,yml,json,js,ts,html}' --check",
         "prettier:fix": "yarn run prettier --write",
@@ -24,6 +25,7 @@
         "eslint:fix": "yarn run eslint --fix"
     },
     "dependencies": {
+        "@ag-grid-community/client-side-row-model": "^30.1.0",
         "@angular/common": "^18.2.0",
         "@angular/compiler": "^18.2.0",
         "@angular/core": "^18.2.0",
@@ -31,6 +33,8 @@
         "@angular/platform-browser": "^18.2.0",
         "@angular/platform-browser-dynamic": "^18.2.0",
         "@angular/router": "^18.2.0",
+        "ag-grid-angular": "^30.1.0",
+        "ag-grid-community": "^30.1.0",
         "prettier-plugin-multiline-arrays": "^3.0.6",
         "rxjs": "~7.8.0",
         "zone.js": "~0.15.0"
