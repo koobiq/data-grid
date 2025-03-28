@@ -1,4 +1,3 @@
-import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 import { HttpClient } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, Signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -6,7 +5,7 @@ import { AgGridModule } from 'ag-grid-angular';
 import { ColDef, FirstDataRenderedEvent, ModuleRegistry } from 'ag-grid-community';
 import { catchError } from 'rxjs';
 
-ModuleRegistry.registerModules([ClientSideRowModelModule]);
+ModuleRegistry.registerModules([]);
 
 type DevOlympicData = {
     athlete: string;
