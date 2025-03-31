@@ -1,0 +1,48 @@
+@use 'ag-grid-community/styles' as ag;
+
+// https://github.com/ag-grid/ag-grid/blob/b30.2.1/grid-packages/ag-grid-docs/documentation/doc-pages/global-style-customisation-sass/index.md
+// https://github.com/ag-grid/ag-grid/blob/b30.2.1/grid-packages/ag-grid-docs/documentation/doc-pages/global-style-customisation-variables/resources/variables.json
+
+@include ag.grid-styles(
+    (
+        theme: koobiq,
+        extend-theme: alpine,
+        --ag-font-family: var(--kbq-font-family-base),
+        --ag-font-size: var(--kbq-typography-text-normal-font-size),
+        // --ag-borders: 2 solid,
+        --ag-border-color: red,
+        // HEADER
+        --ag-header-foreground-color: var(--kbq-foreground-contrast-secondary),
+        --ag-header-background-color: var(--kbq-background-bg),
+        --ag-header-column-resize-handle-width: 1px,
+        --ag-header-column-resize-handle-height: var(--kbq-size-l),
+        --ag-header-column-resize-handle-color: var(--kbq-line-contrast-fade),
+        // CELL
+        --ag-cell-horizontal-padding: var(--kbq-size-s)
+    )
+);
+
+.ag-theme-koobiq {
+    // @todo move to ag.grid-styles
+    --ag-background-color: var(--kbq-background-bg);
+
+    line-height: var(--kbq-typography-text-normal-line-height);
+    letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
+
+    .ag-header-row {
+        font-weight: var(--kbq-typography-text-normal-font-weight);
+    }
+
+    .ag-header-row .ag-header-cell-resize {
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+
+    .ag-header-row:hover .ag-header-cell-resize {
+        opacity: 1;
+    }
+
+    .ag-row {
+        border-bottom: none;
+    }
+}

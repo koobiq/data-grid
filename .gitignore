@@ -1,7 +1,7 @@
 # Angular
 dist/
 tmp/
-.angular/
+.angular
 
 # dependencies
 node_modules/

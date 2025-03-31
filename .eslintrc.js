@@ -51,6 +51,7 @@ const config = {
 
                 // plugin:@angular-eslint
                 '@angular-eslint/component-class-suffix': 0,
+                '@angular-eslint/directive-class-suffix': 0,
                 '@angular-eslint/prefer-standalone': 1,
                 '@angular-eslint/prefer-on-push-component-change-detection': 1
             }

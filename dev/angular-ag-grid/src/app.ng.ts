@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, Signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { KbqAgGridTheme } from '@koobiq/ag-grid-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import { ColDef, FirstDataRenderedEvent, ModuleRegistry } from 'ag-grid-community';
 import { catchError } from 'rxjs';
@@ -22,16 +23,16 @@ type DevOlympicData = {
 
 @Component({
     standalone: true,
-    imports: [AgGridModule],
+    imports: [AgGridModule, KbqAgGridTheme],
     selector: 'dev-root',
     template: `
         <ag-grid-angular
-            class="ag-theme-alpine"
             [columnDefs]="columnDefs"
             [rowSelection]="'multiple'"
             [defaultColDef]="defaultColDef"
             [rowData]="rowData()"
             (firstDataRendered)="onFirstDataRendered($event)"
+            kbqAgGridTheme
         />
     `,
     styles: `

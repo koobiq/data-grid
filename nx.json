@@ -4,8 +4,23 @@
     "targetDefaults": {
         "@angular-devkit/build-angular:application": {
             "cache": true,
-            "dependsOn": ["^build"],
-            "inputs": ["default", "^default"]
+            "dependsOn": [
+                "^build"
+            ],
+            "inputs": [
+                "default",
+                "^default"
+            ]
+        },
+        "@nx/angular:ng-packagr-lite": {
+            "cache": true,
+            "dependsOn": [
+                "^build"
+            ],
+            "inputs": [
+                "default",
+                "^default"
+            ]
         }
     },
     "generators": {
@@ -14,6 +29,17 @@
             "linter": "none",
             "style": "scss",
             "unitTestRunner": "none"
+        },
+        "@nx/angular:library": {
+            "linter": "none",
+            "unitTestRunner": "none"
+        },
+        "@nx/angular:component": {
+            "style": "scss",
+            "changeDetection": "OnPush",
+            "skipTests": true,
+            "inlineTemplate": true,
+            "inlineStyle": true
         }
     }
 }

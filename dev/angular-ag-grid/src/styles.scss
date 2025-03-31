@@ -1,5 +1,9 @@
-@use 'ag-grid-community/styles/ag-grid.css';
-@use 'ag-grid-community/styles/ag-theme-alpine.css';
+// Tokens
+@use '@koobiq/design-tokens/web/css-tokens';
+@use '@koobiq/design-tokens/web/css-tokens-light';
+@use '@koobiq/design-tokens/web/css-tokens-dark';
+// Theme
+@use '@koobiq/ag-grid-theme';
 
 html,
 body {
