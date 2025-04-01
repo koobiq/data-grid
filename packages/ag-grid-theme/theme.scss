@@ -1,37 +1,87 @@
 @use 'ag-grid-community/styles' as ag;
-
-// https://github.com/ag-grid/ag-grid/blob/b30.2.1/grid-packages/ag-grid-docs/documentation/doc-pages/global-style-customisation-sass/index.md
-// https://github.com/ag-grid/ag-grid/blob/b30.2.1/grid-packages/ag-grid-docs/documentation/doc-pages/global-style-customisation-variables/resources/variables.json
+@use 'rtl' as ag-rtl;
 
 @include ag.grid-styles(
     (
         theme: koobiq,
-        extend-theme: alpine,
+        --ag-selected-row-background-color: var(--kbq-background-theme-less),
+        --ag-row-hover-color: var(--kbq-states-background-transparent-hover),
+        --ag-column-hover-color: var(--kbq-states-background-transparent-hover),
+        --ag-range-selection-background-color: rgba(33, 150, 243, 0.2),
+        --ag-range-selection-background-color-2: rgba(33, 150, 243, 0.36),
+        --ag-range-selection-background-color-3: rgba(33, 150, 243, 0.49),
+        --ag-range-selection-background-color-4: rgba(33, 150, 243, 0.59),
+        --ag-range-selection-border-color: var(--kbq-states-line-focus-theme),
+        --ag-foreground-color: #181d1f,
+        --ag-border-color: transparent,
+        --ag-secondary-border-color: #dde2eb,
+        --ag-header-background-color: var(--ag-background-color),
+        --ag-tooltip-background-color: #f8f8f8,
+        --ag-odd-row-background-color: var(--ag-background-color),
+        --ag-control-panel-background-color: var(--ag-background-color),
+        --ag-subheader-background-color: var(--ag-header-background-color),
+        --ag-invalid-color: var(--kbq-error-default),
+        --ag-checkbox-unchecked-color: var(--kbq-line-contrast-fade),
+        --ag-checkbox-background-color: var(--kbq-icon-white),
+        --ag-checkbox-checked-color: var(--ag-koobiq-active-color),
+        --ag-checkbox-border-radius: var(--kbq-checkbox-size-normal-border-radius),
+        --ag-checkbox-indeterminate-color: var(--ag-koobiq-active-color),
+        --ag-secondary-foreground-color: var(--ag-foreground-color),
+        --ag-input-focus-border-color: var(--kbq-form-field-states-focused-border-color),
+        --ag-input-border-color: var(--kbq-line-contrast-fade),
+        --ag-input-border-color-invalid: var(--kbq-form-field-states-error-border-color),
+        --ag-input-focus-box-shadow: 0 0 0.1px 1px var(--kbq-form-field-states-focused-border-color),
+        --ag-input-disabled-border-color: var(--kbq-form-field-states-disabled-border-color),
+        --ag-input-disabled-background-color: var(--kbq-form-field-states-disabled-background),
+        --ag-disabled-foreground-color: rgba(24, 29, 31, 0.5),
+        --ag-chip-background-color: rgba(24, 29, 31, 0.07),
+        --ag-borders: solid var(--kbq-size-border-width),
+        --ag-border-radius: var(--kbq-size-border-radius),
+        --ag-borders-side-button: none,
+        --ag-side-button-selected-background-color: transparent,
+        --ag-header-column-resize-handle-display: block,
+        --ag-header-column-resize-handle-width: var(--kbq-size-border-width),
+        --ag-header-column-resize-handle-height: var(--kbq-size-l),
+        --ag-grid-size: var(--kbq-size-s),
+        --ag-icon-size: var(--kbq-size-l),
+        --ag-row-height: var(--kbq-size-4xl),
+        --ag-header-height: var(--kbq-size-4xl),
+        --ag-list-item-height: calc(var(--ag-grid-size) * 4),
+        --ag-column-select-indent-size: var(--ag-icon-size),
+        --ag-set-filter-indent-size: var(--ag-icon-size),
+        --ag-advanced-filter-builder-indent-size: calc(var(--ag-icon-size) + var(--ag-grid-size) * 2),
+        --ag-cell-horizontal-padding: var(--ag-grid-size),
+        --ag-cell-widget-spacing: calc(var(--ag-grid-size) * 2),
+        --ag-widget-container-vertical-padding: calc(var(--ag-grid-size) * 2),
+        --ag-widget-container-horizontal-padding: calc(var(--ag-grid-size) * 2),
+        --ag-widget-vertical-spacing: calc(var(--ag-grid-size) * 1.5),
+        --ag-toggle-button-height: 18px,
+        --ag-toggle-button-width: 28px,
         --ag-font-family: var(--kbq-font-family-base),
         --ag-font-size: var(--kbq-typography-text-normal-font-size),
-        // --ag-borders: 2 solid,
-        --ag-border-color: red,
-        // HEADER
-        --ag-header-foreground-color: var(--kbq-foreground-contrast-secondary),
-        --ag-header-background-color: var(--kbq-background-bg),
-        --ag-header-column-resize-handle-width: 1px,
-        --ag-header-column-resize-handle-height: var(--kbq-size-l),
+        // @TODO Add Koobiq icon font family
+        --ag-icon-font-family: agGridAlpine,
+        --ag-selected-tab-underline-color: var(--ag-koobiq-active-color),
+        --ag-selected-tab-underline-width: 2px,
+        --ag-selected-tab-underline-transition-speed: 0.3s,
+        --ag-tab-min-width: 240px,
+        --ag-card-shadow: var(--kbq-shadow-popup),
+        --ag-popup-shadow: var(--ag-card-shadow),
+        --ag-side-bar-panel-width: 250px,
         --ag-header-column-resize-handle-color: var(--kbq-line-contrast-fade),
-        // CELL
-        --ag-cell-horizontal-padding: var(--kbq-size-s)
+        --ag-header-foreground-color: var(--kbq-foreground-contrast-secondary),
+        --kbq-background-card: var(--kbq-background-card),
+        --ag-data-color: var(--kbq-foreground-contrast)
     )
 );
 
 .ag-theme-koobiq {
-    // @todo move to ag.grid-styles
     --ag-background-color: var(--kbq-background-bg);
+    --ag-koobiq-active-color: var(--kbq-background-theme);
 
     line-height: var(--kbq-typography-text-normal-line-height);
     letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
-
-    .ag-header-row {
-        font-weight: var(--kbq-typography-text-normal-font-weight);
-    }
+    font-weight: var(--kbq-typography-text-normal-font-weight);
 
     .ag-header-row .ag-header-cell-resize {
         opacity: 0;
@@ -42,7 +92,288 @@
         opacity: 1;
     }
 
+    .ag-header-row .ag-header-cell-resize::after {
+        border-radius: 3px;
+    }
+
+    .ag-header-row .ag-header-cell-resize:hover {
+        --ag-header-column-resize-handle-width: 2px;
+        --ag-header-column-resize-handle-height: 20px;
+        --ag-header-column-resize-handle-color: var(--ag-koobiq-active-color);
+    }
+
+    .ag-header,
+    .ag-advanced-filter-header {
+        border-bottom: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
+    }
+
+    .ag-filter-toolpanel-header,
+    .ag-filter-toolpanel-search,
+    .ag-status-bar,
+    .ag-header-row,
+    .ag-panel-title-bar-title,
+    .ag-multi-filter-group-title-bar {
+        color: var(--ag-header-foreground-color);
+    }
+
+    @include ag.text-input {
+        min-height: calc(var(--ag-grid-size) * 4);
+        border-radius: var(--ag-border-radius);
+        padding: var(--kbq-size-xs) var(--kbq-size-m);
+
+        @include ag-rtl.theme-rtl(
+            (
+                padding-left: var(--ag-grid-size)
+            )
+        );
+    }
+
     .ag-row {
         border-bottom: none;
+        // @TODO add border-radius
+        // border-radius: var(--ag-border-radius);
+    }
+
+    .ag-row:hover.ag-row-selected::before {
+        --ag-selected-row-background-color: var(--kbq-states-background-theme-less-hover);
+    }
+
+    .ag-picker-field-wrapper {
+        border-color: var(--ag-input-border-color);
+    }
+
+    .ag-tab {
+        padding: calc(var(--ag-grid-size) * 1.5);
+        transition: color 0.4s;
+        flex: 1 1 auto;
+    }
+
+    .ag-tab-selected {
+        color: var(--ag-koobiq-active-color);
+    }
+
+    .ag-menu {
+        background-color: var(--kbq-background-card);
+    }
+
+    .ag-menu-header {
+        background-color: var(--ag-control-panel-background-color);
+        padding-top: 1px;
+    }
+
+    .ag-charts-settings-group-title-bar,
+    .ag-charts-data-group-title-bar,
+    .ag-charts-format-top-level-group-title-bar {
+        padding: var(--ag-grid-size) calc(var(--ag-grid-size) * 2);
+        line-height: calc(var(--ag-icon-size) + var(--ag-grid-size) - 2px);
+    }
+
+    .ag-chart-mini-thumbnail {
+        background-color: var(--ag-background-color);
+    }
+
+    .ag-chart-settings-nav-bar {
+        border-top: var(--ag-borders-secondary) var(--ag-secondary-border-color);
+    }
+
+    .ag-group-title-bar-icon {
+        @include ag-rtl.theme-rtl(
+            (
+                margin-right: var(--ag-grid-size)
+            )
+        );
+    }
+
+    .ag-charts-format-top-level-group-toolbar {
+        margin-top: var(--ag-grid-size);
+
+        @include ag-rtl.theme-rtl(
+            (
+                padding-left: calc(var(--ag-icon-size) * 0.5 + var(--ag-grid-size) * 2)
+            )
+        );
+    }
+
+    .ag-charts-format-sub-level-group {
+        border-left: dashed var(--kbq-size-border-width);
+        border-left-color: var(--ag-border-color);
+        padding-left: var(--ag-grid-size);
+        margin-bottom: calc(var(--ag-grid-size) * 2);
+    }
+
+    .ag-charts-format-sub-level-group-title-bar {
+        padding-top: 0;
+        padding-bottom: 0;
+        background: none;
+    }
+
+    .ag-charts-format-sub-level-group-container {
+        padding-bottom: 0;
+    }
+
+    .ag-charts-format-sub-level-group-item:last-child {
+        margin-bottom: 0;
+    }
+
+    &.ag-dnd-ghost {
+        font-size: calc(var(--ag-font-size) - 1px);
+    }
+
+    .ag-side-buttons {
+        width: calc(var(--ag-grid-size) * 5);
+    }
+
+    .ag-standard-button {
+        appearance: none;
+        -webkit-appearance: none;
+        border-radius: var(--ag-border-radius);
+        border: var(--kbq-size-border-width) solid;
+        border-color: var(--ag-koobiq-active-color);
+        color: var(--ag-koobiq-active-color);
+        background-color: var(--ag-background-color);
+        padding: var(--ag-grid-size) calc(var(--ag-grid-size) * 2);
+
+        &:hover {
+            border-color: var(--ag-koobiq-active-color);
+            background-color: var(--ag-row-hover-color);
+        }
+
+        &:active {
+            border-color: var(--ag-koobiq-active-color);
+            background-color: var(--ag-koobiq-active-color);
+            color: var(--ag-background-color);
+        }
+
+        &:disabled {
+            color: var(--ag-disabled-foreground-color);
+            background-color: var(--ag-input-disabled-background-color);
+            border-color: var(--ag-input-disabled-border-color);
+        }
+    }
+
+    .ag-column-drop-vertical {
+        min-height: 75px;
+    }
+
+    .ag-column-drop-vertical-title-bar {
+        padding: calc(var(--ag-grid-size) * 2);
+        padding-bottom: 0px;
+    }
+
+    .ag-column-drop-vertical-empty-message {
+        display: flex;
+        align-items: center;
+        border: dashed var(--kbq-size-border-width);
+        border-color: var(--ag-border-color);
+        margin: calc(var(--ag-grid-size) * 2);
+        padding: calc(var(--ag-grid-size) * 2);
+    }
+
+    .ag-column-drop-empty-message {
+        color: var(--ag-foreground-color);
+        opacity: 0.75;
+    }
+
+    .ag-column-drop-cell-button {
+        opacity: 0.5;
+
+        &:hover {
+            opacity: 0.75;
+        }
+    }
+
+    .ag-chart-menu-close {
+        background: var(--ag-background-color);
+    }
+
+    .ag-chart-menu-close .ag-icon {
+        background: var(--ag-header-background-color);
+        border: var(--kbq-size-border-width) solid var(--ag-border-color);
+        border-right: none;
+    }
+
+    .ag-chart-menu-close:hover .ag-icon {
+        border-color: var(--ag-koobiq-active-color);
+    }
+
+    .ag-header-cell-menu-button,
+    .ag-side-button-button,
+    .ag-tab,
+    .ag-panel-title-bar-button,
+    .ag-header-expand-icon,
+    .ag-column-group-icons,
+    .ag-set-filter-group-icons,
+    .ag-group-expanded .ag-icon,
+    .ag-group-contracted .ag-icon,
+    .ag-chart-settings-prev,
+    .ag-chart-settings-next,
+    .ag-group-title-bar-icon,
+    .ag-column-select-header-icon,
+    .ag-floating-filter-button-button,
+    .ag-filter-toolpanel-expand,
+    .ag-chart-menu-icon,
+    .ag-chart-menu-close {
+        &:hover {
+            color: var(--ag-koobiq-active-color);
+        }
+    }
+
+    .ag-chart-settings-card-item.ag-not-selected:hover {
+        opacity: 0.35;
+    }
+
+    .ag-panel-title-bar-button {
+        @include ag-rtl.theme-rtl(
+            (
+                margin-left: calc(var(--ag-grid-size) * 2),
+                margin-right: var(--ag-grid-size)
+            )
+        );
+    }
+
+    .ag-filter-toolpanel-group-container {
+        @include ag-rtl.theme-rtl(
+            (
+                padding-left: var(--ag-grid-size)
+            )
+        );
+    }
+
+    .ag-filter-toolpanel-instance-filter {
+        border: none;
+        background-color: var(--ag-control-panel-background-color);
+
+        @include ag-rtl.theme-rtl(
+            (
+                border-left: dashed var(--kbq-size-border-width),
+                border-left-color: var(--ag-border-color),
+                margin-left: calc(var(--ag-icon-size) * 0.5)
+            )
+        );
+    }
+
+    .ag-set-filter-list {
+        padding-top: calc(var(--ag-grid-size) * 0.5);
+        padding-bottom: calc(var(--ag-grid-size) * 0.5);
+    }
+
+    .ag-layout-auto-height,
+    .ag-layout-print {
+        .ag-center-cols-viewport,
+        .ag-center-cols-container {
+            min-height: 150px;
+        }
+    }
+
+    .ag-overlay-no-rows-wrapper.ag-layout-auto-height {
+        padding-top: 60px;
+    }
+
+    .ag-date-time-list-page-entry-is-current {
+        background-color: var(--ag-koobiq-active-color);
+    }
+
+    .ag-advanced-filter-builder-button {
+        padding: var(--ag-grid-size);
     }
 }

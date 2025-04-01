@@ -1,5 +1,6 @@
+import { DOCUMENT } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, inject, model, Signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, model, Renderer2, Signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { KbqAgGridTheme } from '@koobiq/ag-grid-theme';
@@ -22,12 +23,21 @@ type DevOlympicData = {
     total: number;
 };
 
+enum DevThemeSelector {
+    Light = 'kbq-light',
+    Dark = 'kbq-dark'
+}
+
 @Component({
     standalone: true,
     imports: [AgGridModule, KbqAgGridTheme, FormsModule],
     selector: 'dev-root',
     template: `
         <div class="dev-options">
+            <label>
+                <input [(ngModel)]="lightTheme" type="checkbox" />
+                Light Theme
+            </label>
             <label>
                 <input [(ngModel)]="checkboxSelection" type="checkbox" />
                 Checkbox Selection
@@ -81,7 +91,6 @@ type DevOlympicData = {
             [rowData]="rowData()"
             [pagination]="pagination()"
             [enableRtl]="enableRtl()"
-            [animateRows]="true"
             [columnHoverHighlight]="columnHoverHighlight()"
             (gridReady)="onGridReady($event)"
             kbqAgGridTheme
@@ -91,8 +100,8 @@ type DevOlympicData = {
         :host {
             display: flex;
             flex-direction: column;
-            padding: 20px;
-            height: calc(100vh - 40px);
+            padding: var(--kbq-size-l);
+            height: calc(100vh - calc(var(--kbq-size-l) * 2));
         }
 
         ag-grid-angular {
@@ -103,6 +112,8 @@ type DevOlympicData = {
         .dev-options {
             display: flex;
             flex-wrap: wrap;
+            gap: var(--kbq-size-s);
+            margin-bottom: var(--kbq-size-m);
         }
 
         .dev-options label {
@@ -112,6 +123,7 @@ type DevOlympicData = {
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DevApp {
+    readonly lightTheme = model(true);
     readonly checkboxSelection = model(true);
     readonly multipleRowSelection = model(true);
     readonly editable = model(true);
@@ -135,15 +147,16 @@ export class DevApp {
         const checkboxSelection = this.checkboxSelection();
         return [
             {
+                hide: !checkboxSelection,
                 headerCheckboxSelection: checkboxSelection,
                 checkboxSelection: checkboxSelection,
-                width: 40,
+                width: 32,
                 headerName: '',
                 sortable: false,
                 filter: false,
                 resizable: false,
-                hide: !checkboxSelection,
-                suppressMovable: true
+                suppressMovable: true,
+                editable: false
             },
             { field: 'athlete' },
             { field: 'age' },
@@ -171,6 +184,9 @@ export class DevApp {
 
     readonly rowData: Signal<DevOlympicData[]>;
 
+    private readonly renderer = inject(Renderer2);
+    private readonly document = inject(DOCUMENT);
+
     constructor() {
         this.rowData = toSignal(
             inject(HttpClient)
@@ -178,6 +194,16 @@ export class DevApp {
                 .pipe(catchError(() => [])),
             { initialValue: [] }
         );
+
+        toObservable(this.lightTheme)
+            .pipe(takeUntilDestroyed())
+            .subscribe((lightTheme) => {
+                this.renderer.addClass(this.document.body, lightTheme ? DevThemeSelector.Light : DevThemeSelector.Dark);
+                this.renderer.removeClass(
+                    this.document.body,
+                    lightTheme ? DevThemeSelector.Dark : DevThemeSelector.Light
+                );
+            });
 
         toObservable(this.multipleRowSelection)
             .pipe(takeUntilDestroyed())
