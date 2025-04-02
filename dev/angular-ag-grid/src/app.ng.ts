@@ -5,10 +5,8 @@ import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-i
 import { FormsModule } from '@angular/forms';
 import { KbqAgGridTheme } from '@koobiq/ag-grid-theme';
 import { AgGridModule } from 'ag-grid-angular';
-import { ColDef, ColumnApi, GridApi, GridReadyEvent, ModuleRegistry } from 'ag-grid-community';
-import { catchError } from 'rxjs';
-
-ModuleRegistry.registerModules([]);
+import { ColDef, ColumnApi, GridApi, GridReadyEvent, ITooltipParams } from 'ag-grid-community';
+import { catchError, of } from 'rxjs';
 
 type DevOlympicData = {
     athlete: string;
@@ -33,7 +31,7 @@ enum DevThemeSelector {
     imports: [AgGridModule, KbqAgGridTheme, FormsModule],
     selector: 'dev-root',
     template: `
-        <div class="dev-options">
+        <div class="dev-grid-options">
             <label>
                 <input [(ngModel)]="lightTheme" type="checkbox" />
                 Light Theme
@@ -82,6 +80,10 @@ enum DevThemeSelector {
                 <input [(ngModel)]="columnHoverHighlight" type="checkbox" />
                 Column Hover Highlight
             </label>
+            <label>
+                <input [(ngModel)]="tooltip" type="checkbox" />
+                Tooltip
+            </label>
         </div>
 
         <ag-grid-angular
@@ -92,6 +94,8 @@ enum DevThemeSelector {
             [pagination]="pagination()"
             [enableRtl]="enableRtl()"
             [columnHoverHighlight]="columnHoverHighlight()"
+            [sideBar]="true"
+            [tooltipShowDelay]="500"
             (gridReady)="onGridReady($event)"
             kbqAgGridTheme
         />
@@ -109,14 +113,14 @@ enum DevThemeSelector {
             height: 100%;
         }
 
-        .dev-options {
+        .dev-grid-options {
             display: flex;
             flex-wrap: wrap;
             gap: var(--kbq-size-s);
             margin-bottom: var(--kbq-size-m);
         }
 
-        .dev-options label {
+        .dev-grid-options label {
             white-space: nowrap;
         }
     `,
@@ -135,6 +139,7 @@ export class DevApp {
     readonly suppressMovable = model(false);
     readonly enableRtl = model(false);
     readonly columnHoverHighlight = model(true);
+    readonly tooltip = model(true);
 
     private gridApi!: GridApi;
     private gridColumnApi!: ColumnApi;
@@ -145,6 +150,8 @@ export class DevApp {
 
     readonly columnDefs = computed<ColDef[]>(() => {
         const checkboxSelection = this.checkboxSelection();
+        const tooltip = this.tooltip();
+
         return [
             {
                 hide: !checkboxSelection,
@@ -158,16 +165,66 @@ export class DevApp {
                 suppressMovable: true,
                 editable: false
             },
-            { field: 'athlete' },
-            { field: 'age' },
-            { field: 'country' },
-            { field: 'year' },
-            { field: 'date' },
-            { field: 'sport' },
-            { field: 'gold' },
-            { field: 'silver' },
-            { field: 'bronze' },
-            { field: 'total' }
+            {
+                field: 'athlete',
+                headerTooltip: tooltip ? 'Tooltip for Athlete Column Header' : null,
+                tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
+                    tooltip ? 'Tooltip for Athlete Cell: ' + data.country : null
+            },
+            {
+                field: 'age',
+                headerTooltip: tooltip ? 'Tooltip for Age Column Header' : null,
+                tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
+                    tooltip ? 'Tooltip for Age Cell: ' + data.athlete : null
+            },
+            {
+                field: 'country',
+                headerTooltip: tooltip ? 'Tooltip for Country Column Header' : null,
+                tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
+                    tooltip ? 'Tooltip for Country Cell: ' + data.athlete : null
+            },
+            {
+                field: 'year',
+                headerTooltip: tooltip ? 'Tooltip for Year Column Header' : null,
+                tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
+                    tooltip ? 'Tooltip for Year Cell: ' + data.athlete : null
+            },
+            {
+                field: 'date',
+                headerTooltip: tooltip ? 'Tooltip for Date Column Header' : null,
+                tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
+                    tooltip ? 'Tooltip for Date Cell: ' + data.athlete : null
+            },
+            {
+                field: 'sport',
+                headerTooltip: tooltip ? 'Tooltip for Sport Column Header' : null,
+                tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
+                    tooltip ? 'Tooltip for Sport Cell: ' + data.athlete : null
+            },
+            {
+                field: 'gold',
+                headerTooltip: tooltip ? 'Tooltip for Gold Column Header' : null,
+                tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
+                    tooltip ? 'Tooltip for Gold Cell: ' + data.athlete : null
+            },
+            {
+                field: 'silver',
+                headerTooltip: tooltip ? 'Tooltip for Silver Column Header' : null,
+                tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
+                    tooltip ? 'Tooltip for Silver Cell: ' + data.athlete : null
+            },
+            {
+                field: 'bronze',
+                headerTooltip: tooltip ? 'Tooltip for Bronze Column Header' : null,
+                tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
+                    tooltip ? 'Tooltip for Bronze Cell: ' + data.athlete : null
+            },
+            {
+                field: 'total',
+                headerTooltip: tooltip ? 'Tooltip for Total Column Header' : null,
+                tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
+                    tooltip ? 'Tooltip for Total Cell: ' + data.athlete : null
+            }
         ];
     });
 
@@ -191,7 +248,7 @@ export class DevApp {
         this.rowData = toSignal(
             inject(HttpClient)
                 .get<DevOlympicData[]>('https://www.ag-grid.com/example-assets/olympic-winners.json')
-                .pipe(catchError(() => [])),
+                .pipe(catchError(() => of([]))),
             { initialValue: [] }
         );
 

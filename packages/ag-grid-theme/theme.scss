@@ -7,7 +7,7 @@
         --ag-selected-row-background-color: var(--kbq-background-theme-less),
         --ag-row-hover-color: var(--kbq-states-background-transparent-hover),
         --ag-column-hover-color: var(--kbq-states-background-transparent-hover),
-        --ag-range-selection-background-color: rgba(33, 150, 243, 0.2),
+        --ag-tooltip-background-color: var(--kbq-tooltip-contrast-fade-off-background),
         --ag-range-selection-background-color-2: rgba(33, 150, 243, 0.36),
         --ag-range-selection-background-color-3: rgba(33, 150, 243, 0.49),
         --ag-range-selection-background-color-4: rgba(33, 150, 243, 0.59),
@@ -82,6 +82,13 @@
     line-height: var(--kbq-typography-text-normal-line-height);
     letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
     font-weight: var(--kbq-typography-text-normal-font-weight);
+
+    .ag-tooltip {
+        --ag-foreground-color: var(--kbq-tooltip-contrast-fade-off-text);
+        box-shadow: var(--kbq-tooltip-contrast-fade-off-shadow);
+        font-size: var(--kbq-typography-text-compact-font-size);
+        line-height: var(--kbq-typography-text-compact-line-height);
+    }
 
     .ag-header-row .ag-header-cell-resize {
         opacity: 0;
