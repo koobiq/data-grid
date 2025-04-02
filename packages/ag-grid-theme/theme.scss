@@ -148,6 +148,7 @@
 );
 
 .ag-theme-koobiq {
+    // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
     --ag-background-color: var(--kbq-background-bg);
     --ag-koobiq-active-color: var(--kbq-background-theme);
 
@@ -157,9 +158,15 @@
 
     .ag-tooltip {
         --ag-foreground-color: var(--kbq-tooltip-contrast-fade-off-text);
+
         box-shadow: var(--kbq-tooltip-contrast-fade-off-shadow);
         font-size: var(--kbq-typography-text-compact-font-size);
         line-height: var(--kbq-typography-text-compact-line-height);
+    }
+
+    .ag-row,
+    .ag-header-row {
+        padding: 0 var(--kbq-size-s);
     }
 
     .ag-header-row .ag-header-cell-resize {
