@@ -76,7 +76,7 @@
         --ag-icon-font-code-not-allowed: '\f535',
         --ag-icon-font-code-pin: '\f671',
         --ag-icon-font-code-pivot: '\f7d2',
-        --ag-icon-font-code-previous: '\f5d0',
+        --ag-icon-font-code-previous: '\f5b7',
         --ag-icon-font-code-left: '\f5b4',
         --ag-icon-font-code-right: '\f5b8',
         --ag-icon-font-code-minus: '\f5c7',
@@ -329,6 +329,50 @@
     }
 }
 
+@mixin _ag-icon-color {
+    .ag-icon {
+        color: var(--kbq-icon-contrast-fade);
+
+        &:hover {
+            color: var(--kbq-states-icon-contrast-fade-hover);
+        }
+
+        &:active {
+            color: var(--kbq-states-icon-contrast-fade-hover);
+        }
+    }
+}
+
+@mixin _ag-paging-panel() {
+    .ag-paging-panel {
+        height: var(--kbq-size-3xl);
+        border: unset;
+        color: var(--ag-data-color);
+        font-size: var(--kbq-typography-text-compact-font-size);
+        line-height: var(--kbq-typography-text-compact-line-height);
+
+        .ag-button {
+            --ag-icon-size: var(--kbq-size-m);
+
+            &.ag-disabled .ag-icon {
+                color: var(--kbq-states-icon-disabled);
+            }
+
+            &:not(.ag-disabled) .ag-icon {
+                color: var(--kbq-icon-contrast);
+
+                &:hover {
+                    color: var(--kbq-states-icon-contrast-hover);
+                }
+
+                &:active {
+                    color: var(--kbq-states-icon-contrast-hover);
+                }
+            }
+        }
+    }
+}
+
 .ag-theme-koobiq {
     // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
     --ag-background-color: var(--kbq-background-bg);
@@ -341,10 +385,12 @@
     @include _ag-row-highlight();
     @include _ag-row-border-radius();
     @include _ag-tooltip();
+    @include _ag-icon-color();
     @include _ag-header-cell-resize();
     @include _ag-svg-icons();
     @include _ag-checkbox-focus();
     @include _ag-radio-button-focus();
+    @include _ag-paging-panel();
 
     @include ag.text-input {
         min-height: calc(var(--ag-grid-size) * 4);
@@ -407,46 +453,6 @@
     .ag-menu-header {
         background-color: var(--ag-control-panel-background-color);
         padding-top: 1px;
-    }
-
-    .ag-charts-settings-group-title-bar,
-    .ag-charts-data-group-title-bar,
-    .ag-charts-format-top-level-group-title-bar {
-        padding: var(--ag-grid-size) calc(var(--ag-grid-size) * 2);
-        line-height: calc(var(--ag-icon-size) + var(--ag-grid-size) - 2px);
-    }
-
-    .ag-chart-mini-thumbnail {
-        background-color: var(--ag-background-color);
-    }
-
-    .ag-chart-settings-nav-bar {
-        border-top: var(--ag-borders-secondary) var(--ag-secondary-border-color);
-    }
-
-    .ag-charts-format-top-level-group-toolbar {
-        margin-top: var(--ag-grid-size);
-    }
-
-    .ag-charts-format-sub-level-group {
-        border-left: dashed var(--kbq-size-border-width);
-        border-left-color: var(--ag-border-color);
-        padding-left: var(--ag-grid-size);
-        margin-bottom: calc(var(--ag-grid-size) * 2);
-    }
-
-    .ag-charts-format-sub-level-group-title-bar {
-        padding-top: 0;
-        padding-bottom: 0;
-        background: none;
-    }
-
-    .ag-charts-format-sub-level-group-container {
-        padding-bottom: 0;
-    }
-
-    .ag-charts-format-sub-level-group-item:last-child {
-        margin-bottom: 0;
     }
 
     &.ag-dnd-ghost {
@@ -516,20 +522,6 @@
         }
     }
 
-    .ag-chart-menu-close {
-        background: var(--ag-background-color);
-    }
-
-    .ag-chart-menu-close .ag-icon {
-        background: var(--ag-header-background-color);
-        border: var(--kbq-size-border-width) solid var(--ag-border-color);
-        border-right: none;
-    }
-
-    .ag-chart-menu-close:hover .ag-icon {
-        border-color: var(--ag-theme-koobiq-active-color);
-    }
-
     .ag-header-cell-menu-button,
     .ag-side-button-button,
     .ag-tab,
@@ -537,23 +529,13 @@
     .ag-header-expand-icon,
     .ag-column-group-icons,
     .ag-set-filter-group-icons,
-    .ag-group-expanded .ag-icon,
-    .ag-group-contracted .ag-icon,
-    .ag-chart-settings-prev,
-    .ag-chart-settings-next,
     .ag-group-title-bar-icon,
     .ag-column-select-header-icon,
     .ag-floating-filter-button-button,
-    .ag-filter-toolpanel-expand,
-    .ag-chart-menu-icon,
-    .ag-chart-menu-close {
+    .ag-filter-toolpanel-expand {
         &:hover {
             color: var(--ag-theme-koobiq-active-color);
         }
-    }
-
-    .ag-chart-settings-card-item.ag-not-selected:hover {
-        opacity: 0.35;
     }
 
     .ag-filter-toolpanel-instance-filter {
