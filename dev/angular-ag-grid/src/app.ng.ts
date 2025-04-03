@@ -5,7 +5,7 @@ import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-i
 import { FormsModule } from '@angular/forms';
 import { KbqAgGridTheme } from '@koobiq/ag-grid-theme';
 import { AgGridModule } from 'ag-grid-angular';
-import { ColDef, ColumnApi, GridApi, GridReadyEvent, ITooltipParams } from 'ag-grid-community';
+import { ColDef, ColumnApi, FirstDataRenderedEvent, GridApi, GridReadyEvent, ITooltipParams } from 'ag-grid-community';
 import { catchError, of } from 'rxjs';
 
 type DevOlympicData = {
@@ -73,7 +73,7 @@ enum DevThemeSelector {
                 Suppress Movable
             </label>
             <label>
-                <input [(ngModel)]="enableRtl" type="checkbox" />
+                <input [(ngModel)]="enableRtl" type="checkbox" disabled="" />
                 RTL
             </label>
             <label>
@@ -83,6 +83,10 @@ enum DevThemeSelector {
             <label>
                 <input [(ngModel)]="tooltip" type="checkbox" />
                 Tooltip
+            </label>
+            <label>
+                <input [(ngModel)]="suppressRowClickSelection" type="checkbox" />
+                Suppress Row Click Selection
             </label>
         </div>
 
@@ -94,9 +98,10 @@ enum DevThemeSelector {
             [pagination]="pagination()"
             [enableRtl]="enableRtl()"
             [columnHoverHighlight]="columnHoverHighlight()"
-            [sideBar]="true"
+            [suppressRowClickSelection]="true"
             [tooltipShowDelay]="500"
             (gridReady)="onGridReady($event)"
+            (firstDataRendered)="onFirstDataRendered($event)"
             kbqAgGridTheme
         />
     `,
@@ -140,6 +145,7 @@ export class DevApp {
     readonly enableRtl = model(false);
     readonly columnHoverHighlight = model(true);
     readonly tooltip = model(true);
+    readonly suppressRowClickSelection = model(true);
 
     private gridApi!: GridApi;
     private gridColumnApi!: ColumnApi;
@@ -157,7 +163,7 @@ export class DevApp {
                 hide: !checkboxSelection,
                 headerCheckboxSelection: checkboxSelection,
                 checkboxSelection: checkboxSelection,
-                width: 32,
+                width: 41,
                 headerName: '',
                 sortable: false,
                 filter: false,
@@ -290,8 +296,20 @@ export class DevApp {
             });
     }
 
-    onGridReady({ api, columnApi }: GridReadyEvent) {
+    onGridReady({ api, columnApi }: GridReadyEvent): void {
         this.gridApi = api;
         this.gridColumnApi = columnApi;
+    }
+
+    onFirstDataRendered({ api }: FirstDataRenderedEvent): void {
+        // Set initial focused cell
+        api.setFocusedCell(0, 'athlete');
+
+        // Set initial selected rows
+        api.forEachNode((node) => {
+            if (node.rowIndex === 4 || node.rowIndex === 5) {
+                node.setSelected(true);
+            }
+        });
     }
 }

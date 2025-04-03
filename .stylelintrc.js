@@ -19,6 +19,7 @@ const config = {
                 ignore: ['after-comment']
             }
         ],
+        'max-nesting-depth': 2,
 
         // scss
         'scss/comment-no-loud': true,

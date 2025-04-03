@@ -1,12 +1,10 @@
 @use 'ag-grid-community/styles' as ag;
-@use 'rtl' as ag-rtl;
 
 @include ag.grid-styles(
     (
         // Full AG Grid variables list:
         // https://www.ag-grid.com/archive/30.2.0/angular-data-grid/global-style-customisation-variables/
         theme: koobiq,
-        --ag-selected-row-background-color: var(--kbq-background-theme-less),
         --ag-foreground-color: var(--kbq-foreground-contrast-secondary),
         --ag-secondary-border-color: transparent,
         --ag-tooltip-background-color: var(--kbq-tooltip-contrast-fade-off-background),
@@ -38,7 +36,8 @@
         --ag-icon-font-code-aggregation: '\f572',
         --ag-icon-font-code-arrows: '',
         --ag-icon-font-code-paste: '',
-        --ag-icon-font-code-checkbox-checked: '',
+        // @TODO Should use svg icon instead
+        --ag-icon-font-code-checkbox-checked: '\f533',
         --ag-icon-font-code-checkbox-indeterminate: '',
         --ag-icon-font-code-checkbox-unchecked: '',
         --ag-icon-font-code-color-picker: '',
@@ -103,7 +102,8 @@
         --ag-selected-tab-underline-transition-speed: 0.3s,
         // Row
         --ag-row-height: var(--kbq-size-4xl),
-        --ag-row-hover-color: var(--kbq-states-background-transparent-hover),
+        --ag-row-hover-color: transparent,
+        --ag-selected-row-background-color: transparent,
         // Border
         --ag-border-color: transparent,
         --ag-border-radius: var(--kbq-size-border-radius),
@@ -151,6 +151,7 @@
     // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
     --ag-background-color: var(--kbq-background-bg);
     --ag-koobiq-active-color: var(--kbq-background-theme);
+    --ag-koobiq-row-background-color: var(--ag-background-color);
 
     line-height: var(--kbq-typography-text-normal-line-height);
     letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
@@ -162,11 +163,6 @@
         box-shadow: var(--kbq-tooltip-contrast-fade-off-shadow);
         font-size: var(--kbq-typography-text-compact-font-size);
         line-height: var(--kbq-typography-text-compact-line-height);
-    }
-
-    .ag-row,
-    .ag-header-row {
-        padding: 0 var(--kbq-size-s);
     }
 
     .ag-header-row .ag-header-cell-resize {
@@ -206,22 +202,68 @@
         min-height: calc(var(--ag-grid-size) * 4);
         border-radius: var(--ag-border-radius);
         padding: var(--kbq-size-xs) var(--kbq-size-m);
+    }
 
-        @include ag-rtl.theme-rtl(
-            (
-                padding-left: var(--ag-grid-size)
-            )
-        );
+    .ag-cell,
+    .ag-full-width-row .ag-cell-wrapper.ag-row-group {
+        padding-left: var(--ag-cell-horizontal-padding);
+        padding-right: var(--ag-cell-horizontal-padding);
+    }
+
+    .ag-header-cell:first-child,
+    .ag-cell:first-child {
+        padding-left: calc(var(--ag-cell-horizontal-padding) + var(--kbq-size-s));
+    }
+
+    .ag-header-cell:last-child,
+    .ag-cell:last-child {
+        padding-right: calc(var(--ag-cell-horizontal-padding) + var(--kbq-size-s));
     }
 
     .ag-row {
+        background-color: var(--ag-koobiq-row-background-color);
         border-bottom: none;
         // @TODO add border-radius
         // border-radius: var(--ag-border-radius);
+
+        &::before {
+            background: none;
+        }
     }
 
-    .ag-row:hover.ag-row-selected::before {
-        --ag-selected-row-background-color: var(--kbq-states-background-theme-less-hover);
+    .ag-row:not(.ag-row-focus),
+    .ag-row:not(.ag-row-selected) {
+        &:hover {
+            --ag-koobiq-row-background-color: var(--kbq-states-background-transparent-hover);
+        }
+
+        &:active {
+            --ag-koobiq-row-background-color: var(--kbq-states-background-transparent-active);
+        }
+    }
+
+    .ag-row.ag-row-selected:not(.ag-row-focus) {
+        --ag-koobiq-row-background-color: var(--kbq-background-contrast-less);
+
+        &:hover {
+            --ag-koobiq-row-background-color: var(--kbq-states-background-contrast-less-hover);
+        }
+
+        &:active {
+            --ag-koobiq-row-background-color: var(--kbq-states-background-contrast-less-active);
+        }
+    }
+
+    .ag-row.ag-row-focus {
+        --ag-koobiq-row-background-color: var(--kbq-background-theme-less);
+
+        &:hover {
+            --ag-koobiq-row-background-color: var(--kbq-states-background-theme-less-hover);
+        }
+
+        &:active {
+            --ag-koobiq-row-background-color: var(--kbq-states-background-theme-less-active);
+        }
     }
 
     .ag-picker-field-wrapper {
@@ -262,22 +304,8 @@
         border-top: var(--ag-borders-secondary) var(--ag-secondary-border-color);
     }
 
-    .ag-group-title-bar-icon {
-        @include ag-rtl.theme-rtl(
-            (
-                margin-right: var(--ag-grid-size)
-            )
-        );
-    }
-
     .ag-charts-format-top-level-group-toolbar {
         margin-top: var(--ag-grid-size);
-
-        @include ag-rtl.theme-rtl(
-            (
-                padding-left: calc(var(--ag-icon-size) * 0.5 + var(--ag-grid-size) * 2)
-            )
-        );
     }
 
     .ag-charts-format-sub-level-group {
@@ -408,34 +436,9 @@
         opacity: 0.35;
     }
 
-    .ag-panel-title-bar-button {
-        @include ag-rtl.theme-rtl(
-            (
-                margin-left: calc(var(--ag-grid-size) * 2),
-                margin-right: var(--ag-grid-size)
-            )
-        );
-    }
-
-    .ag-filter-toolpanel-group-container {
-        @include ag-rtl.theme-rtl(
-            (
-                padding-left: var(--ag-grid-size)
-            )
-        );
-    }
-
     .ag-filter-toolpanel-instance-filter {
         border: none;
         background-color: var(--ag-control-panel-background-color);
-
-        @include ag-rtl.theme-rtl(
-            (
-                border-left: dashed var(--kbq-size-border-width),
-                border-left-color: var(--ag-border-color),
-                margin-left: calc(var(--ag-icon-size) * 0.5)
-            )
-        );
     }
 
     .ag-set-filter-list {
