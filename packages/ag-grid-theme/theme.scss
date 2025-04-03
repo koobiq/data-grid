@@ -263,7 +263,7 @@
     }
 }
 
-@mixin _ag-checkbox() {
+@mixin _ag-checkbox-focus() {
     .ag-checkbox-input-wrapper:focus-within,
     .ag-checkbox-input-wrapper:active {
         box-shadow: unset;
@@ -272,6 +272,18 @@
             outline: var(--kbq-checkbox-theme-states-focused-outline);
             border-color: var(--kbq-checkbox-theme-states-focused-border);
             border-radius: inherit;
+        }
+    }
+}
+
+@mixin _ag-radio-button-focus() {
+    .ag-radio-button-input-wrapper:focus-within,
+    .ag-radio-button-input-wrapper:active {
+        box-shadow: unset;
+
+        &::after {
+            outline: var(--kbq-checkbox-theme-states-focused-outline);
+            border-color: var(--kbq-checkbox-theme-states-focused-border);
         }
     }
 }
@@ -298,6 +310,23 @@
             --ag-theme-koobiq-checkbox-fill: var(--ag-checkbox-indeterminate-color);
         }
     }
+
+    .ag-radio-button-input-wrapper {
+        --ag-theme-koobiq-radio-button-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 15C11.866 15 15 11.866 15 8C15 4.13401 11.866 1 8 1C4.13401 1 1 4.13401 1 8C1 11.866 4.13401 15 8 15ZM8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16Z" fill="currentColor"/></svg>');
+        --ag-theme-koobiq-radio-button-fill: var(--ag-checkbox-unchecked-color);
+
+        &::after {
+            mask: var(--ag-theme-koobiq-radio-button-svg) center / contain no-repeat;
+            width: 100%;
+            height: 100%;
+            background-color: var(--ag-theme-koobiq-radio-button-fill);
+        }
+
+        &.ag-checked {
+            --ag-theme-koobiq-radio-button-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16ZM8 11C9.65685 11 11 9.65685 11 8C11 6.34315 9.65685 5 8 5C6.34315 5 5 6.34315 5 8C5 9.65685 6.34315 11 8 11Z" fill="currentColor"/></svg>');
+            --ag-theme-koobiq-radio-button-fill: var(--ag-checkbox-checked-color);
+        }
+    }
 }
 
 .ag-theme-koobiq {
@@ -314,7 +343,8 @@
     @include _ag-tooltip();
     @include _ag-header-cell-resize();
     @include _ag-svg-icons();
-    @include _ag-checkbox();
+    @include _ag-checkbox-focus();
+    @include _ag-radio-button-focus();
 
     @include ag.text-input {
         min-height: calc(var(--ag-grid-size) * 4);
