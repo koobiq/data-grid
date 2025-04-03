@@ -5,6 +5,7 @@
         "entryFile": "index.ts"
     },
     "assets": [
-        "*.scss"
+        "*.scss",
+        "svg/*.svg"
     ]
 }

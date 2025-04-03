@@ -36,12 +36,16 @@
         --ag-icon-font-code-aggregation: '\f572',
         --ag-icon-font-code-arrows: '',
         --ag-icon-font-code-paste: '',
-        // @TODO Should use svg icon instead
-        --ag-icon-font-code-checkbox-checked: '\f533',
-        --ag-icon-font-code-checkbox-indeterminate: '',
-        --ag-icon-font-code-checkbox-unchecked: '',
         --ag-icon-font-code-color-picker: '',
+        // Overridden by _ag-svg-icons
+        --ag-icon-font-code-checkbox-checked: '',
+        // Overridden by _ag-svg-icons
+        --ag-icon-font-code-checkbox-indeterminate: '',
+        // Overridden by _ag-svg-icons
+        --ag-icon-font-code-checkbox-unchecked: '',
+        // Overridden by _ag-svg-icons
         --ag-icon-font-code-radio-button-off: '',
+        // Overridden by _ag-svg-icons
         --ag-icon-font-code-radio-button-on: '',
         --ag-icon-font-code-asc: '\f5d0',
         --ag-icon-font-code-cancel: '\f664',
@@ -97,12 +101,14 @@
         --ag-header-height: var(--kbq-size-4xl),
         --ag-header-foreground-color: var(--ag-foreground-color),
         // Selected tab
-        --ag-selected-tab-underline-color: var(--ag-koobiq-active-color),
+        --ag-selected-tab-underline-color: var(--ag-theme-koobiq-active-color),
         --ag-selected-tab-underline-width: 2px,
         --ag-selected-tab-underline-transition-speed: 0.3s,
         // Row
         --ag-row-height: var(--kbq-size-4xl),
+        // Overridden by _ag-row-highlight
         --ag-row-hover-color: transparent,
+        // Overridden by _ag-row-highlight
         --ag-selected-row-background-color: transparent,
         // Border
         --ag-border-color: transparent,
@@ -119,9 +125,9 @@
         // Checkbox
         --ag-checkbox-unchecked-color: var(--kbq-line-contrast-fade),
         --ag-checkbox-background-color: var(--kbq-icon-white),
-        --ag-checkbox-checked-color: var(--ag-koobiq-active-color),
+        --ag-checkbox-checked-color: var(--ag-theme-koobiq-active-color),
         --ag-checkbox-border-radius: var(--kbq-checkbox-size-normal-border-radius),
-        --ag-checkbox-indeterminate-color: var(--ag-koobiq-active-color),
+        --ag-checkbox-indeterminate-color: var(--ag-theme-koobiq-active-color),
         // Widget
         --ag-widget-container-vertical-padding: calc(var(--ag-grid-size) * 2),
         --ag-widget-container-horizontal-padding: calc(var(--ag-grid-size) * 2),
@@ -149,9 +155,9 @@
 
 @mixin _ag-row-highlight() {
     .ag-row {
-        --ag-koobiq-row-background-color: var(--ag-background-color);
+        --ag-theme-koobiq-row-background-color: var(--ag-background-color);
 
-        background-color: var(--ag-koobiq-row-background-color);
+        background-color: var(--ag-theme-koobiq-row-background-color);
 
         &::before {
             background: unset;
@@ -160,35 +166,35 @@
         &:not(.ag-row-focus),
         &:not(.ag-row-selected) {
             &:hover {
-                --ag-koobiq-row-background-color: var(--kbq-states-background-transparent-hover);
+                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-transparent-hover);
             }
 
             &:active {
-                --ag-koobiq-row-background-color: var(--kbq-states-background-transparent-active);
+                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-transparent-active);
             }
         }
 
         &:not(.ag-row-focus).ag-row-selected {
-            --ag-koobiq-row-background-color: var(--kbq-background-contrast-less);
+            --ag-theme-koobiq-row-background-color: var(--kbq-background-contrast-less);
 
             &:hover {
-                --ag-koobiq-row-background-color: var(--kbq-states-background-contrast-less-hover);
+                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-contrast-less-hover);
             }
 
             &:active {
-                --ag-koobiq-row-background-color: var(--kbq-states-background-contrast-less-active);
+                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-contrast-less-active);
             }
         }
 
         &.ag-row-focus {
-            --ag-koobiq-row-background-color: var(--kbq-background-theme-less);
+            --ag-theme-koobiq-row-background-color: var(--kbq-background-theme-less);
 
             &:hover {
-                --ag-koobiq-row-background-color: var(--kbq-states-background-theme-less-hover);
+                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-theme-less-hover);
             }
 
             &:active {
-                --ag-koobiq-row-background-color: var(--kbq-states-background-theme-less-active);
+                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-theme-less-active);
             }
         }
     }
@@ -245,7 +251,7 @@
             &:hover {
                 --ag-header-column-resize-handle-width: 2px;
                 --ag-header-column-resize-handle-height: 20px;
-                --ag-header-column-resize-handle-color: var(--ag-koobiq-active-color);
+                --ag-header-column-resize-handle-color: var(--ag-theme-koobiq-active-color);
             }
         }
 
@@ -257,10 +263,47 @@
     }
 }
 
+@mixin _ag-checkbox() {
+    .ag-checkbox-input-wrapper:focus-within,
+    .ag-checkbox-input-wrapper:active {
+        box-shadow: unset;
+
+        &::after {
+            outline: var(--kbq-checkbox-theme-states-focused-outline);
+            border-color: var(--kbq-checkbox-theme-states-focused-border);
+            border-radius: inherit;
+        }
+    }
+}
+
+@mixin _ag-svg-icons() {
+    .ag-checkbox-input-wrapper {
+        --ag-theme-koobiq-checkbox-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1H4C2.34315 1 1 2.34315 1 4V12C1 13.6569 2.34315 15 4 15H12C13.6569 15 15 13.6569 15 12V4C15 2.34315 13.6569 1 12 1ZM4 0C1.79086 0 0 1.79086 0 4V12C0 14.2091 1.79086 16 4 16H12C14.2091 16 16 14.2091 16 12V4C16 1.79086 14.2091 0 12 0H4Z" fill="currentColor"/></svg>');
+        --ag-theme-koobiq-checkbox-fill: var(--ag-checkbox-unchecked-color);
+
+        &::after {
+            mask: var(--ag-theme-koobiq-checkbox-svg) center / contain no-repeat;
+            width: 100%;
+            height: 100%;
+            background-color: var(--ag-theme-koobiq-checkbox-fill);
+        }
+
+        &.ag-checked {
+            --ag-theme-koobiq-checkbox-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M4 0C1.79086 0 0 1.79086 0 4V12C0 14.2091 1.79086 16 4 16H12C14.2091 16 16 14.2091 16 12V4C16 1.79086 14.2091 0 12 0H4ZM13.6899 5.1589C13.768 5.237 13.768 5.36363 13.6899 5.44174L7.14137 11.9903C7.06327 12.0684 6.93664 12.0684 6.85853 11.9903L2.84137 7.9731C2.76327 7.895 2.76327 7.76836 2.84137 7.69026L3.6899 6.84173C3.76801 6.76362 3.89464 6.76362 3.97274 6.84173L6.99995 9.86894L12.5585 4.31037C12.6366 4.23226 12.7633 4.23226 12.8414 4.31037L13.6899 5.1589Z"/></svg>');
+            --ag-theme-koobiq-checkbox-fill: var(--ag-checkbox-checked-color);
+        }
+
+        &.ag-indeterminate {
+            --ag-theme-koobiq-checkbox-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M4 0C1.79086 0 0 1.79086 0 4V12C0 14.2091 1.79086 16 4 16H12C14.2091 16 16 14.2091 16 12V4C16 1.79086 14.2091 0 12 0H4ZM13 7.4002V8.60019C13 8.71065 12.9105 8.80019 12.8 8.80019H3.2C3.08954 8.8002 3 8.71065 3 8.60019V7.4002C3 7.28974 3.08954 7.2002 3.2 7.2002H12.8C12.9105 7.2002 13 7.28974 13 7.4002Z" fill="currentColor"/></svg>');
+            --ag-theme-koobiq-checkbox-fill: var(--ag-checkbox-indeterminate-color);
+        }
+    }
+}
+
 .ag-theme-koobiq {
     // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
     --ag-background-color: var(--kbq-background-bg);
-    --ag-koobiq-active-color: var(--kbq-background-theme);
+    --ag-theme-koobiq-active-color: var(--kbq-background-theme);
 
     line-height: var(--kbq-typography-text-normal-line-height);
     letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
@@ -270,6 +313,8 @@
     @include _ag-row-border-radius();
     @include _ag-tooltip();
     @include _ag-header-cell-resize();
+    @include _ag-svg-icons();
+    @include _ag-checkbox();
 
     @include ag.text-input {
         min-height: calc(var(--ag-grid-size) * 4);
@@ -322,7 +367,7 @@
     }
 
     .ag-tab-selected {
-        color: var(--ag-koobiq-active-color);
+        color: var(--ag-theme-koobiq-active-color);
     }
 
     .ag-menu {
@@ -387,19 +432,19 @@
         -webkit-appearance: none;
         border-radius: var(--ag-border-radius);
         border: var(--kbq-size-border-width) solid;
-        border-color: var(--ag-koobiq-active-color);
-        color: var(--ag-koobiq-active-color);
+        border-color: var(--ag-theme-koobiq-active-color);
+        color: var(--ag-theme-koobiq-active-color);
         background-color: var(--ag-background-color);
         padding: var(--ag-grid-size) calc(var(--ag-grid-size) * 2);
 
         &:hover {
-            border-color: var(--ag-koobiq-active-color);
+            border-color: var(--ag-theme-koobiq-active-color);
             background-color: var(--ag-row-hover-color);
         }
 
         &:active {
-            border-color: var(--ag-koobiq-active-color);
-            background-color: var(--ag-koobiq-active-color);
+            border-color: var(--ag-theme-koobiq-active-color);
+            background-color: var(--ag-theme-koobiq-active-color);
             color: var(--ag-background-color);
         }
 
@@ -452,7 +497,7 @@
     }
 
     .ag-chart-menu-close:hover .ag-icon {
-        border-color: var(--ag-koobiq-active-color);
+        border-color: var(--ag-theme-koobiq-active-color);
     }
 
     .ag-header-cell-menu-button,
@@ -473,7 +518,7 @@
     .ag-chart-menu-icon,
     .ag-chart-menu-close {
         &:hover {
-            color: var(--ag-koobiq-active-color);
+            color: var(--ag-theme-koobiq-active-color);
         }
     }
 
@@ -504,7 +549,7 @@
     }
 
     .ag-date-time-list-page-entry-is-current {
-        background-color: var(--ag-koobiq-active-color);
+        background-color: var(--ag-theme-koobiq-active-color);
     }
 
     .ag-advanced-filter-builder-button {
