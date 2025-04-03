@@ -373,6 +373,28 @@
     }
 }
 
+@mixin _ag-select() {
+    .ag-select {
+        .ag-picker-field-display {
+            margin: 5px var(--kbq-size-m);
+        }
+
+        .ag-picker-field-icon {
+            margin: var(--kbq-size-xxs);
+        }
+
+        .ag-picker-expanded {
+            box-shadow: unset;
+        }
+    }
+
+    .ag-select-list {
+        .ag-select-list-item {
+            padding: 0 10px;
+        }
+    }
+}
+
 .ag-theme-koobiq {
     // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
     --ag-background-color: var(--kbq-background-bg);
@@ -391,6 +413,7 @@
     @include _ag-checkbox-focus();
     @include _ag-radio-button-focus();
     @include _ag-paging-panel();
+    @include _ag-select();
 
     @include ag.text-input {
         min-height: calc(var(--ag-grid-size) * 4);
