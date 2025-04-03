@@ -147,16 +147,82 @@
     )
 );
 
-.ag-theme-koobiq {
-    // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
-    --ag-background-color: var(--kbq-background-bg);
-    --ag-koobiq-active-color: var(--kbq-background-theme);
-    --ag-koobiq-row-background-color: var(--ag-background-color);
+@mixin _ag-row-highlight() {
+    .ag-row {
+        --ag-koobiq-row-background-color: var(--ag-background-color);
 
-    line-height: var(--kbq-typography-text-normal-line-height);
-    letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
-    font-weight: var(--kbq-typography-text-normal-font-weight);
+        background-color: var(--ag-koobiq-row-background-color);
 
+        &::before {
+            background: unset;
+        }
+
+        &:not(.ag-row-focus),
+        &:not(.ag-row-selected) {
+            &:hover {
+                --ag-koobiq-row-background-color: var(--kbq-states-background-transparent-hover);
+            }
+
+            &:active {
+                --ag-koobiq-row-background-color: var(--kbq-states-background-transparent-active);
+            }
+        }
+
+        &:not(.ag-row-focus).ag-row-selected {
+            --ag-koobiq-row-background-color: var(--kbq-background-contrast-less);
+
+            &:hover {
+                --ag-koobiq-row-background-color: var(--kbq-states-background-contrast-less-hover);
+            }
+
+            &:active {
+                --ag-koobiq-row-background-color: var(--kbq-states-background-contrast-less-active);
+            }
+        }
+
+        &.ag-row-focus {
+            --ag-koobiq-row-background-color: var(--kbq-background-theme-less);
+
+            &:hover {
+                --ag-koobiq-row-background-color: var(--kbq-states-background-theme-less-hover);
+            }
+
+            &:active {
+                --ag-koobiq-row-background-color: var(--kbq-states-background-theme-less-active);
+            }
+        }
+    }
+}
+
+@mixin _ag-row-border-radius() {
+    .ag-row {
+        border-radius: var(--ag-border-radius);
+
+        &:first-child {
+            border-top-left-radius: unset;
+            border-top-right-radius: unset;
+        }
+
+        &:last-child {
+            border-bottom-left-radius: unset;
+            border-bottom-right-radius: unset;
+        }
+
+        $_selectors: '.ag-row-selected, .ag-row-focus, .ag-row-hover';
+
+        &:is(#{$_selectors}):has(+ :is(#{$_selectors})) {
+            border-bottom-left-radius: unset;
+            border-bottom-right-radius: unset;
+        }
+
+        &:is(#{$_selectors}) + :is(#{$_selectors}) {
+            border-top-left-radius: unset;
+            border-top-right-radius: unset;
+        }
+    }
+}
+
+@mixin _ag-tooltip() {
     .ag-tooltip {
         --ag-foreground-color: var(--kbq-tooltip-contrast-fade-off-text);
 
@@ -164,24 +230,51 @@
         font-size: var(--kbq-typography-text-compact-font-size);
         line-height: var(--kbq-typography-text-compact-line-height);
     }
+}
 
-    .ag-header-row .ag-header-cell-resize {
-        opacity: 0;
-        transition: opacity 0.2s;
+@mixin _ag-header-cell-resize() {
+    .ag-header-row {
+        .ag-header-cell-resize {
+            opacity: 0;
+            transition: opacity 0.2s;
+
+            &::after {
+                border-radius: 3px;
+            }
+
+            &:hover {
+                --ag-header-column-resize-handle-width: 2px;
+                --ag-header-column-resize-handle-height: 20px;
+                --ag-header-column-resize-handle-color: var(--ag-koobiq-active-color);
+            }
+        }
+
+        &:hover {
+            .ag-header-cell-resize {
+                opacity: 1;
+            }
+        }
     }
+}
 
-    .ag-header-row:hover .ag-header-cell-resize {
-        opacity: 1;
-    }
+.ag-theme-koobiq {
+    // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
+    --ag-background-color: var(--kbq-background-bg);
+    --ag-koobiq-active-color: var(--kbq-background-theme);
 
-    .ag-header-row .ag-header-cell-resize::after {
-        border-radius: 3px;
-    }
+    line-height: var(--kbq-typography-text-normal-line-height);
+    letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
+    font-weight: var(--kbq-typography-text-normal-font-weight);
 
-    .ag-header-row .ag-header-cell-resize:hover {
-        --ag-header-column-resize-handle-width: 2px;
-        --ag-header-column-resize-handle-height: 20px;
-        --ag-header-column-resize-handle-color: var(--ag-koobiq-active-color);
+    @include _ag-row-highlight();
+    @include _ag-row-border-radius();
+    @include _ag-tooltip();
+    @include _ag-header-cell-resize();
+
+    @include ag.text-input {
+        min-height: calc(var(--ag-grid-size) * 4);
+        border-radius: var(--ag-border-radius);
+        padding: var(--kbq-size-xs) var(--kbq-size-m);
     }
 
     .ag-header,
@@ -196,12 +289,6 @@
     .ag-panel-title-bar-title,
     .ag-multi-filter-group-title-bar {
         color: var(--ag-header-foreground-color);
-    }
-
-    @include ag.text-input {
-        min-height: calc(var(--ag-grid-size) * 4);
-        border-radius: var(--ag-border-radius);
-        padding: var(--kbq-size-xs) var(--kbq-size-m);
     }
 
     .ag-cell,
@@ -221,49 +308,7 @@
     }
 
     .ag-row {
-        background-color: var(--ag-koobiq-row-background-color);
-        border-bottom: none;
-        // @TODO add border-radius
-        // border-radius: var(--ag-border-radius);
-
-        &::before {
-            background: none;
-        }
-    }
-
-    .ag-row:not(.ag-row-focus),
-    .ag-row:not(.ag-row-selected) {
-        &:hover {
-            --ag-koobiq-row-background-color: var(--kbq-states-background-transparent-hover);
-        }
-
-        &:active {
-            --ag-koobiq-row-background-color: var(--kbq-states-background-transparent-active);
-        }
-    }
-
-    .ag-row.ag-row-selected:not(.ag-row-focus) {
-        --ag-koobiq-row-background-color: var(--kbq-background-contrast-less);
-
-        &:hover {
-            --ag-koobiq-row-background-color: var(--kbq-states-background-contrast-less-hover);
-        }
-
-        &:active {
-            --ag-koobiq-row-background-color: var(--kbq-states-background-contrast-less-active);
-        }
-    }
-
-    .ag-row.ag-row-focus {
-        --ag-koobiq-row-background-color: var(--kbq-background-theme-less);
-
-        &:hover {
-            --ag-koobiq-row-background-color: var(--kbq-states-background-theme-less-hover);
-        }
-
-        &:active {
-            --ag-koobiq-row-background-color: var(--kbq-states-background-theme-less-active);
-        }
+        border-bottom: unset;
     }
 
     .ag-picker-field-wrapper {

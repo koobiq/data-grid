@@ -26,7 +26,8 @@ const config = {
         'scss/selector-no-union-class-name': true,
         'scss/at-mixin-pattern': [KEBAB_CASE_PATTERN, { message: 'Expected @mixin name to be kebab-case.' }],
         'scss/at-use-no-unnamespaced': true,
-        'scss/at-use-no-redundant-alias': true
+        'scss/at-use-no-redundant-alias': true,
+        'scss/no-unused-private-members': true
     }
 };
 
