@@ -214,7 +214,7 @@
             border-bottom-right-radius: unset;
         }
 
-        $_selectors: '.ag-row-selected, .ag-row-focus, .ag-row-hover';
+        $_selectors: '.ag-row-selected, .ag-row-focus';
 
         &:is(#{$_selectors}):has(+ :is(#{$_selectors})) {
             border-bottom-left-radius: unset;
