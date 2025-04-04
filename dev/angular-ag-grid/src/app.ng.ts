@@ -98,7 +98,7 @@ enum DevThemeSelector {
             [pagination]="pagination()"
             [enableRtl]="enableRtl()"
             [columnHoverHighlight]="columnHoverHighlight()"
-            [suppressRowClickSelection]="true"
+            [suppressRowClickSelection]="suppressRowClickSelection()"
             [tooltipShowDelay]="500"
             (gridReady)="onGridReady($event)"
             (firstDataRendered)="onFirstDataRendered($event)"
