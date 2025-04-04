@@ -89,6 +89,10 @@ enum DevThemeSelector {
                 <input [(ngModel)]="tooltip" type="checkbox" />
                 Tooltip
             </label>
+            <label>
+                <input [(ngModel)]="animateRows" type="checkbox" />
+                Animate Rows
+            </label>
         </div>
 
         <ag-grid-angular
@@ -101,6 +105,7 @@ enum DevThemeSelector {
             [columnHoverHighlight]="columnHoverHighlight()"
             [suppressRowClickSelection]="suppressRowClickSelection()"
             [tooltipShowDelay]="500"
+            [animateRows]="animateRows()"
             (gridReady)="onGridReady($event)"
             (firstDataRendered)="onFirstDataRendered($event)"
             kbqAgGridTheme
@@ -147,6 +152,7 @@ export class DevApp {
     readonly columnHoverHighlight = model(false);
     readonly tooltip = model(false);
     readonly suppressRowClickSelection = model(true);
+    readonly animateRows = model(false);
 
     private gridApi!: GridApi;
     private gridColumnApi!: ColumnApi;
