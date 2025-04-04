@@ -61,7 +61,7 @@ enum DevThemeSelector {
                 Suppress Column Movable
             </label>
             <label>
-                <input [(ngModel)]="filter" type="checkbox" />
+                <input [(ngModel)]="filter" [disabled]="this.floatingFilter()" type="checkbox" />
                 Filter
             </label>
             <label>
@@ -284,7 +284,9 @@ export class DevApp {
 
         toObservable(this.floatingFilter)
             .pipe(takeUntilDestroyed())
-            .subscribe(() => {
+            .subscribe((floatingFilter) => {
+                if (floatingFilter && !this.filter()) this.filter.set(true);
+
                 this.gridApi?.setFilterModel(null);
             });
 
