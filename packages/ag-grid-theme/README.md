@@ -1,6 +1,6 @@
 # @koobiq/ag-grid-theme
 
-The `@koobiq/ag-grid-theme` package provides a customizable theme for the AG Grid library.
+The package provides a theme for the AG Grid library.
 
 ## Installation
 
@@ -28,6 +28,12 @@ import { AgGridModule } from 'ag-grid-angular';
 })
 ```
 
+## Build
+
+```bash
+yarn run build:theme
+```
+
 ## Development
 
 Install dependencies:
@@ -39,7 +45,7 @@ yarn install
 Run dev server:
 
 ```bash
-yarn run dev
+yarn run run:dev
 ```
 
 Then open http://localhost:4200/

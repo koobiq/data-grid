@@ -16,8 +16,11 @@
     },
     "scripts": {
         "prepare": "husky",
-        "dev": "nx run angular-ag-grid:serve --configuration=development",
-        "build": "nx run @koobiq/ag-grid-theme:build",
+        "run:dev": "nx run angular-ag-grid:serve --configuration=development",
+        "-----BUILD-----": "------------------------------------------------------------------------------------------",
+        "build:dev": "nx run angular-ag-grid:build",
+        "build:theme": "nx run @koobiq/ag-grid-theme:build",
+        "build": "nx run-many --target=build",
         "-----CI-----": "---------------------------------------------------------------------------------------------",
         "prettier": "prettier '**/*.{css,scss,md,yml,json,js,ts,html}' --check",
         "prettier:fix": "yarn run prettier --write",
