@@ -45,7 +45,7 @@ yarn install
 Run dev server:
 
 ```bash
-yarn run run:dev
+yarn run dev
 ```
 
 Then open http://localhost:4200/
