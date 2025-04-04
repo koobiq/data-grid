@@ -376,6 +376,7 @@
 @mixin _ag-select() {
     .ag-select {
         .ag-picker-field-wrapper {
+            border-radius: var(--ag-border-radius);
             border-color: var(--ag-input-border-color);
         }
 
@@ -453,6 +454,32 @@
     font-weight: var(--kbq-typography-text-normal-font-weight);
 }
 
+@mixin _ag-cell-inline-editing() {
+    .ag-cell-inline-editing {
+        padding: unset;
+        border-radius: unset;
+        box-shadow: unset;
+
+        @include ag.text-input {
+            border-radius: unset;
+            box-shadow: unset;
+            border: unset;
+        }
+
+        .ag-select .ag-picker-field-wrapper {
+            border-radius: unset;
+            box-shadow: unset;
+            border: unset;
+        }
+    }
+}
+
+@mixin _ag-popup-editor() {
+    .ag-popup-editor {
+        border-radius: var(--ag-border-radius);
+    }
+}
+
 .ag-theme-koobiq {
     // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
     --ag-background-color: var(--kbq-background-bg);
@@ -475,4 +502,6 @@
     @include _ag-header-cell-padding();
     @include _ag-text-input();
     @include _ag-row-border();
+    @include _ag-cell-inline-editing();
+    @include _ag-popup-editor();
 }
