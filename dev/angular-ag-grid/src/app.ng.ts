@@ -45,12 +45,24 @@ enum DevThemeSelector {
                 Multiple Row Selection
             </label>
             <label>
+                <input [(ngModel)]="suppressRowClickSelection" type="checkbox" />
+                Suppress Row Click Selection
+            </label>
+            <label>
                 <input [(ngModel)]="editable" type="checkbox" />
-                Editable
+                Editable Cell
             </label>
             <label>
                 <input [(ngModel)]="resizable" type="checkbox" />
-                Resizable
+                Resizable Column
+            </label>
+            <label>
+                <input [(ngModel)]="suppressMovable" type="checkbox" />
+                Suppress Column Movable
+            </label>
+            <label>
+                <input [(ngModel)]="filter" type="checkbox" />
+                Filter
             </label>
             <label>
                 <input [(ngModel)]="floatingFilter" type="checkbox" />
@@ -61,18 +73,11 @@ enum DevThemeSelector {
                 Sortable
             </label>
             <label>
-                <input [(ngModel)]="filter" type="checkbox" />
-                Filter
-            </label>
-            <label>
                 <input [(ngModel)]="pagination" type="checkbox" />
                 Pagination
             </label>
             <label>
-                <input [(ngModel)]="suppressMovable" type="checkbox" />
-                Suppress Movable
-            </label>
-            <label>
+                <!-- TODO: grid does not support dynamic RTL change -->
                 <input [(ngModel)]="enableRtl" type="checkbox" disabled="" />
                 RTL
             </label>
@@ -83,10 +88,6 @@ enum DevThemeSelector {
             <label>
                 <input [(ngModel)]="tooltip" type="checkbox" />
                 Tooltip
-            </label>
-            <label>
-                <input [(ngModel)]="suppressRowClickSelection" type="checkbox" />
-                Suppress Row Click Selection
             </label>
         </div>
 
@@ -135,16 +136,16 @@ export class DevApp {
     readonly lightTheme = model(true);
     readonly checkboxSelection = model(true);
     readonly multipleRowSelection = model(true);
-    readonly editable = model(true);
+    readonly editable = model(false);
     readonly resizable = model(true);
-    readonly floatingFilter = model(true);
+    readonly floatingFilter = model(false);
     readonly sortable = model(true);
-    readonly filter = model(true);
-    readonly pagination = model(true);
+    readonly filter = model(false);
+    readonly pagination = model(false);
     readonly suppressMovable = model(false);
     readonly enableRtl = model(false);
-    readonly columnHoverHighlight = model(true);
-    readonly tooltip = model(true);
+    readonly columnHoverHighlight = model(false);
+    readonly tooltip = model(false);
     readonly suppressRowClickSelection = model(true);
 
     private gridApi!: GridApi;
