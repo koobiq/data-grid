@@ -204,12 +204,12 @@
     .ag-row {
         border-radius: var(--ag-border-radius);
 
-        &:first-child {
+        &.ag-row-first {
             border-top-left-radius: unset;
             border-top-right-radius: unset;
         }
 
-        &:last-child {
+        &.ag-row-last {
             border-bottom-left-radius: unset;
             border-bottom-right-radius: unset;
         }
