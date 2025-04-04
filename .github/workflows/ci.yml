@@ -6,9 +6,7 @@ on:
       - main
   pull_request:
 
-permissions:
-  actions: read
-  contents: read
+permissions: read-all
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -18,8 +16,8 @@ env:
   CI: true
 
 jobs:
-  install-dependencies:
-    name: Install Dependencies
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,21 +28,12 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: 'yarn'
+          cache-dependency-path: yarn.lock
 
       - run: yarn install --frozen-lockfile
 
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: install-dependencies
-    steps:
       - run: yarn run build
 
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    needs: install-dependencies
-    steps:
       - run: |
           yarn run prettier
           yarn run stylelint --max-warnings=0
