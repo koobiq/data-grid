@@ -16,8 +16,7 @@ env:
   CI: true
 
 jobs:
-  setup:
-    name: Setup
+  ci:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -35,37 +34,17 @@ jobs:
       - name: Install Dependencies
         run: yarn install --frozen-lockfile
 
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
-      - run: yarn run build
+      - name: Build
+        run: yarn run build
 
-  commitlint:
-    name: Commitlint
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
-      - run: echo "${{ github.event.pull_request.title }}" | yarn commitlint
+      - name: Commitlint
+        run: echo "${{ github.event.pull_request.title }}" | yarn commitlint
 
-  prettier:
-    name: Prettier
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
-      - run: yarn run prettier
+      - name: Prettier
+        run: yarn run prettier
 
-  eslint:
-    name: Eslint
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
-      - run: yarn run eslint --max-warnings=0
+      - name: Eslint
+        run: yarn run eslint --max-warnings=0
 
-  stylelint:
-    name: Stylelint
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
-      - run: yarn run stylelint --max-warnings=0
+      - name: Stylelint
+        run: yarn run stylelint --max-warnings=0
