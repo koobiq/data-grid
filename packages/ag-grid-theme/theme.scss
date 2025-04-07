@@ -136,6 +136,7 @@
         --ag-input-focus-border-color: var(--kbq-form-field-states-focused-border-color),
         --ag-input-border-color: var(--kbq-line-contrast-fade),
         --ag-input-border-color-invalid: var(--kbq-form-field-states-error-border-color),
+        --ag-borders-input-invalid: solid var(--kbq-size-border-width),
         --ag-input-focus-box-shadow: 0 0 0.1px 1px var(--kbq-form-field-states-focused-border-color),
         --ag-input-disabled-border-color: var(--kbq-form-field-states-disabled-border-color),
         --ag-input-disabled-background-color: var(--kbq-form-field-states-disabled-background),
@@ -433,6 +434,17 @@
         border-radius: var(--ag-border-radius);
         padding: var(--kbq-size-xs) var(--kbq-size-m);
         font-family: inherit;
+        color: var(--ag-data-color);
+
+        &:invalid {
+            --ag-input-focus-box-shadow: none;
+            --ag-background-color: var(--kbq-form-field-states-error-background);
+            --ag-data-color: var(--kbq-form-field-states-error-text);
+
+            &:focus-within {
+                --ag-borders-input-invalid: solid 2px;
+            }
+        }
     }
 }
 
