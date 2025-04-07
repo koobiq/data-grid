@@ -10,10 +10,24 @@ npm install @koobiq/ag-grid-theme ag-grid-community@^30
 
 ## Usage
 
-Import theme into your main [`styles.scss`](/dev/angular-ag-grid/src/styles.scss):
+Import theme into your main [`styles.scss`](/dev/angular-ag-grid/src/styles.scss) file:
 
 ```css
 @use '@koobiq/ag-grid-theme';
+```
+
+Import [`@koobiq/icons`](https://github.com/koobiq/icons):
+
+```css
+@use '@koobiq/icons/fonts/kbq-icons';
+```
+
+Import [`@koobiq/design-tokens`](https://github.com/koobiq/design-tokens):
+
+```css
+@use '@koobiq/design-tokens/web/css-tokens';
+@use '@koobiq/design-tokens/web/css-tokens-light';
+@use '@koobiq/design-tokens/web/css-tokens-dark';
 ```
 
 Apply theme for `<ag-grid-angular>` into your template:
