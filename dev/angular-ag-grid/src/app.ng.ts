@@ -121,6 +121,7 @@ enum DevThemeSelector {
 
         ag-grid-angular {
             height: 100%;
+            max-width: 2042px;
         }
 
         .dev-grid-options {
