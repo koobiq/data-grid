@@ -1,6 +1,6 @@
 {
     "$schema": "./node_modules/nx/schemas/nx-schema.json",
-    "nxCloudId": "67e2c1a0ad424c1ca5d11208",
+    "neverConnectToCloud": true,
     "targetDefaults": {
         "@angular-devkit/build-angular:application": {
             "cache": true,
