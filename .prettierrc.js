@@ -26,12 +26,7 @@ const config = {
     singleQuote: true,
     trailingComma: 'none',
     htmlWhitespaceSensitivity: 'ignore',
-    plugins: [
-        'prettier-plugin-organize-attributes',
-        'prettier-plugin-organize-imports',
-        // should be last
-        'prettier-plugin-multiline-arrays'
-    ],
+    plugins: ['prettier-plugin-organize-attributes', 'prettier-plugin-organize-imports'],
     overrides: [
         {
             files: ['*.yml'],

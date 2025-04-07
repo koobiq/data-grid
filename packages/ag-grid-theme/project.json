@@ -8,9 +8,7 @@
     "targets": {
         "build": {
             "executor": "@nx/angular:ng-packagr-lite",
-            "outputs": [
-                "{workspaceRoot}/dist/{projectRoot}"
-            ],
+            "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
             "options": {
                 "project": "packages/ag-grid-theme/ng-package.json"
             },

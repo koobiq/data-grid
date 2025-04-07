@@ -10,12 +10,8 @@ const config = {
         commonjs: true,
         node: true
     },
-    plugins: [
-        'file-progress'
-    ],
-    extends: [
-        'plugin:eslint-comments/recommended'
-    ],
+    plugins: ['file-progress'],
+    extends: ['plugin:eslint-comments/recommended'],
     rules: {
         // plugin:file-progress
         'file-progress/activate': isCI ? 0 : 1,
@@ -26,9 +22,7 @@ const config = {
     overrides: [
         {
             files: ['*.js', '*.ts'],
-            extends: [
-                'eslint:recommended'
-            ],
+            extends: ['eslint:recommended'],
             rules: {}
         },
         {
@@ -58,10 +52,7 @@ const config = {
         },
         {
             files: ['*.html'],
-            extends: [
-                'plugin:@angular-eslint/template/recommended',
-                'plugin:@angular-eslint/template/accessibility'
-            ],
+            extends: ['plugin:@angular-eslint/template/recommended', 'plugin:@angular-eslint/template/accessibility'],
             rules: {
                 '@angular-eslint/template/prefer-self-closing-tags': 1,
                 '@angular-eslint/template/prefer-control-flow': 1

@@ -4,10 +4,7 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { DevApp } from './app.ng';
 
 const appConfig: ApplicationConfig = {
-    providers: [
-        provideZoneChangeDetection({ eventCoalescing: true }),
-        provideHttpClient()
-    ]
+    providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideHttpClient()]
 };
 
 bootstrapApplication(DevApp, appConfig).catch((err) => console.error(err));

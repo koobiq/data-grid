@@ -4,23 +4,13 @@
     "targetDefaults": {
         "@angular-devkit/build-angular:application": {
             "cache": true,
-            "dependsOn": [
-                "^build"
-            ],
-            "inputs": [
-                "default",
-                "^default"
-            ]
+            "dependsOn": ["^build"],
+            "inputs": ["default", "^default"]
         },
         "@nx/angular:ng-packagr-lite": {
             "cache": true,
-            "dependsOn": [
-                "^build"
-            ],
-            "inputs": [
-                "default",
-                "^default"
-            ]
+            "dependsOn": ["^build"],
+            "inputs": ["default", "^default"]
         }
     },
     "generators": {

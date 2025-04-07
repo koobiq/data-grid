@@ -3,21 +3,10 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "css.validate": false,
     "scss.validate": false,
-    "stylelint.validate": [
-        "css",
-        "scss"
-    ],
+    "stylelint.validate": ["css", "scss"],
     "eslint.options": {
-        "extensions": [
-            ".js",
-            ".ts",
-            ".html"
-        ]
+        "extensions": [".js", ".ts", ".html"]
     },
-    "eslint.validate": [
-        "javascript",
-        "typescript",
-        "html"
-    ],
+    "eslint.validate": ["javascript", "typescript", "html"],
     "editor.rulers": [120]
 }
