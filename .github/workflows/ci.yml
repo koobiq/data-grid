@@ -6,22 +6,45 @@ on:
       - main
   pull_request:
 
-permissions:
-  actions: read
-  contents: read
+permissions: read-all
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: true
 
 jobs:
-  main:
+  ci:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # Cache node_modules
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: 'yarn'
+          cache-dependency-path: yarn.lock
 
-      - run: yarn install --frozen-lockfile
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn run build
+
+      - name: Commitlint
+        run: echo "${{ github.event.pull_request.title }}" | yarn commitlint
+
+      - name: Prettier
+        run: yarn run prettier
+
+      - name: Eslint
+        run: yarn run eslint --max-warnings=0
+
+      - name: Stylelint
+        run: yarn run stylelint --max-warnings=0

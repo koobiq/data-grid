@@ -1,0 +1,32 @@
+name: Deploy Next Docs
+
+on:
+  push:
+    branches:
+      - 'main'
+  # Allows you to run this workflow manually
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'koobiq' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
+
+      - run: yarn install --frozen-lockfile
+
+      - run: yarn run build
+
+      - run: yarn run firebase deploy --only hosting:next --token=${{ secrets.FIREBASE_DEPLOY_TOKEN }}

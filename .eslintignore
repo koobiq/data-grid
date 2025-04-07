@@ -1,0 +1,9 @@
+dist
+node_modules
+tmp
+
+# eslint ignores root level "dot" files by default
+!/.*.js
+
+# ignore index.html
+**/index.html

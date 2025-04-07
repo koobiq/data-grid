@@ -1,0 +1,520 @@
+@use 'ag-grid-community/styles' as ag;
+
+@include ag.grid-styles(
+    (
+        // Full AG Grid variables list:
+        // https://www.ag-grid.com/archive/30.2.0/angular-data-grid/global-style-customisation-variables/
+        theme: koobiq,
+        --ag-foreground-color: var(--kbq-foreground-contrast-secondary),
+        --ag-secondary-border-color: transparent,
+        --ag-tooltip-background-color: var(--kbq-tooltip-contrast-fade-off-background),
+        --ag-odd-row-background-color: var(--ag-background-color),
+        --ag-control-panel-background-color: var(--ag-background-color),
+        --ag-subheader-background-color: var(--ag-header-background-color),
+        --ag-invalid-color: var(--kbq-error-default),
+        --ag-secondary-foreground-color: var(--ag-foreground-color),
+        --ag-disabled-foreground-color: var(--kbq-states-foreground-disabled),
+        --ag-chip-background-color: rgba(24, 29, 31, 0.07),
+        --ag-side-button-selected-background-color: transparent,
+        --ag-grid-size: var(--kbq-size-s),
+        --ag-list-item-height: calc(var(--ag-grid-size) * 4),
+        --ag-set-filter-indent-size: var(--ag-icon-size),
+        --ag-advanced-filter-builder-indent-size: calc(var(--ag-icon-size) + var(--ag-grid-size) * 2),
+        --ag-tab-min-width: 240px,
+        --ag-card-shadow: var(--kbq-shadow-card),
+        --ag-popup-shadow: var(--kbq-shadow-popup),
+        --ag-side-bar-panel-width: 250px,
+        --kbq-background-card: var(--kbq-background-card),
+        --ag-data-color: var(--kbq-foreground-contrast),
+        // Cell
+        --ag-cell-horizontal-padding: var(--ag-grid-size),
+        --ag-cell-widget-spacing: calc(var(--ag-grid-size) * 2),
+        // Icon
+        // @TODO Should be refactored, by adding css variables to the font-family and icon unicode names (#DS-3601)
+        --ag-icon-font-family: 'Koobiq Icons',
+        --ag-icon-size: var(--kbq-size-l),
+        --ag-icon-font-code-aggregation: '\f572',
+        --ag-icon-font-code-arrows: '\f53d',
+        --ag-icon-font-code-paste: '',
+        --ag-icon-font-code-color-picker: '',
+        // Overridden by _ag-svg-icons
+        --ag-icon-font-code-checkbox-checked: '',
+        // Overridden by _ag-svg-icons
+        --ag-icon-font-code-checkbox-indeterminate: '',
+        // Overridden by _ag-svg-icons
+        --ag-icon-font-code-checkbox-unchecked: '',
+        // Overridden by _ag-svg-icons
+        --ag-icon-font-code-radio-button-off: '',
+        // Overridden by _ag-svg-icons
+        --ag-icon-font-code-radio-button-on: '',
+        --ag-icon-font-code-asc: '\f5d0',
+        --ag-icon-font-code-cancel: '\f664',
+        --ag-icon-font-code-chart: '\f763',
+        --ag-icon-font-code-columns: '\f7d2',
+        --ag-icon-font-code-contracted: '\f5b8',
+        --ag-icon-font-code-copy: '\f67d',
+        --ag-icon-font-code-cross: '\f664',
+        --ag-icon-font-code-csv: '\f6c6',
+        --ag-icon-font-code-cut: '\f58f',
+        --ag-icon-font-code-desc: '\f5cd',
+        --ag-icon-font-code-excel: '\f6c6',
+        --ag-icon-font-code-expanded: '\f5b8',
+        --ag-icon-font-code-eye-slash: '\f5d3',
+        --ag-icon-font-code-eye: '\f5d2',
+        --ag-icon-font-code-filter: '\f571',
+        --ag-icon-font-code-first: '\f56c',
+        --ag-icon-font-code-grip: '\f79e',
+        --ag-icon-font-code-group: '\f53c',
+        --ag-icon-font-code-last: '\f56d',
+        --ag-icon-font-code-loading: '\f540',
+        --ag-icon-font-code-linked: '\f573',
+        --ag-icon-font-code-maximize: '\f5d0',
+        --ag-icon-font-code-menu: '\f571',
+        --ag-icon-font-code-minimize: '\f5f3',
+        --ag-icon-font-code-next: '\f5b8',
+        --ag-icon-font-code-none: '\f7f7',
+        --ag-icon-font-code-not-allowed: '\f535',
+        --ag-icon-font-code-pin: '\f671',
+        --ag-icon-font-code-pivot: '\f7d2',
+        --ag-icon-font-code-previous: '\f5b7',
+        --ag-icon-font-code-left: '\f5b4',
+        --ag-icon-font-code-right: '\f5b8',
+        --ag-icon-font-code-minus: '\f5c7',
+        --ag-icon-font-code-plus: '\f5f5',
+        --ag-icon-font-code-down: '\f641',
+        --ag-icon-font-code-up: '\f5eb',
+        --ag-icon-font-code-unlinked: '\f57c',
+        --ag-icon-font-code-tree-open: '\f5cb',
+        --ag-icon-font-code-tree-indeterminate: '\f7b5',
+        --ag-icon-font-code-tree-closed: '\f5b8',
+        --ag-icon-font-code-tick: '\f679',
+        --ag-icon-font-code-small-up: '\f5cd',
+        --ag-icon-font-code-small-right: '\f5b8',
+        --ag-icon-font-code-small-left: '\f5ce',
+        --ag-icon-font-code-small-down: '\f5cd',
+        --ag-icon-font-code-save: '\f554',
+        // Column
+        --ag-column-hover-color: var(--kbq-states-background-transparent-hover),
+        --ag-column-select-indent-size: var(--ag-icon-size),
+        // Header
+        --ag-header-background-color: var(--ag-background-color),
+        --ag-header-height: var(--kbq-size-4xl),
+        --ag-header-foreground-color: var(--ag-foreground-color),
+        // Selected tab
+        --ag-selected-tab-underline-color: var(--ag-theme-koobiq-active-color),
+        --ag-selected-tab-underline-width: 2px,
+        --ag-selected-tab-underline-transition-speed: 0.3s,
+        // Row
+        --ag-row-height: var(--kbq-size-4xl),
+        // Overridden by _ag-row-highlight
+        --ag-row-hover-color: transparent,
+        // Overridden by _ag-row-highlight
+        --ag-selected-row-background-color: transparent,
+        // Border
+        --ag-border-color: transparent,
+        --ag-border-radius: var(--kbq-size-border-radius),
+        // Borders
+        --ag-borders: solid var(--kbq-size-border-width),
+        --ag-borders-side-button: none,
+        // Font
+        --ag-font-family: var(--kbq-font-family-base),
+        --ag-font-size: var(--kbq-typography-text-normal-font-size),
+        // Toggle button
+        --ag-toggle-button-height: 18px,
+        --ag-toggle-button-width: 28px,
+        // Checkbox
+        --ag-checkbox-unchecked-color: var(--kbq-line-contrast-fade),
+        --ag-checkbox-background-color: var(--ag-background-color),
+        --ag-checkbox-checked-color: var(--ag-theme-koobiq-active-color),
+        --ag-checkbox-border-radius: var(--kbq-checkbox-size-normal-border-radius),
+        --ag-checkbox-indeterminate-color: var(--ag-theme-koobiq-active-color),
+        // Widget
+        --ag-widget-container-vertical-padding: calc(var(--ag-grid-size) * 2),
+        --ag-widget-container-horizontal-padding: calc(var(--ag-grid-size) * 2),
+        --ag-widget-vertical-spacing: calc(var(--ag-grid-size) * 1.5),
+        // Input
+        --ag-input-focus-border-color: var(--kbq-form-field-states-focused-border-color),
+        --ag-input-border-color: var(--kbq-line-contrast-fade),
+        --ag-input-border-color-invalid: var(--kbq-form-field-states-error-border-color),
+        --ag-borders-input-invalid: solid var(--kbq-size-border-width),
+        --ag-input-focus-box-shadow: 0 0 0.1px 1px var(--kbq-form-field-states-focused-border-color),
+        --ag-input-disabled-border-color: var(--kbq-form-field-states-disabled-border-color),
+        --ag-input-disabled-background-color: var(--kbq-form-field-states-disabled-background),
+        // Header column resize
+        --ag-header-column-resize-handle-display: block,
+        --ag-header-column-resize-handle-width: var(--kbq-size-border-width),
+        --ag-header-column-resize-handle-height: var(--kbq-size-l),
+        --ag-header-column-resize-handle-color: var(--kbq-line-contrast-fade),
+        // Range selection
+        --ag-range-selection-background-color: rgba(33, 150, 243, 0.2),
+        --ag-range-selection-background-color-2: rgba(33, 150, 243, 0.36),
+        --ag-range-selection-background-color-3: rgba(33, 150, 243, 0.49),
+        --ag-range-selection-background-color-4: rgba(33, 150, 243, 0.59),
+        --ag-range-selection-border-color: var(--kbq-states-line-focus-theme)
+    )
+);
+
+@mixin _ag-row-highlight() {
+    .ag-row {
+        --ag-theme-koobiq-row-background-color: var(--ag-background-color);
+
+        background-color: var(--ag-theme-koobiq-row-background-color);
+
+        &::before {
+            background: unset;
+        }
+
+        &:not(.ag-row-focus),
+        &:not(.ag-row-selected) {
+            &:hover {
+                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-transparent-hover);
+            }
+
+            &:active {
+                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-transparent-active);
+            }
+        }
+
+        &:not(.ag-row-focus).ag-row-selected {
+            --ag-theme-koobiq-row-background-color: var(--kbq-background-contrast-less);
+
+            &:hover {
+                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-contrast-less-hover);
+            }
+
+            &:active {
+                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-contrast-less-active);
+            }
+        }
+
+        &.ag-row-focus {
+            --ag-theme-koobiq-row-background-color: var(--kbq-background-theme-less);
+
+            &:hover {
+                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-theme-less-hover);
+            }
+
+            &:active {
+                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-theme-less-active);
+            }
+        }
+    }
+}
+
+@mixin _ag-row-border-radius() {
+    .ag-row {
+        border-radius: var(--ag-border-radius);
+
+        &.ag-row-first {
+            border-top-left-radius: unset;
+            border-top-right-radius: unset;
+        }
+
+        &.ag-row-last {
+            border-bottom-left-radius: unset;
+            border-bottom-right-radius: unset;
+        }
+
+        $_selectors: '.ag-row-selected, .ag-row-focus';
+
+        &:is(#{$_selectors}):has(+ :is(#{$_selectors})) {
+            border-bottom-left-radius: unset;
+            border-bottom-right-radius: unset;
+        }
+
+        &:is(#{$_selectors}) + :is(#{$_selectors}) {
+            border-top-left-radius: unset;
+            border-top-right-radius: unset;
+        }
+    }
+}
+
+@mixin _ag-tooltip() {
+    .ag-tooltip {
+        --ag-foreground-color: var(--kbq-tooltip-contrast-fade-off-text);
+
+        box-shadow: var(--kbq-tooltip-contrast-fade-off-shadow);
+        font-size: var(--kbq-typography-text-compact-font-size);
+        line-height: var(--kbq-typography-text-compact-line-height);
+    }
+}
+
+@mixin _ag-header-cell-resize() {
+    .ag-header-row {
+        .ag-header-cell-resize {
+            opacity: 0;
+            transition: opacity 0.2s;
+
+            &::after {
+                border-radius: 3px;
+            }
+
+            &:hover {
+                --ag-header-column-resize-handle-width: 2px;
+                --ag-header-column-resize-handle-height: 20px;
+                --ag-header-column-resize-handle-color: var(--ag-theme-koobiq-active-color);
+            }
+        }
+
+        &:hover {
+            .ag-header-cell-resize {
+                opacity: 1;
+            }
+        }
+    }
+}
+
+@mixin _ag-checkbox-focus() {
+    .ag-checkbox-input-wrapper:focus-within,
+    .ag-checkbox-input-wrapper:active {
+        box-shadow: unset;
+
+        &::after {
+            outline: var(--kbq-checkbox-theme-states-focused-outline);
+            border-color: var(--kbq-checkbox-theme-states-focused-border);
+            border-radius: inherit;
+        }
+    }
+}
+
+@mixin _ag-radio-button-focus() {
+    .ag-radio-button-input-wrapper:focus-within,
+    .ag-radio-button-input-wrapper:active {
+        box-shadow: unset;
+
+        &::after {
+            outline: var(--kbq-checkbox-theme-states-focused-outline);
+            border-color: var(--kbq-checkbox-theme-states-focused-border);
+        }
+    }
+}
+
+@mixin _ag-svg-icons() {
+    .ag-checkbox-input-wrapper {
+        --ag-theme-koobiq-checkbox-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1H4C2.34315 1 1 2.34315 1 4V12C1 13.6569 2.34315 15 4 15H12C13.6569 15 15 13.6569 15 12V4C15 2.34315 13.6569 1 12 1ZM4 0C1.79086 0 0 1.79086 0 4V12C0 14.2091 1.79086 16 4 16H12C14.2091 16 16 14.2091 16 12V4C16 1.79086 14.2091 0 12 0H4Z" fill="currentColor"/></svg>');
+        --ag-theme-koobiq-checkbox-fill: var(--ag-checkbox-unchecked-color);
+
+        &::after {
+            mask: var(--ag-theme-koobiq-checkbox-svg) center / contain no-repeat;
+            width: 100%;
+            height: 100%;
+            background-color: var(--ag-theme-koobiq-checkbox-fill);
+        }
+
+        &.ag-checked {
+            --ag-theme-koobiq-checkbox-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M4 0C1.79086 0 0 1.79086 0 4V12C0 14.2091 1.79086 16 4 16H12C14.2091 16 16 14.2091 16 12V4C16 1.79086 14.2091 0 12 0H4ZM13.6899 5.1589C13.768 5.237 13.768 5.36363 13.6899 5.44174L7.14137 11.9903C7.06327 12.0684 6.93664 12.0684 6.85853 11.9903L2.84137 7.9731C2.76327 7.895 2.76327 7.76836 2.84137 7.69026L3.6899 6.84173C3.76801 6.76362 3.89464 6.76362 3.97274 6.84173L6.99995 9.86894L12.5585 4.31037C12.6366 4.23226 12.7633 4.23226 12.8414 4.31037L13.6899 5.1589Z"/></svg>');
+            --ag-theme-koobiq-checkbox-fill: var(--ag-checkbox-checked-color);
+        }
+
+        &.ag-indeterminate {
+            --ag-theme-koobiq-checkbox-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M4 0C1.79086 0 0 1.79086 0 4V12C0 14.2091 1.79086 16 4 16H12C14.2091 16 16 14.2091 16 12V4C16 1.79086 14.2091 0 12 0H4ZM13 7.4002V8.60019C13 8.71065 12.9105 8.80019 12.8 8.80019H3.2C3.08954 8.8002 3 8.71065 3 8.60019V7.4002C3 7.28974 3.08954 7.2002 3.2 7.2002H12.8C12.9105 7.2002 13 7.28974 13 7.4002Z" fill="currentColor"/></svg>');
+            --ag-theme-koobiq-checkbox-fill: var(--ag-checkbox-indeterminate-color);
+        }
+    }
+
+    .ag-radio-button-input-wrapper {
+        --ag-theme-koobiq-radio-button-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 15C11.866 15 15 11.866 15 8C15 4.13401 11.866 1 8 1C4.13401 1 1 4.13401 1 8C1 11.866 4.13401 15 8 15ZM8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16Z" fill="currentColor"/></svg>');
+        --ag-theme-koobiq-radio-button-fill: var(--ag-checkbox-unchecked-color);
+
+        &::after {
+            mask: var(--ag-theme-koobiq-radio-button-svg) center / contain no-repeat;
+            width: 100%;
+            height: 100%;
+            background-color: var(--ag-theme-koobiq-radio-button-fill);
+        }
+
+        &.ag-checked {
+            --ag-theme-koobiq-radio-button-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 16C12.4183 16 16 12.4183 16 8C16 3.58172 12.4183 0 8 0C3.58172 0 0 3.58172 0 8C0 12.4183 3.58172 16 8 16ZM8 11C9.65685 11 11 9.65685 11 8C11 6.34315 9.65685 5 8 5C6.34315 5 5 6.34315 5 8C5 9.65685 6.34315 11 8 11Z" fill="currentColor"/></svg>');
+            --ag-theme-koobiq-radio-button-fill: var(--ag-checkbox-checked-color);
+        }
+    }
+}
+
+@mixin _ag-icon-color {
+    .ag-icon {
+        color: var(--kbq-icon-contrast-fade);
+
+        &:hover {
+            color: var(--kbq-states-icon-contrast-fade-hover);
+        }
+
+        &:active {
+            color: var(--kbq-states-icon-contrast-fade-hover);
+        }
+    }
+}
+
+@mixin _ag-paging-panel() {
+    .ag-paging-panel {
+        height: var(--kbq-size-3xl);
+        border: unset;
+        color: var(--ag-data-color);
+        font-size: var(--kbq-typography-text-compact-font-size);
+        line-height: var(--kbq-typography-text-compact-line-height);
+
+        .ag-button {
+            --ag-icon-size: var(--kbq-size-m);
+
+            &.ag-disabled .ag-icon {
+                color: var(--kbq-states-icon-disabled);
+            }
+
+            &:not(.ag-disabled) .ag-icon {
+                color: var(--kbq-icon-contrast);
+
+                &:hover {
+                    color: var(--kbq-states-icon-contrast-hover);
+                }
+
+                &:active {
+                    color: var(--kbq-states-icon-contrast-hover);
+                }
+            }
+        }
+    }
+}
+
+@mixin _ag-select() {
+    .ag-select {
+        .ag-picker-field-wrapper {
+            border-radius: var(--ag-border-radius);
+            border-color: var(--ag-input-border-color);
+        }
+
+        .ag-picker-field-display {
+            margin: 5px var(--kbq-size-m);
+        }
+
+        .ag-picker-field-icon {
+            margin: var(--kbq-size-xxs);
+        }
+
+        .ag-picker-expanded {
+            box-shadow: unset;
+        }
+    }
+
+    .ag-select-list {
+        .ag-select-list-item {
+            padding: 0 10px;
+        }
+    }
+}
+
+@mixin _ag-edge-cells-padding() {
+    .ag-header-cell:first-child,
+    .ag-cell:first-child {
+        padding-left: calc(var(--ag-cell-horizontal-padding) + var(--kbq-size-s));
+    }
+
+    .ag-header-cell:last-child,
+    .ag-cell:last-child {
+        padding-right: calc(var(--ag-cell-horizontal-padding) + var(--kbq-size-s));
+    }
+}
+
+@mixin _ag-header-border {
+    .ag-header,
+    .ag-advanced-filter-header {
+        border-bottom: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
+    }
+}
+
+@mixin _ag-cell-padding() {
+    .ag-cell,
+    .ag-full-width-row .ag-cell-wrapper.ag-row-group {
+        padding-left: var(--ag-cell-horizontal-padding);
+        padding-right: var(--ag-cell-horizontal-padding);
+    }
+}
+
+@mixin _ag-text-field() {
+    @include ag.text-input {
+        min-height: calc(var(--ag-grid-size) * 4);
+        border-radius: var(--ag-border-radius);
+        padding: var(--kbq-size-xs) var(--kbq-size-m);
+        font-family: inherit;
+        color: var(--ag-data-color);
+
+        &:invalid {
+            --ag-input-focus-box-shadow: none;
+            --ag-background-color: var(--kbq-form-field-states-error-background);
+            --ag-data-color: var(--kbq-form-field-states-error-text);
+
+            &:focus-within {
+                --ag-borders-input-invalid: solid 2px;
+            }
+        }
+    }
+}
+
+@mixin _ag-header-cell-padding() {
+    .ag-header-cell {
+        // Analogous to .ag-cell
+        border: var(--kbq-size-border-width) solid transparent;
+    }
+}
+
+@mixin _ag-row-border {
+    .ag-row {
+        border-bottom: unset;
+    }
+}
+
+@mixin _ag-cell-inline-editing() {
+    .ag-cell-inline-editing {
+        padding: unset;
+        border-radius: unset;
+        box-shadow: unset;
+
+        @include ag.text-input {
+            border-radius: unset;
+            box-shadow: unset;
+            border: unset;
+        }
+
+        .ag-select .ag-picker-field-wrapper {
+            border-radius: unset;
+            box-shadow: unset;
+            border: unset;
+        }
+    }
+}
+
+@mixin _ag-popup-editor() {
+    .ag-popup-editor {
+        border-radius: var(--ag-border-radius);
+    }
+}
+
+.ag-theme-koobiq {
+    // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
+    --ag-background-color: var(--kbq-background-bg);
+    --ag-theme-koobiq-active-color: var(--kbq-background-theme);
+
+    line-height: var(--kbq-typography-text-normal-line-height);
+    letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
+    font-weight: var(--kbq-typography-text-normal-font-weight);
+    text-transform: var(--kbq-typography-text-normal-text-transform);
+    font-feature-settings: var(--kbq-typography-text-normal-font-feature-settings);
+    color: var(--ag-data-color);
+
+    @include _ag-row-highlight();
+    @include _ag-row-border-radius();
+    @include _ag-tooltip();
+    @include _ag-icon-color();
+    @include _ag-header-cell-resize();
+    @include _ag-svg-icons();
+    @include _ag-checkbox-focus();
+    @include _ag-radio-button-focus();
+    @include _ag-paging-panel();
+    @include _ag-select();
+    @include _ag-edge-cells-padding();
+    @include _ag-header-border();
+    @include _ag-cell-padding();
+    @include _ag-header-cell-padding();
+    @include _ag-text-field();
+    @include _ag-row-border();
+    @include _ag-cell-inline-editing();
+    @include _ag-popup-editor();
+}

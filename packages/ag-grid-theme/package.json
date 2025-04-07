@@ -1,0 +1,27 @@
+{
+    "name": "@koobiq/ag-grid-theme",
+    "version": "0.0.1",
+    "description": "AG Grid Theme",
+    "keywords": [
+        "ag-grid",
+        "theme",
+        "angular",
+        "koobiq"
+    ],
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/koobiq/data-grid.git"
+    },
+    "bugs": {
+        "url": "https://github.com/koobiq/data-grid/issues"
+    },
+    "homepage": "https://github.com/koobiq/data-grid",
+    "peerDependencies": {
+        "@angular/core": "^18",
+        "@koobiq/design-tokens": "^3",
+        "@koobiq/icons": "^9",
+        "ag-grid-community": "^30"
+    },
+    "sideEffects": false
+}

@@ -1,14 +1,14 @@
 {
-  "projects": {
-    "default": "koobiq"
-  },
-  "targets": {
-    "koobiq": {
-      "hosting": {
-        "next": [
-          "data-grid-next"
-        ]
-      }
+    "projects": {
+        "default": "koobiq"
+    },
+    "targets": {
+        "koobiq": {
+            "hosting": {
+                "next": [
+                    "data-grid-next"
+                ]
+            }
+        }
     }
-  }
 }
