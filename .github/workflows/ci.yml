@@ -20,23 +20,32 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: 'yarn'
           cache-dependency-path: yarn.lock
 
-      - run: yarn install --frozen-lockfile
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
 
-      - run: yarn run build
+      - name: Build
+        run: yarn run build
 
-      - run: echo "${{ github.event.pull_request.title }}" | yarn commitlint
+      - name: Commitlint
+        run: echo "${{ github.event.pull_request.title }}" | yarn commitlint
 
-      - run: |
-          yarn run prettier
-          yarn run stylelint --max-warnings=0
-          yarn run eslint --max-warnings=0
+      - name: Prettier
+        run: yarn run prettier
+
+      - name: Eslint
+        run: yarn run eslint --max-warnings=0
+
+      - name: Stylelint
+        run: yarn run stylelint --max-warnings=0
