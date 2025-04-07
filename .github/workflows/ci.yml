@@ -34,6 +34,8 @@ jobs:
 
       - run: yarn run build
 
+      - run: yarn commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose
+
       - run: |
           yarn run prettier
           yarn run stylelint --max-warnings=0
