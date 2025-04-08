@@ -1,5 +1,5 @@
 {
-    "name": "@koobiq/ag-grid-angular-theme",
+    "name": "ag-grid-angular-theme",
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "sourceRoot": "packages/ag-grid-angular-theme",
     "prefix": "lib",
@@ -21,6 +21,12 @@
                 }
             },
             "defaultConfiguration": "production"
+        },
+        "nx-release-publish": {
+            "dependsOn": ["build"],
+            "options": {
+                "packageRoot": "{workspaceRoot}/packages/{projectName}"
+            }
         }
     }
 }

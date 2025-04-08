@@ -48,6 +48,12 @@ import { AgGridModule } from 'ag-grid-angular';
 yarn run build:theme
 ```
 
+## Publish
+
+```bash
+yarn run release:theme
+```
+
 ## Development
 
 Install dependencies:
