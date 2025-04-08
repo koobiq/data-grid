@@ -9,7 +9,7 @@
         },
         "@nx/angular:ng-packagr-lite": {
             "cache": true,
-            "dependsOn": ["^build"],
+            "dependsOn": ["build"],
             "inputs": ["default", "^default"]
         }
     },
@@ -30,6 +30,22 @@
             "skipTests": true,
             "inlineTemplate": true,
             "inlineStyle": true
+        }
+    },
+    "release": {
+        "projectsRelationship": "independent",
+        "projects": ["packages/*"],
+        "releaseTagPattern": "{projectName}@{version}",
+        "git": {
+            "commitMessage": "chore(release): {projectName}@{version}"
+        },
+        "changelog": {
+            "projectChangelogs": {
+                "createRelease": "github"
+            }
+        },
+        "version": {
+            "conventionalCommits": true
         }
     }
 }

@@ -1,6 +1,6 @@
 {
     "name": "@koobiq/ag-grid-angular-theme",
-    "version": "0.0.1",
+    "version": "30.0.0",
     "description": "AG Grid Theme",
     "keywords": [
         "ag-grid",
@@ -18,7 +18,7 @@
     },
     "homepage": "https://github.com/koobiq/data-grid",
     "peerDependencies": {
-        "@angular/core": "^18",
+        "@angular/core": "~16",
         "@koobiq/design-tokens": "^3",
         "@koobiq/icons": "^9",
         "ag-grid-community": "^30"

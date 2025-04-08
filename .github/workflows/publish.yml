@@ -1,22 +1,22 @@
-name: Firebase Deploy Next
+name: Publish
 
 on:
-  push:
-    branches:
-      - 'main'
-  # Allows you to run this workflow manually
-  workflow_dispatch:
+  release:
+    types:
+      - created
 
-permissions: read-all
+permissions:
+  contents: read
+  # needed for provenance data generation
+  id-token: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  publish:
     if: ${{ github.repository_owner == 'koobiq' }}
-    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -37,8 +37,8 @@ jobs:
       - name: Print Environment Info
         run: yarn nx report
 
-      - name: Build
-        run: yarn run build
-
-      - name: Deploy
-        run: yarn firebase deploy --only hosting:next --token=${{ secrets.FIREBASE_DEPLOY_TOKEN }}
+      - name: Publish
+        run: yarn nx release publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
