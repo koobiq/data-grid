@@ -2,7 +2,7 @@
     "hosting": [
         {
             "target": "next",
-            "public": "dist/dev/angular-ag-grid/browser",
+            "public": "dist/dev/ag-grid-angular/browser",
             "cleanUrls": true,
             "rewrites": [
                 {

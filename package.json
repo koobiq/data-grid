@@ -16,9 +16,9 @@
     },
     "scripts": {
         "prepare": "husky",
-        "dev": "nx run angular-ag-grid:serve --configuration=development",
+        "dev": "nx run ag-grid-angular:serve --configuration=development",
         "-----BUILD-----": "------------------------------------------------------------------------------------------",
-        "build:dev": "nx run angular-ag-grid:build",
+        "build:dev": "nx run ag-grid-angular:build",
         "build:theme": "nx run @koobiq/ag-grid-angular-theme:build",
         "build": "nx run-many --target=build",
         "-----CI-----": "---------------------------------------------------------------------------------------------",

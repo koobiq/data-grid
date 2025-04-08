@@ -1,28 +1,28 @@
 {
-    "name": "angular-ag-grid",
+    "name": "ag-grid-angular",
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
     "projectType": "application",
     "prefix": "dev",
-    "sourceRoot": "dev/angular-ag-grid/src",
+    "sourceRoot": "dev/ag-grid-angular/src",
     "tags": [],
     "targets": {
         "build": {
             "executor": "@angular-devkit/build-angular:application",
             "outputs": ["{options.outputPath}"],
             "options": {
-                "outputPath": "dist/dev/angular-ag-grid",
-                "index": "dev/angular-ag-grid/src/index.html",
-                "browser": "dev/angular-ag-grid/src/main.ts",
+                "outputPath": "dist/dev/ag-grid-angular",
+                "index": "dev/ag-grid-angular/src/index.html",
+                "browser": "dev/ag-grid-angular/src/main.ts",
                 "polyfills": ["zone.js"],
-                "tsConfig": "dev/angular-ag-grid/tsconfig.app.json",
+                "tsConfig": "dev/ag-grid-angular/tsconfig.app.json",
                 "inlineStyleLanguage": "scss",
                 "assets": [
                     {
                         "glob": "**/*",
-                        "input": "dev/angular-ag-grid/public"
+                        "input": "dev/ag-grid-angular/public"
                     }
                 ],
-                "styles": ["dev/angular-ag-grid/src/styles.scss"],
+                "styles": ["dev/ag-grid-angular/src/styles.scss"],
                 "scripts": []
             },
             "configurations": {
@@ -53,10 +53,10 @@
             "executor": "@angular-devkit/build-angular:dev-server",
             "configurations": {
                 "production": {
-                    "buildTarget": "angular-ag-grid:build:production"
+                    "buildTarget": "ag-grid-angular:build:production"
                 },
                 "development": {
-                    "buildTarget": "angular-ag-grid:build:development"
+                    "buildTarget": "ag-grid-angular:build:development"
                 }
             },
             "defaultConfiguration": "development"
