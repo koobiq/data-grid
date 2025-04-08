@@ -19,7 +19,7 @@
         "dev": "nx run angular-ag-grid:serve --configuration=development",
         "-----BUILD-----": "------------------------------------------------------------------------------------------",
         "build:dev": "nx run angular-ag-grid:build",
-        "build:theme": "nx run @koobiq/ag-grid-theme:build",
+        "build:theme": "nx run @koobiq/ag-grid-angular-theme:build",
         "build": "nx run-many --target=build",
         "-----CI-----": "---------------------------------------------------------------------------------------------",
         "prettier": "prettier '**/*.{css,scss,md,yml,json,js,ts,html}' --check",

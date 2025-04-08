@@ -1,11 +1,11 @@
-# @koobiq/ag-grid-theme
+# @koobiq/ag-grid-angular-theme
 
 The package provides a theme for the AG Grid library.
 
 ## Installation
 
 ```bash
-npm install @koobiq/ag-grid-theme ag-grid-community@^30
+npm install @koobiq/ag-grid-angular-theme ag-grid-community@^30
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ npm install @koobiq/ag-grid-theme ag-grid-community@^30
 Import theme into your main [`styles.scss`](/dev/angular-ag-grid/src/styles.scss) file:
 
 ```css
-@use '@koobiq/ag-grid-theme';
+@use '@koobiq/ag-grid-angular-theme';
 ```
 
 Import [`@koobiq/icons`](https://github.com/koobiq/icons):
@@ -33,7 +33,7 @@ Import [`@koobiq/design-tokens`](https://github.com/koobiq/design-tokens):
 Apply theme for `<ag-grid-angular>` into your template:
 
 ```ts
-import { KbqAgGridTheme } from '@koobiq/ag-grid-theme';
+import { KbqAgGridTheme } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 
 @Component({

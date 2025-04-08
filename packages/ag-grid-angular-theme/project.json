@@ -1,7 +1,7 @@
 {
-    "name": "@koobiq/ag-grid-theme",
+    "name": "@koobiq/ag-grid-angular-theme",
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
-    "sourceRoot": "packages/ag-grid-theme",
+    "sourceRoot": "packages/ag-grid-angular-theme",
     "prefix": "lib",
     "tags": [],
     "projectType": "library",
@@ -10,14 +10,14 @@
             "executor": "@nx/angular:ng-packagr-lite",
             "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
             "options": {
-                "project": "packages/ag-grid-theme/ng-package.json"
+                "project": "packages/ag-grid-angular-theme/ng-package.json"
             },
             "configurations": {
                 "production": {
-                    "tsConfig": "packages/ag-grid-theme/tsconfig.lib.prod.json"
+                    "tsConfig": "packages/ag-grid-angular-theme/tsconfig.lib.prod.json"
                 },
                 "development": {
-                    "tsConfig": "packages/ag-grid-theme/tsconfig.lib.json"
+                    "tsConfig": "packages/ag-grid-angular-theme/tsconfig.lib.json"
                 }
             },
             "defaultConfiguration": "production"
