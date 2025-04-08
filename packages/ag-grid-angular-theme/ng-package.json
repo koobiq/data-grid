@@ -1,6 +1,6 @@
 {
     "$schema": "../../node_modules/ng-packagr/ng-package.schema.json",
-    "dest": "../../dist/packages/ag-grid-theme",
+    "dest": "../../dist/packages/ag-grid-angular-theme",
     "lib": {
         "entryFile": "index.ts"
     },

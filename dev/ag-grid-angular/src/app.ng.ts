@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject, model, Renderer2, Signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { KbqAgGridTheme } from '@koobiq/ag-grid-theme';
+import { KbqAgGridTheme } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import { ColDef, ColumnApi, FirstDataRenderedEvent, GridApi, GridReadyEvent, ITooltipParams } from 'ag-grid-community';
 import { catchError, of } from 'rxjs';

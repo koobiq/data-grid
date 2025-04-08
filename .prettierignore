@@ -4,5 +4,3 @@
 /.nx/workspace-data
 .angular
 .yarn/releases
-
-packages/ag-grid-theme/_rtl.scss
