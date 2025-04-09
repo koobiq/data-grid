@@ -16,7 +16,6 @@ concurrency:
 jobs:
   deploy:
     if: ${{ github.repository_owner == 'koobiq' }}
-    name: Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
