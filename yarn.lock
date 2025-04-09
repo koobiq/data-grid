@@ -99,10 +99,22 @@
     "@angular-devkit/architect" "0.1802.16"
     rxjs "7.8.1"
 
-"@angular-devkit/core@18.2.16", "@angular-devkit/core@^18.2.0":
+"@angular-devkit/core@18.2.16":
   version "18.2.16"
   resolved "https://registry.yarnpkg.com/@angular-devkit/core/-/core-18.2.16.tgz#26239f20ec217b9f28bdb075ececbc1f28285610"
   integrity sha512-RsBHUPdDYREpE7sOfGrQXMbuBCShJnpuuA4ndVZ6zzOW5HZgG0bOXjYNPvFHmqnES9BE/sJTFiLIXmFiQjglug==
+  dependencies:
+    ajv "8.17.1"
+    ajv-formats "3.0.1"
+    jsonc-parser "3.3.1"
+    picomatch "4.0.2"
+    rxjs "7.8.1"
+    source-map "0.7.4"
+
+"@angular-devkit/core@^19.2.6":
+  version "19.2.6"
+  resolved "https://registry.yarnpkg.com/@angular-devkit/core/-/core-19.2.6.tgz#b709c3d3e633691027e03fc01aefb620042efd1f"
+  integrity sha512-WFgiYhrDMq83UNaGRAneIM7CYYdBozD+yYA9BjoU8AgBLKtrvn6S8ZcjKAk5heoHtY/u8pEb0mwDTz9gxFmJZQ==
   dependencies:
     ajv "8.17.1"
     ajv-formats "3.0.1"
