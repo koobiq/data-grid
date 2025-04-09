@@ -74,7 +74,7 @@
         "eslint-plugin-eslint-comments": "^3.2.0",
         "eslint-plugin-file-progress": "^1.5.0",
         "eslint-plugin-prettier": "^5.2.5",
-        "firebase-tools": "^13.35.1",
+        "firebase-tools": "^14.1.0",
         "husky": "^9.1.7",
         "lint-staged": "^15.5.0",
         "ng-packagr": "^18.2.0",
