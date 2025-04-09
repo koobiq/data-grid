@@ -1,4 +1,5 @@
-name: Setup Yarn
+name: Setup Node
+description: Common setup for Node & Yarn
 runs:
   using: composite
   steps:
@@ -11,4 +12,5 @@ runs:
         registry-url: https://registry.npmjs.org/
 
     - name: Install Dependencies
+      shell: bash
       run: yarn install --frozen-lockfile
