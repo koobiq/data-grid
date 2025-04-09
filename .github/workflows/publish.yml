@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
   # Needed for provenance data generation
   # https://nx.dev/recipes/nx-release/publish-in-ci-cd#npm-provenance
   id-token: write
@@ -31,14 +30,8 @@ jobs:
       - name: Setup Node & Yarn
         uses: ./.github/actions/setup-node
 
-      - name: Print Environment Info
-        run: yarn nx report
-
-      - name: Setup NPM Auth Token
-        run: yarn config set '//registry.npmjs.org/:_authToken' ${{ secrets.NPM_PUBLISH_TOKEN }}
-
       - name: Publish
-        run: yarn nx release publish
+        run: yarn nx release publish --registry=https://registry.npmjs.org/
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
           NPM_CONFIG_PROVENANCE: true

@@ -14,3 +14,7 @@ runs:
     - name: Install Dependencies
       shell: bash
       run: yarn install --frozen-lockfile
+
+    - name: Print Environment Info
+      shell: bash
+      run: yarn nx report

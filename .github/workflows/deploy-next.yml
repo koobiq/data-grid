@@ -26,9 +26,6 @@ jobs:
       - name: Setup Node & Yarn
         uses: ./.github/actions/setup-node
 
-      - name: Print Environment Info
-        run: yarn nx report
-
       - name: Build
         run: yarn run build
 
