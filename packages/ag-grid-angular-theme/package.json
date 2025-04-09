@@ -17,6 +17,9 @@
         "url": "https://github.com/koobiq/data-grid/issues"
     },
     "homepage": "https://github.com/koobiq/data-grid",
+    "publishConfig": {
+        "access": "public"
+    },
     "peerDependencies": {
         "@angular/core": "~16",
         "@koobiq/design-tokens": "^3",
