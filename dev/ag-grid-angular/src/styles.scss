@@ -1,17 +1,18 @@
-// Koobiq icons font
+// Import theme
+@use '@koobiq/ag-grid-angular-theme';
+
+// Import @koobiq/icons
 // https://github.com/koobiq/icons
 @use '@koobiq/icons/fonts/kbq-icons';
 
-// Koobiq CSS tokens
+// Import @koobiq/design-tokens
 // https://github.com/koobiq/design-tokens
 @use '@koobiq/design-tokens/web/css-tokens';
 @use '@koobiq/design-tokens/web/css-tokens-light';
 @use '@koobiq/design-tokens/web/css-tokens-dark';
 
-// Koobiq ag-grid theme
-@use '@koobiq/ag-grid-angular-theme';
-
-// Inter font
+// Import Inter font
+// https://koobiq.io/en/main/typography/overview#installing-fonts
 @import '@fontsource/inter/latin-400.css';
 @import '@fontsource/inter/latin-500.css';
 @import '@fontsource/inter/latin-600.css';
