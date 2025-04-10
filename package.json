@@ -24,7 +24,7 @@
         "build:dev": "nx run ag-grid-angular:build",
         "build:theme": "nx run ag-grid-angular-theme:build",
         "build": "nx run-many --target=build",
-        "-----RELEASE-----": "----------------------------------------------------------------------------------------",
+        "-----GITHUB_RELEASE-----": "---------------------------------------------------------------------------------",
         "release:theme": "nx release --projects=ag-grid-angular-theme --skip-publish",
         "-----CI-----": "---------------------------------------------------------------------------------------------",
         "prettier": "prettier '**/*.{css,scss,md,yml,json,js,ts,html}' --check",

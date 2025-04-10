@@ -22,7 +22,10 @@ const config = {
 
                 // Dependabot scopes
                 'deps',
-                'deps-dev'
+                'deps-dev',
+
+                // NX scopes
+                'release'
             ]
         ]
     }
