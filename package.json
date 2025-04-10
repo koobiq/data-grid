@@ -14,6 +14,7 @@
         "npm": "Please use Yarn instead of NPM to install dependencies.",
         "node": "^18.19.1"
     },
+    "packageManager": "yarn@1.22.22",
     "scripts": {
         "prepare": "husky",
         "clean": "nx reset && rimraf .angular dist tmp --verbose",
