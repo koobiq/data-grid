@@ -180,48 +180,48 @@ export class DevApp {
             },
             {
                 field: 'athlete',
-                headerTooltip: tooltip ? 'Tooltip for Athlete Column Header' : null,
+                headerTooltip: tooltip ? 'Tooltip for Athlete Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
-                    tooltip ? 'Tooltip for Athlete Cell: ' + data.country : null
+                    tooltip ? 'Tooltip for Athlete Cell: ' + data!.country : null
             },
             {
                 field: 'age',
-                headerTooltip: tooltip ? 'Tooltip for Age Column Header' : null,
+                headerTooltip: tooltip ? 'Tooltip for Age Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
-                    tooltip ? 'Tooltip for Age Cell: ' + data.athlete : null,
+                    tooltip ? 'Tooltip for Age Cell: ' + data!.athlete : null,
                 cellEditor: 'agNumberCellEditor'
             },
             {
                 field: 'country',
-                headerTooltip: tooltip ? 'Tooltip for Country Column Header' : null,
+                headerTooltip: tooltip ? 'Tooltip for Country Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
-                    tooltip ? 'Tooltip for Country Cell: ' + data.athlete : null
+                    tooltip ? 'Tooltip for Country Cell: ' + data!.athlete : null
             },
             {
                 field: 'year',
-                headerTooltip: tooltip ? 'Tooltip for Year Column Header' : null,
+                headerTooltip: tooltip ? 'Tooltip for Year Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
-                    tooltip ? 'Tooltip for Year Cell: ' + data.athlete : null
+                    tooltip ? 'Tooltip for Year Cell: ' + data!.athlete : null
             },
             {
                 field: 'date',
-                headerTooltip: tooltip ? 'Tooltip for Date Column Header' : null,
+                headerTooltip: tooltip ? 'Tooltip for Date Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
-                    tooltip ? 'Tooltip for Date Cell: ' + data.athlete : null,
+                    tooltip ? 'Tooltip for Date Cell: ' + data!.athlete : null,
                 cellEditor: 'agDateCellEditor'
             },
             {
                 field: 'sport',
-                headerTooltip: tooltip ? 'Tooltip for Sport Column Header' : null,
+                headerTooltip: tooltip ? 'Tooltip for Sport Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
-                    tooltip ? 'Tooltip for Sport Cell: ' + data.athlete : null,
+                    tooltip ? 'Tooltip for Sport Cell: ' + data!.athlete : null,
                 cellEditor: 'agLargeTextCellEditor'
             },
             {
                 field: 'gold',
-                headerTooltip: tooltip ? 'Tooltip for Gold Column Header' : null,
+                headerTooltip: tooltip ? 'Tooltip for Gold Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
-                    tooltip ? 'Tooltip for Gold Cell: ' + data.athlete : null,
+                    tooltip ? 'Tooltip for Gold Cell: ' + data!.athlete : null,
                 cellEditor: 'agSelectCellEditor',
                 cellEditorParams: {
                     values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
@@ -229,23 +229,23 @@ export class DevApp {
             },
             {
                 field: 'silver',
-                headerTooltip: tooltip ? 'Tooltip for Silver Column Header' : null,
+                headerTooltip: tooltip ? 'Tooltip for Silver Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
-                    tooltip ? 'Tooltip for Silver Cell: ' + data.athlete : null,
+                    tooltip ? 'Tooltip for Silver Cell: ' + data!.athlete : null,
                 cellEditor: 'agNumberCellEditor'
             },
             {
                 field: 'bronze',
-                headerTooltip: tooltip ? 'Tooltip for Bronze Column Header' : null,
+                headerTooltip: tooltip ? 'Tooltip for Bronze Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
-                    tooltip ? 'Tooltip for Bronze Cell: ' + data.athlete : null,
+                    tooltip ? 'Tooltip for Bronze Cell: ' + data!.athlete : null,
                 cellEditor: 'agNumberCellEditor'
             },
             {
                 field: 'total',
-                headerTooltip: tooltip ? 'Tooltip for Total Column Header' : null,
+                headerTooltip: tooltip ? 'Tooltip for Total Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>) =>
-                    tooltip ? 'Tooltip for Total Cell: ' + data.athlete : null,
+                    tooltip ? 'Tooltip for Total Cell: ' + data!.athlete : null,
                 cellEditor: 'agNumberCellEditor'
             }
         ];

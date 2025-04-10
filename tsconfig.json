@@ -11,6 +11,7 @@
         "lib": ["ES2022", "dom"],
         "skipLibCheck": true,
         "skipDefaultLibCheck": true,
+        "strict": true,
         "baseUrl": ".",
         "paths": {
             "@koobiq/ag-grid-angular-theme": [
