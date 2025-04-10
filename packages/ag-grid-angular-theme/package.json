@@ -26,5 +26,10 @@
         "@koobiq/icons": "^9",
         "ag-grid-community": "^30"
     },
+    "exports": {
+        ".": {
+            "sass": "./_index.scss"
+        }
+    },
     "sideEffects": false
 }
