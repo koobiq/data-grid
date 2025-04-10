@@ -25,7 +25,7 @@
         "nx-release-publish": {
             "dependsOn": ["build"],
             "options": {
-                "packageRoot": "{workspaceRoot}/packages/{projectName}"
+                "packageRoot": "{workspaceRoot}/dist/packages/{projectName}"
             }
         }
     }
