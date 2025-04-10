@@ -1,3 +1,9 @@
-# 30.0.0 (2025-04-09)
+## 30.0.1 (2025-04-10)
 
-This was a version bump only for ag-grid-angular-theme to align it with other projects, there were no code changes.
+### 🚀 Features
+
+- added public publishConfig access ([43c99c4](https://github.com/koobiq/data-grid/commit/43c99c4))
+
+### ❤️ Thank You
+
+- Artem Belik @artembelik
