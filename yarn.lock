@@ -142,7 +142,7 @@
     ora "5.4.1"
     rxjs "7.8.1"
 
-"@angular-devkit/schematics@^18.2.18":
+"@angular-devkit/schematics@18.2.18", "@angular-devkit/schematics@^18.2.18":
   version "18.2.18"
   resolved "https://registry.yarnpkg.com/@angular-devkit/schematics/-/schematics-18.2.18.tgz#6d99b48d6dc038930354e2c34c854c0f342dd93e"
   integrity sha512-i7dy3x32Z8+lmVMKlKHdrSuCya5hUP24BOUn5lXKFAFGcJC0JT30OJrDPqQMA2RzNQiiyacPhxaCdLloEFVh3Q==
@@ -3949,13 +3949,22 @@
     error-stack-parser "^2.1.4"
     html-entities "^2.5.2"
 
-"@schematics/angular@18.2.16", "@schematics/angular@^18.2.0":
+"@schematics/angular@18.2.16":
   version "18.2.16"
   resolved "https://registry.yarnpkg.com/@schematics/angular/-/angular-18.2.16.tgz#62ffb8993742d25de1d5752e2cd36fc39ddfabc9"
   integrity sha512-3EeYBAS9EVyktRQ42BxHrDdpi0tb7VIgIKHrYierS8PAcWkYAPLPVW9h7w71E5Ckd640Flwghj6E5gFYe3vQgg==
   dependencies:
     "@angular-devkit/core" "18.2.16"
     "@angular-devkit/schematics" "18.2.16"
+    jsonc-parser "3.3.1"
+
+"@schematics/angular@^18.2.18":
+  version "18.2.18"
+  resolved "https://registry.yarnpkg.com/@schematics/angular/-/angular-18.2.18.tgz#e7d61d31c41e7f67496b6158eef302c538ece425"
+  integrity sha512-ko5KmtCZz8SqZLKrNeqMauS2LPHBKf7mT01waoOD1uN2gQkSIiLzDEYuXOaIarG6VnxAy5pL6NjkD+EmPsH6eg==
+  dependencies:
+    "@angular-devkit/core" "18.2.18"
+    "@angular-devkit/schematics" "18.2.18"
     jsonc-parser "3.3.1"
 
 "@sigstore/bundle@^2.3.2":
