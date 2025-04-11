@@ -46,13 +46,6 @@
         },
         "version": {
             "conventionalCommits": true
-        },
-        "conventionalCommits": {
-            "types": {
-                "chore": {
-                    "changelog": true
-                }
-            }
         }
     }
 }
