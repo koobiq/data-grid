@@ -1,11 +1,11 @@
 # @koobiq/ag-grid-angular-theme
 
-The package provides a theme for the [AG Grid](https://www.ag-grid.com/archive/30.2.0/angular-data-grid/) (see [overview](https://data-grid-next.web.app/)).
+The package provides a theme for the AG Grid library (see [example](https://data-grid-next.web.app/)).
 
 ## Installation
 
 ```bash
-npm install @koobiq/ag-grid-angular-theme@^30 ag-grid-community@^30 ag-grid-angular@^30
+npm install @koobiq/ag-grid-angular-theme ag-grid-community@^30
 ```
 
 ## Usage
@@ -36,7 +36,7 @@ Setup your main [`styles.scss`](/dev/ag-grid-angular/src/styles.scss) file:
 @import '@fontsource/inter/500-italic.css';
 ```
 
-Apply the theme for `<ag-grid-angular>` in your template:
+Apply theme for `<ag-grid-angular>` into your template:
 
 ```ts
 import { KbqAgGridTheme } from '@koobiq/ag-grid-angular-theme';

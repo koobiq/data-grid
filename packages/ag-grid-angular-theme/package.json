@@ -21,10 +21,10 @@
         "access": "public"
     },
     "peerDependencies": {
-        "@angular/core": ">=16.0.0",
-        "@koobiq/design-tokens": "^3.0.0",
-        "@koobiq/icons": "^9.0.0",
-        "ag-grid-community": "^30.0.0"
+        "@angular/core": "~16",
+        "@koobiq/design-tokens": "^3",
+        "@koobiq/icons": "^9",
+        "ag-grid-community": "^30"
     },
     "exports": {
         ".": {
