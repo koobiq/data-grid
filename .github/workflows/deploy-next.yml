@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  deploy_next:
     if: ${{ github.repository_owner == 'koobiq' }}
     runs-on: ubuntu-latest
     steps:
