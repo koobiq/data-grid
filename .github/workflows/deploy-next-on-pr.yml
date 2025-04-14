@@ -32,13 +32,11 @@ jobs:
       - name: Build
         run: yarn run build
 
-      - name: Deploy Documentation
+      - name: Deploy
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KOOBIQ }}
-          firebaseToolsVersion: ^13.0.0
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KOOBIQ }}'
+          firebaseToolsVersion: '^13.35.1'
           expires: 5d
-          channelId: data-grid-pr-${{ github.event.number }}
-          projectId: koobiq
           target: next
