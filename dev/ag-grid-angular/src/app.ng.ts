@@ -31,6 +31,9 @@ enum DevThemeSelector {
     imports: [AgGridModule, KbqAgGridTheme, FormsModule],
     selector: 'dev-root',
     template: `
+        <a class="dev-github-link" href="https://github.com/koobiq/data-grid" target="_blank" rel="noopener noreferrer">
+            <img src="https://img.shields.io/github/stars/koobiq/data-grid?style=social" alt="GitHub" />
+        </a>
         <div class="dev-grid-options">
             <label>
                 <input [(ngModel)]="lightTheme" type="checkbox" />
@@ -133,6 +136,10 @@ enum DevThemeSelector {
 
         .dev-grid-options label {
             white-space: nowrap;
+        }
+
+        .dev-github-link {
+            align-self: end;
         }
     `,
     changeDetection: ChangeDetectionStrategy.OnPush
