@@ -540,7 +540,6 @@
 
         // For Firefox compatibility
         @supports not selector(::-webkit-scrollbar) {
-            scrollbar-width: thin;
             scrollbar-color: var(--ag-theme-koobiq-scrollbar-thumb-color) var(--ag-theme-koobiq-scrollbar-track-color);
 
             &:hover {
