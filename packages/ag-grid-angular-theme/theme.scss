@@ -487,18 +487,87 @@
     }
 }
 
-.ag-theme-koobiq {
-    // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
-    --ag-background-color: var(--kbq-background-bg);
-    --ag-theme-koobiq-active-color: var(--kbq-background-theme);
+@mixin _ag-body-scrollbar {
+    .ag-body-vertical-scroll .ag-body-vertical-scroll-viewport,
+    .ag-body-horizontal-scroll .ag-body-horizontal-scroll-viewport {
+        --ag-theme-koobiq-scrollbar-size: var(--kbq-size-s);
+        --ag-theme-koobiq-scrollbar-track-color: transparent;
+        --ag-theme-koobiq-scrollbar-track-spacing: 3px;
+        --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-scrollbar-thumb-default-background);
+        --ag-theme-koobiq-scrollbar-thumb-min-size: var(--kbq-size-3xl);
 
+        &::-webkit-scrollbar {
+            max-width: var(--ag-theme-koobiq-scrollbar-size);
+            max-height: var(--ag-theme-koobiq-scrollbar-size);
+        }
+
+        &::-webkit-scrollbar-track {
+            background-color: var(--ag-theme-koobiq-scrollbar-track-color);
+
+            // stylelint-disable-next-line selector-pseudo-class-no-unknown
+            &:vertical {
+                margin: var(--ag-theme-koobiq-scrollbar-track-spacing) 0;
+            }
+
+            // stylelint-disable-next-line selector-pseudo-class-no-unknown
+            &:horizontal {
+                margin: 0 var(--ag-theme-koobiq-scrollbar-track-spacing);
+            }
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background-color: var(--ag-theme-koobiq-scrollbar-thumb-color);
+            border-radius: var(--kbq-size-border-radius);
+
+            &:hover {
+                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-scrollbar-thumb-hover-background);
+            }
+
+            &:active {
+                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-scrollbar-thumb-active-background);
+            }
+
+            // stylelint-disable-next-line selector-pseudo-class-no-unknown
+            &:vertical {
+                min-height: var(--ag-theme-koobiq-scrollbar-thumb-min-size);
+            }
+
+            // stylelint-disable-next-line selector-pseudo-class-no-unknown
+            &:horizontal {
+                min-width: var(--ag-theme-koobiq-scrollbar-thumb-min-size);
+            }
+        }
+
+        // For Firefox compatibility
+        @supports not selector(::-webkit-scrollbar) {
+            scrollbar-color: var(--ag-theme-koobiq-scrollbar-thumb-color) var(--ag-theme-koobiq-scrollbar-track-color);
+
+            &:hover {
+                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-scrollbar-thumb-hover-background);
+            }
+
+            &:active {
+                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-scrollbar-thumb-active-background);
+            }
+        }
+    }
+}
+
+@mixin _ag-theme-typography() {
     line-height: var(--kbq-typography-text-normal-line-height);
     letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
     font-weight: var(--kbq-typography-text-normal-font-weight);
     text-transform: var(--kbq-typography-text-normal-text-transform);
     font-feature-settings: var(--kbq-typography-text-normal-font-feature-settings);
     color: var(--ag-data-color);
+}
 
+.ag-theme-koobiq {
+    // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
+    --ag-background-color: var(--kbq-background-bg);
+    --ag-theme-koobiq-active-color: var(--kbq-background-theme);
+
+    @include _ag-theme-typography();
     @include _ag-row-highlight();
     @include _ag-row-border-radius();
     @include _ag-tooltip();
@@ -517,4 +586,5 @@
     @include _ag-row-border();
     @include _ag-cell-inline-editing();
     @include _ag-popup-editor();
+    @include _ag-body-scrollbar();
 }
