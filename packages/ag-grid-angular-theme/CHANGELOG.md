@@ -1,3 +1,13 @@
+## 30.0.4 (2025-04-16)
+
+### 🩹 Fixes
+
+- **ag-grid-angular-theme:** koobiq CSS component design tokens (#DS-3662) ([#26](https://github.com/koobiq/data-grid/pull/26))
+
+### ❤️ Thank You
+
+- Artem Belik @artembelik
+
 ## 30.0.3 (2025-04-15)
 
 ### 🚀 Features
