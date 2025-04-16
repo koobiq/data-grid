@@ -7,7 +7,7 @@
         theme: koobiq,
         --ag-foreground-color: var(--kbq-foreground-contrast-secondary),
         --ag-secondary-border-color: transparent,
-        --ag-tooltip-background-color: var(--kbq-tooltip-contrast-fade-off-background),
+        --ag-tooltip-background-color: var(--kbq-background-night),
         --ag-odd-row-background-color: var(--ag-background-color),
         --ag-control-panel-background-color: var(--ag-background-color),
         --ag-subheader-background-color: var(--ag-header-background-color),
@@ -126,20 +126,20 @@
         --ag-checkbox-unchecked-color: var(--kbq-line-contrast-fade),
         --ag-checkbox-background-color: var(--ag-background-color),
         --ag-checkbox-checked-color: var(--ag-theme-koobiq-active-color),
-        --ag-checkbox-border-radius: var(--kbq-checkbox-size-normal-border-radius),
+        --ag-checkbox-border-radius: var(--kbq-size-xxs),
         --ag-checkbox-indeterminate-color: var(--ag-theme-koobiq-active-color),
         // Widget
         --ag-widget-container-vertical-padding: calc(var(--ag-grid-size) * 2),
         --ag-widget-container-horizontal-padding: calc(var(--ag-grid-size) * 2),
         --ag-widget-vertical-spacing: calc(var(--ag-grid-size) * 1.5),
         // Input
-        --ag-input-focus-border-color: var(--kbq-form-field-states-focused-border-color),
+        --ag-input-focus-border-color: var(--kbq-states-line-focus-theme),
         --ag-input-border-color: var(--kbq-line-contrast-fade),
-        --ag-input-border-color-invalid: var(--kbq-form-field-states-error-border-color),
+        --ag-input-border-color-invalid: var(--kbq-line-error),
         --ag-borders-input-invalid: solid var(--kbq-size-border-width),
-        --ag-input-focus-box-shadow: 0 0 0.1px 1px var(--kbq-form-field-states-focused-border-color),
-        --ag-input-disabled-border-color: var(--kbq-form-field-states-disabled-border-color),
-        --ag-input-disabled-background-color: var(--kbq-form-field-states-disabled-background),
+        --ag-input-focus-box-shadow: 0 0 0.1px var(--kbq-size-border-width) var(--ag-input-focus-border-color),
+        --ag-input-disabled-border-color: var(--kbq-states-line-disabled),
+        --ag-input-disabled-background-color: var(--kbq-states-background-disabled),
         // Header column resize
         --ag-header-column-resize-handle-display: block,
         --ag-header-column-resize-handle-width: var(--kbq-size-border-width),
@@ -153,6 +153,12 @@
         --ag-range-selection-border-color: var(--kbq-states-line-focus-theme)
     )
 );
+
+@mixin _dark-theme() {
+    .kbq-dark & {
+        @content;
+    }
+}
 
 @mixin _ag-row-highlight() {
     .ag-row {
@@ -231,9 +237,9 @@
 
 @mixin _ag-tooltip() {
     .ag-tooltip {
-        --ag-foreground-color: var(--kbq-tooltip-contrast-fade-off-text);
+        --ag-foreground-color: var(--kbq-foreground-white);
 
-        box-shadow: var(--kbq-tooltip-contrast-fade-off-shadow);
+        box-shadow: var(--kbq-shadow-popup);
         font-size: var(--kbq-typography-text-compact-font-size);
         line-height: var(--kbq-typography-text-compact-line-height);
     }
@@ -270,8 +276,8 @@
         box-shadow: unset;
 
         &::after {
-            outline: var(--kbq-checkbox-theme-states-focused-outline);
-            border-color: var(--kbq-checkbox-theme-states-focused-border);
+            outline: var(--kbq-size-border-width) solid var(--ag-input-focus-border-color);
+            border-color: var(--ag-input-focus-border-color);
             border-radius: inherit;
         }
     }
@@ -283,8 +289,8 @@
         box-shadow: unset;
 
         &::after {
-            outline: var(--kbq-checkbox-theme-states-focused-outline);
-            border-color: var(--kbq-checkbox-theme-states-focused-border);
+            outline: var(--kbq-size-border-width) solid var(--ag-input-focus-border-color);
+            border-color: var(--ag-input-focus-border-color);
         }
     }
 }
@@ -438,8 +444,8 @@
 
         &:invalid {
             --ag-input-focus-box-shadow: none;
-            --ag-background-color: var(--kbq-form-field-states-error-background);
-            --ag-data-color: var(--kbq-form-field-states-error-text);
+            --ag-background-color: var(--kbq-background-error-less);
+            --ag-data-color: var(--kbq-foreground-error);
 
             &:focus-within {
                 --ag-borders-input-invalid: solid 2px;
@@ -488,13 +494,18 @@
 }
 
 @mixin _ag-body-scrollbar {
+    // @TODO Should update CSS variables (#DS-3668)
     .ag-body-vertical-scroll .ag-body-vertical-scroll-viewport,
     .ag-body-horizontal-scroll .ag-body-horizontal-scroll-viewport {
         --ag-theme-koobiq-scrollbar-size: var(--kbq-size-s);
         --ag-theme-koobiq-scrollbar-track-color: transparent;
         --ag-theme-koobiq-scrollbar-track-spacing: 3px;
-        --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-scrollbar-thumb-default-background);
+        --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a32);
         --ag-theme-koobiq-scrollbar-thumb-min-size: var(--kbq-size-3xl);
+
+        @include _dark-theme {
+            --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a48);
+        }
 
         &::-webkit-scrollbar {
             max-width: var(--ag-theme-koobiq-scrollbar-size);
@@ -519,14 +530,6 @@
             background-color: var(--ag-theme-koobiq-scrollbar-thumb-color);
             border-radius: var(--kbq-size-border-radius);
 
-            &:hover {
-                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-scrollbar-thumb-hover-background);
-            }
-
-            &:active {
-                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-scrollbar-thumb-active-background);
-            }
-
             // stylelint-disable-next-line selector-pseudo-class-no-unknown
             &:vertical {
                 min-height: var(--ag-theme-koobiq-scrollbar-thumb-min-size);
@@ -536,18 +539,42 @@
             &:horizontal {
                 min-width: var(--ag-theme-koobiq-scrollbar-thumb-min-size);
             }
+
+            &:active {
+                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-20-a55);
+
+                @include _dark-theme {
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a80);
+                }
+            }
+
+            &:hover {
+                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a48);
+
+                @include _dark-theme {
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a60);
+                }
+            }
         }
 
         // For Firefox compatibility
         @supports not selector(::-webkit-scrollbar) {
             scrollbar-color: var(--ag-theme-koobiq-scrollbar-thumb-color) var(--ag-theme-koobiq-scrollbar-track-color);
 
-            &:hover {
-                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-scrollbar-thumb-hover-background);
+            &:active {
+                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-20-a55);
+
+                @include _dark-theme {
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a80);
+                }
             }
 
-            &:active {
-                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-scrollbar-thumb-active-background);
+            &:hover {
+                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a48);
+
+                @include _dark-theme {
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a60);
+                }
             }
         }
     }
