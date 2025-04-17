@@ -1,3 +1,13 @@
+## 30.0.5 (2025-04-17)
+
+### 🩹 Fixes
+
+- **ag-grid-angular-theme:** webkit scrollbar (#DS-3609) ([c679d75](https://github.com/koobiq/data-grid/commit/c679d75))
+
+### ❤️ Thank You
+
+- Artem Belik @artembelik
+
 ## 30.0.4 (2025-04-16)
 
 ### 🩹 Fixes
