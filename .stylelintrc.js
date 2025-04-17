@@ -20,6 +20,7 @@ const config = {
             }
         ],
         'max-nesting-depth': [2, { ignore: ['pseudo-classes'] }],
+        'selector-pseudo-class-no-unknown': [true, { ignorePseudoClasses: ['vertical', 'horizontal'] }],
 
         // scss
         'scss/comment-no-loud': true,

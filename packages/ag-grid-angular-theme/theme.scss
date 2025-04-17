@@ -497,9 +497,9 @@
     // @TODO Should update CSS variables (#DS-3668)
     .ag-body-vertical-scroll .ag-body-vertical-scroll-viewport,
     .ag-body-horizontal-scroll .ag-body-horizontal-scroll-viewport {
-        --ag-theme-koobiq-scrollbar-size: var(--kbq-size-s);
+        --ag-theme-koobiq-scrollbar-offset: 3px;
+        --ag-theme-koobiq-scrollbar-size: calc(var(--kbq-size-s) + var(--ag-theme-koobiq-scrollbar-offset) * 2);
         --ag-theme-koobiq-scrollbar-track-color: transparent;
-        --ag-theme-koobiq-scrollbar-track-spacing: 3px;
         --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a32);
         --ag-theme-koobiq-scrollbar-thumb-min-size: var(--kbq-size-3xl);
 
@@ -508,34 +508,33 @@
         }
 
         &::-webkit-scrollbar {
-            max-width: var(--ag-theme-koobiq-scrollbar-size);
-            max-height: var(--ag-theme-koobiq-scrollbar-size);
+            // https://github.com/ag-grid/ag-grid/blob/v30.2.1/grid-community-modules/all-modules/styles/_css-content.scss#L7910
+            display: unset;
+
+            &:vertical {
+                width: var(--ag-theme-koobiq-scrollbar-size);
+            }
+
+            &:horizontal {
+                height: var(--ag-theme-koobiq-scrollbar-size);
+            }
         }
 
         &::-webkit-scrollbar-track {
             background-color: var(--ag-theme-koobiq-scrollbar-track-color);
-
-            // stylelint-disable-next-line selector-pseudo-class-no-unknown
-            &:vertical {
-                margin: var(--ag-theme-koobiq-scrollbar-track-spacing) 0;
-            }
-
-            // stylelint-disable-next-line selector-pseudo-class-no-unknown
-            &:horizontal {
-                margin: 0 var(--ag-theme-koobiq-scrollbar-track-spacing);
-            }
         }
 
         &::-webkit-scrollbar-thumb {
             background-color: var(--ag-theme-koobiq-scrollbar-thumb-color);
             border-radius: var(--kbq-size-border-radius);
+            border: var(--ag-theme-koobiq-scrollbar-offset) solid var(--ag-theme-koobiq-scrollbar-track-color);
+            // https://stackoverflow.com/a/16829330/6386666
+            background-clip: content-box;
 
-            // stylelint-disable-next-line selector-pseudo-class-no-unknown
             &:vertical {
                 min-height: var(--ag-theme-koobiq-scrollbar-thumb-min-size);
             }
 
-            // stylelint-disable-next-line selector-pseudo-class-no-unknown
             &:horizontal {
                 min-width: var(--ag-theme-koobiq-scrollbar-thumb-min-size);
             }
@@ -559,6 +558,8 @@
 
         // For Firefox compatibility
         @supports not selector(::-webkit-scrollbar) {
+            // https://github.com/ag-grid/ag-grid/blob/v30.2.1/grid-community-modules/all-modules/styles/_css-content.scss#L7907
+            scrollbar-width: unset;
             scrollbar-color: var(--ag-theme-koobiq-scrollbar-thumb-color) var(--ag-theme-koobiq-scrollbar-track-color);
 
             &:active {
