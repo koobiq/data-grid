@@ -177,13 +177,14 @@ export class DevApp {
                 hide: !checkboxSelection,
                 headerCheckboxSelection: checkboxSelection,
                 checkboxSelection: checkboxSelection,
-                width: 41,
+                width: 34,
                 headerName: '',
                 sortable: false,
                 filter: false,
                 resizable: false,
                 suppressMovable: true,
-                editable: false
+                editable: false,
+                lockPosition: true
             },
             {
                 field: 'athlete',

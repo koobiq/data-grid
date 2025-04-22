@@ -407,18 +407,6 @@
     }
 }
 
-@mixin _ag-edge-cells-padding() {
-    .ag-header-cell:first-child,
-    .ag-cell:first-child {
-        padding-left: calc(var(--ag-cell-horizontal-padding) + var(--kbq-size-s));
-    }
-
-    .ag-header-cell:last-child,
-    .ag-cell:last-child {
-        padding-right: calc(var(--ag-cell-horizontal-padding) + var(--kbq-size-s));
-    }
-}
-
 @mixin _ag-header-border {
     .ag-header,
     .ag-advanced-filter-header {
@@ -454,9 +442,9 @@
     }
 }
 
-@mixin _ag-header-cell-padding() {
+@mixin _ag-header-cell-border() {
     .ag-header-cell {
-        // Analogous to .ag-cell
+        // Analogous to .ag-cell, to ensure they are always the same size
         border: var(--kbq-size-border-width) solid transparent;
     }
 }
@@ -464,6 +452,12 @@
 @mixin _ag-row-border {
     .ag-row {
         border-bottom: unset;
+    }
+
+    .ag-row,
+    .ag-header-row {
+        border-left: var(--kbq-size-s) solid transparent;
+        border-right: var(--kbq-size-s) solid transparent;
     }
 }
 
@@ -606,10 +600,9 @@
     @include _ag-radio-button-focus();
     @include _ag-paging-panel();
     @include _ag-select();
-    @include _ag-edge-cells-padding();
     @include _ag-header-border();
     @include _ag-cell-padding();
-    @include _ag-header-cell-padding();
+    @include _ag-header-cell-border();
     @include _ag-text-field();
     @include _ag-row-border();
     @include _ag-cell-inline-editing();
