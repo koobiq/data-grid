@@ -65,7 +65,7 @@
         "@nx/angular": "20.8.0",
         "@schematics/angular": "^18.2.18",
         "@swc-node/register": "^1.10.10",
-        "@swc/core": "^1.11.18",
+        "@swc/core": "^1.11.21",
         "@types/eslint": "^8.56.12",
         "@types/node": "^18.19.1",
         "@typescript-eslint/eslint-plugin": "^8.31.0",
