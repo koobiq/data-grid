@@ -172,7 +172,7 @@
 
         &:not(.ag-row-focus),
         &:not(.ag-row-selected) {
-            &:hover {
+            &.ag-row-hover {
                 --ag-theme-koobiq-row-background-color: var(--kbq-states-background-transparent-hover);
             }
 
@@ -184,7 +184,7 @@
         &:not(.ag-row-focus).ag-row-selected {
             --ag-theme-koobiq-row-background-color: var(--kbq-background-contrast-less);
 
-            &:hover {
+            &.ag-row-hover {
                 --ag-theme-koobiq-row-background-color: var(--kbq-states-background-contrast-less-hover);
             }
 
@@ -196,7 +196,7 @@
         &.ag-row-focus {
             --ag-theme-koobiq-row-background-color: var(--kbq-background-theme-less);
 
-            &:hover {
+            &.ag-row-hover {
                 --ag-theme-koobiq-row-background-color: var(--kbq-states-background-theme-less-hover);
             }
 
@@ -410,7 +410,7 @@
 @mixin _ag-header-border {
     .ag-header,
     .ag-advanced-filter-header {
-        border-bottom: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
+        border-bottom: var(--ag-theme-koobiq-border);
     }
 }
 
@@ -452,12 +452,6 @@
 @mixin _ag-row-border {
     .ag-row {
         border-bottom: unset;
-    }
-
-    .ag-row,
-    .ag-header-row {
-        border-left: var(--kbq-size-s) solid transparent;
-        border-right: var(--kbq-size-s) solid transparent;
     }
 }
 
@@ -584,10 +578,23 @@
     color: var(--ag-data-color);
 }
 
+@mixin _ag-pinned-column-border() {
+    .ag-pinned-left-header,
+    .ag-pinned-left-cols-container {
+        border-right: var(--ag-theme-koobiq-border);
+    }
+
+    .ag-pinned-right-header,
+    .ag-pinned-right-cols-container {
+        border-left: var(--ag-theme-koobiq-border);
+    }
+}
+
 .ag-theme-koobiq {
     // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
     --ag-background-color: var(--kbq-background-bg);
     --ag-theme-koobiq-active-color: var(--kbq-background-theme);
+    --ag-theme-koobiq-border: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
 
     @include _ag-theme-typography();
     @include _ag-row-highlight();
@@ -608,4 +615,5 @@
     @include _ag-cell-inline-editing();
     @include _ag-popup-editor();
     @include _ag-body-scrollbar();
+    @include _ag-pinned-column-border();
 }

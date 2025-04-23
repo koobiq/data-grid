@@ -96,6 +96,14 @@ enum DevThemeSelector {
                 <input [(ngModel)]="animateRows" type="checkbox" />
                 Animate Rows
             </label>
+            <label>
+                <input [(ngModel)]="lockPinned" type="checkbox" />
+                Lock Pinned
+            </label>
+            <label>
+                <input [(ngModel)]="lockPosition" type="checkbox" />
+                Lock Position
+            </label>
         </div>
 
         <ag-grid-angular
@@ -124,7 +132,7 @@ enum DevThemeSelector {
 
         ag-grid-angular {
             height: 100%;
-            max-width: 2042px;
+            max-width: 2036px;
         }
 
         .dev-grid-options {
@@ -160,6 +168,8 @@ export class DevApp {
     readonly tooltip = model(false);
     readonly suppressRowClickSelection = model(true);
     readonly animateRows = model(false);
+    readonly lockPinned = model(false);
+    readonly lockPosition = model(false);
 
     private gridApi!: GridApi;
     private gridColumnApi!: ColumnApi;
@@ -266,7 +276,9 @@ export class DevApp {
             sortable: this.sortable(),
             resizable: this.resizable(),
             floatingFilter: this.floatingFilter(),
-            suppressMovable: this.suppressMovable()
+            suppressMovable: this.suppressMovable(),
+            lockPinned: this.lockPinned(),
+            lockPosition: this.lockPosition()
         };
     });
 
@@ -319,6 +331,14 @@ export class DevApp {
             .subscribe(() => {
                 this.gridColumnApi?.applyColumnState({
                     defaultState: { sort: null }
+                });
+            });
+
+        toObservable(this.lockPinned)
+            .pipe(takeUntilDestroyed())
+            .subscribe(() => {
+                this.gridColumnApi?.applyColumnState({
+                    defaultState: { pinned: null }
                 });
             });
     }
