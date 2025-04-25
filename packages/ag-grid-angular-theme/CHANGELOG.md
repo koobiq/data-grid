@@ -1,3 +1,14 @@
+## 30.0.6 (2025-04-25)
+
+### 🩹 Fixes
+
+- **ag-grid-angular-theme:** pinned column hover and border (#DS-3626) ([#32](https://github.com/koobiq/data-grid/pull/32))
+- **ag-grid-angular-theme:** first/last cell padding (#DS-3654) ([#31](https://github.com/koobiq/data-grid/pull/31))
+
+### ❤️ Thank You
+
+- Artem Belik @artembelik
+
 ## 30.0.5 (2025-04-17)
 
 ### 🩹 Fixes
