@@ -24,6 +24,7 @@ const config = {
 
         // scss
         'scss/comment-no-loud': true,
+        'scss/double-slash-comment-whitespace-inside': 'always',
         'scss/selector-no-union-class-name': true,
         'scss/at-mixin-pattern': [KEBAB_CASE_PATTERN, { message: 'Expected @mixin name to be kebab-case.' }],
         'scss/at-use-no-unnamespaced': true,
