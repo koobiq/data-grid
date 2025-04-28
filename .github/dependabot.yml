@@ -5,6 +5,8 @@ updates:
     schedule:
       interval: 'weekly'
       day: 'monday'
+      time: '13:00'
+      timezone: 'Europe/Moscow'
     # Ignores any major updates
     ignore:
       - dependency-name: '*'
