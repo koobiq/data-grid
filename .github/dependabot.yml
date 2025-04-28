@@ -11,3 +11,33 @@ updates:
     ignore:
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
+    groups:
+      linters:
+        patterns:
+          - 'eslint*'
+          - '@typescript-eslint/*'
+          - '@angular-eslint/*'
+          - 'prettier*'
+          - 'stylelint*'
+          - 'husky'
+          - 'lint-staged'
+          - '@commitlint/*'
+      nx:
+        patterns:
+          - 'nx'
+          - '@nx/*'
+          - '@swc*'
+      angular:
+        patterns:
+          - '@angular/*'
+          - '@angular-devkit/*'
+          - '@schematics/angular'
+          - 'rxjs'
+          - 'zone.js'
+          - 'ng-packagr'
+      koobiq:
+        patterns:
+          - '@koobiq/*'
+      ag-grid:
+        patterns:
+          - 'ag-grid-*'
