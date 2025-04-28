@@ -67,7 +67,7 @@
         "@swc-node/register": "^1.10.10",
         "@swc/core": "^1.11.21",
         "@types/eslint": "^8.56.12",
-        "@types/node": "^18.19.1",
+        "@types/node": "^18.19.87",
         "@typescript-eslint/eslint-plugin": "^8.31.0",
         "@typescript-eslint/parser": "^8.31.0",
         "eslint": "^8.57.0",
