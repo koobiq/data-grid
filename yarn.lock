@@ -2295,10 +2295,10 @@
   resolved "https://registry.yarnpkg.com/@koobiq/design-tokens/-/design-tokens-3.12.1.tgz#b07124d44bfb059d28ed134951422b897c068f6d"
   integrity sha512-mROGt9r61y7LbP314bCWRxdyzya6H2K/14VLadQodeztazfygJiB52uHVOQsJcotyCDPEq2kiOYgaykQU/9GBA==
 
-"@koobiq/icons@^9.4.0":
-  version "9.4.0"
-  resolved "https://registry.yarnpkg.com/@koobiq/icons/-/icons-9.4.0.tgz#e6ea46474b13370dfb18e305db10326f7dba60c7"
-  integrity sha512-l8vrXR8WvlsDL1Hdhi5PTdlivA4pC4j10PIdUxxYLIMmZJcCi8e1I2sxC1zSr1043FI7NctnaEQNalGudc0AIg==
+"@koobiq/icons@^9.4.1":
+  version "9.4.1"
+  resolved "https://registry.yarnpkg.com/@koobiq/icons/-/icons-9.4.1.tgz#f9ef3aaedb70ee38c8e7e74ed4dc22a9182d3ede"
+  integrity sha512-Mf9hsGL5qUsqmMQ8tSg8dM8lVK9DQcZ0L2U2rQ/38M3RK8CKVtnq7LfyVnwwnYbqWaf+8t/1wLpODqMNrZpaHg==
 
 "@leichtgewicht/ip-codec@^2.0.1":
   version "2.0.5"
