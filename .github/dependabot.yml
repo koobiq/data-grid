@@ -19,8 +19,6 @@ updates:
           - '@angular-eslint/*'
           - 'prettier*'
           - 'stylelint*'
-          - 'husky'
-          - 'lint-staged'
           - '@commitlint/*'
       nx:
         patterns:
@@ -30,10 +28,10 @@ updates:
       angular:
         patterns:
           - '@angular/*'
-          - '@angular-devkit/*'
-          - '@schematics/angular'
           - 'rxjs'
           - 'zone.js'
+          - '@angular-devkit/*'
+          - '@schematics/angular'
           - 'ng-packagr'
       koobiq:
         patterns:
