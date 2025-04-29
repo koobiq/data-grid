@@ -2,6 +2,15 @@
 
 const KEBAB_CASE_PATTERN = '^_?[a-z0-9]+(-[a-z0-9]+)*$';
 
+const ALLOWED_PREFIXES = [
+    // default
+    'kbq-',
+    // for dev apps
+    'dev-',
+    // for ag-grid
+    'ag-'
+];
+
 /** @type {import('stylelint').Config} */
 const config = {
     defaultSeverity: 'error',
@@ -21,6 +30,12 @@ const config = {
         ],
         'max-nesting-depth': [2, { ignore: ['pseudo-classes'] }],
         'selector-pseudo-class-no-unknown': [true, { ignorePseudoClasses: ['vertical', 'horizontal'] }],
+        'selector-class-pattern': [
+            `^_?(${ALLOWED_PREFIXES.join('|')})`,
+            {
+                resolveNestedSelectors: true
+            }
+        ],
 
         // scss
         'scss/comment-no-loud': true,
