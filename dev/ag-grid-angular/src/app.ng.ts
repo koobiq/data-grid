@@ -36,77 +36,78 @@ enum DevThemeSelector {
         </a>
         <div class="dev-grid-options">
             <label>
-                <input [(ngModel)]="lightTheme" type="checkbox" />
+                <input type="checkbox" [(ngModel)]="lightTheme" />
                 Light Theme
             </label>
             <label>
-                <input [(ngModel)]="checkboxSelection" type="checkbox" />
+                <input type="checkbox" [(ngModel)]="checkboxSelection" />
                 Checkbox Selection
             </label>
             <label>
-                <input [(ngModel)]="multipleRowSelection" type="checkbox" />
+                <input type="checkbox" [(ngModel)]="multipleRowSelection" />
                 Multiple Row Selection
             </label>
             <label>
-                <input [(ngModel)]="suppressRowClickSelection" type="checkbox" />
+                <input type="checkbox" [(ngModel)]="suppressRowClickSelection" />
                 Suppress Row Click Selection
             </label>
             <label>
-                <input [(ngModel)]="editable" type="checkbox" />
+                <input type="checkbox" [(ngModel)]="editable" />
                 Editable Cell
             </label>
             <label>
-                <input [(ngModel)]="resizable" type="checkbox" />
+                <input type="checkbox" [(ngModel)]="resizable" />
                 Resizable Column
             </label>
             <label>
-                <input [(ngModel)]="suppressMovable" type="checkbox" />
+                <input type="checkbox" [(ngModel)]="suppressMovable" />
                 Suppress Column Movable
             </label>
             <label>
-                <input [(ngModel)]="filter" [disabled]="this.floatingFilter()" type="checkbox" />
+                <input type="checkbox" [disabled]="floatingFilter()" [(ngModel)]="filter" />
                 Filter
             </label>
             <label>
-                <input [(ngModel)]="floatingFilter" type="checkbox" />
+                <input type="checkbox" [(ngModel)]="floatingFilter" />
                 Floating Filter
             </label>
             <label>
-                <input [(ngModel)]="sortable" type="checkbox" />
+                <input type="checkbox" [(ngModel)]="sortable" />
                 Sortable
             </label>
             <label>
-                <input [(ngModel)]="pagination" type="checkbox" />
+                <input type="checkbox" [(ngModel)]="pagination" />
                 Pagination
             </label>
             <label>
                 <!-- TODO: grid does not support dynamic RTL change -->
-                <input [(ngModel)]="enableRtl" type="checkbox" disabled="" />
+                <input type="checkbox" disabled="" [(ngModel)]="enableRtl" />
                 RTL
             </label>
             <label>
-                <input [(ngModel)]="columnHoverHighlight" type="checkbox" />
+                <input type="checkbox" [(ngModel)]="columnHoverHighlight" />
                 Column Hover Highlight
             </label>
             <label>
-                <input [(ngModel)]="tooltip" type="checkbox" />
+                <input type="checkbox" [(ngModel)]="tooltip" />
                 Tooltip
             </label>
             <label>
-                <input [(ngModel)]="animateRows" type="checkbox" />
+                <input type="checkbox" [(ngModel)]="animateRows" />
                 Animate Rows
             </label>
             <label>
-                <input [(ngModel)]="lockPinned" type="checkbox" />
+                <input type="checkbox" [(ngModel)]="lockPinned" />
                 Lock Pinned
             </label>
             <label>
-                <input [(ngModel)]="lockPosition" type="checkbox" />
+                <input type="checkbox" [(ngModel)]="lockPosition" />
                 Lock Position
             </label>
         </div>
 
         <ag-grid-angular
+            kbqAgGridTheme
             [columnDefs]="columnDefs()"
             [rowSelection]="rowSelection()"
             [defaultColDef]="defaultColDef()"
@@ -119,7 +120,6 @@ enum DevThemeSelector {
             [animateRows]="animateRows()"
             (gridReady)="onGridReady($event)"
             (firstDataRendered)="onFirstDataRendered($event)"
-            kbqAgGridTheme
         />
     `,
     styles: `

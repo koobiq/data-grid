@@ -1,6 +1,5 @@
 /dist
 /coverage
-/.nx/cache
-/.nx/workspace-data
+/.nx
 .angular
 .yarn/releases
