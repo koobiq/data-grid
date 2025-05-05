@@ -17,11 +17,62 @@ const TS = {
         project: './tsconfig.eslint.json',
         tsconfigRootDir: __dirname
     },
-    extends: ['plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/stylistic'],
+    extends: ['plugin:@typescript-eslint/all'],
     rules: {
         // plugin:@typescript-eslint
         '@typescript-eslint/consistent-type-definitions': [1, 'type'],
-        '@typescript-eslint/no-unused-vars': [1, { argsIgnorePattern: '^_' }]
+        '@typescript-eslint/no-unused-vars': [1, { argsIgnorePattern: '^_' }],
+        '@typescript-eslint/no-magic-numbers': 0,
+        '@typescript-eslint/prefer-readonly-parameter-types': 0,
+        '@typescript-eslint/explicit-member-accessibility': 0,
+        '@typescript-eslint/no-confusing-void-expression': 0,
+        '@typescript-eslint/consistent-type-imports': 0,
+        '@typescript-eslint/naming-convention': [
+            1,
+            {
+                selector: 'variable',
+                format: ['camelCase', 'UPPER_CASE'],
+                leadingUnderscore: 'allow'
+            },
+            {
+                selector: 'function',
+                format: ['camelCase']
+            },
+            {
+                selector: 'interface',
+                format: ['PascalCase']
+            },
+            {
+                selector: 'typeLike',
+                format: ['PascalCase'],
+                leadingUnderscore: 'allow'
+            },
+            {
+                selector: 'enum',
+                format: ['PascalCase']
+            },
+            {
+                selector: 'enumMember',
+                format: ['PascalCase']
+            },
+            {
+                selector: 'class',
+                format: ['PascalCase']
+            },
+            {
+                selector: 'classMethod',
+                format: ['camelCase']
+            },
+            {
+                selector: 'classProperty',
+                format: ['camelCase', 'UPPER_CASE']
+            }
+        ],
+        '@typescript-eslint/member-ordering': 0,
+        '@typescript-eslint/no-non-null-assertion': 0,
+        '@typescript-eslint/strict-boolean-expressions': 0,
+        '@typescript-eslint/no-extraneous-class': [1, { allowEmpty: true }],
+        '@typescript-eslint/class-methods-use-this': 0
     }
 };
 

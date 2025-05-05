@@ -7,4 +7,4 @@ const appConfig: ApplicationConfig = {
     providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideHttpClient()]
 };
 
-bootstrapApplication(DevApp, appConfig).catch((err) => console.error(err));
+bootstrapApplication(DevApp, appConfig).catch((error: unknown) => console.error(error));
