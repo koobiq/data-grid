@@ -1,6 +1,6 @@
 // @ts-check
 
-const KEBAB_CASE_PATTERN = '^_?[a-z0-9]+(-[a-z0-9]+)*$';
+const KEBAB_CASE_PATTERN = '^(_?[a-z][a-z0-9]*)(-[a-z0-9]+)*$';
 
 const ALLOWED_PREFIXES = [
     // default
@@ -16,7 +16,7 @@ const config = {
     defaultSeverity: 'error',
     allowEmptyInput: true,
     extends: [
-        'stylelint-config-recommended-scss',
+        'stylelint-config-standard-scss',
         // should be last
         'stylelint-prettier/recommended'
     ],
@@ -39,12 +39,12 @@ const config = {
 
         // scss
         'scss/comment-no-loud': true,
-        'scss/double-slash-comment-whitespace-inside': 'always',
         'scss/selector-no-union-class-name': true,
         'scss/at-mixin-pattern': [KEBAB_CASE_PATTERN, { message: 'Expected @mixin name to be kebab-case.' }],
         'scss/at-use-no-unnamespaced': true,
         'scss/at-use-no-redundant-alias': true,
-        'scss/no-unused-private-members': true
+        'scss/no-unused-private-members': true,
+        'scss/at-mixin-argumentless-call-parentheses': null
     }
 };
 

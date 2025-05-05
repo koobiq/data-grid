@@ -1,5 +1,4 @@
 @use 'ag-grid-community/styles' as ag;
-
 @include ag.grid-styles(
     (
         // Full AG Grid variables list:
@@ -221,14 +220,14 @@
             border-bottom-right-radius: unset;
         }
 
-        $_selectors: '.ag-row-selected, .ag-row-focus';
+        $selectors: '.ag-row-selected, .ag-row-focus';
 
-        &:is(#{$_selectors}):has(+ :is(#{$_selectors})) {
+        &:is(#{$selectors}):has(+ :is(#{$selectors})) {
             border-bottom-left-radius: unset;
             border-bottom-right-radius: unset;
         }
 
-        &:is(#{$_selectors}) + :is(#{$_selectors}) {
+        &:is(#{$selectors}) + :is(#{$selectors}) {
             border-top-left-radius: unset;
             border-top-right-radius: unset;
         }
@@ -516,6 +515,7 @@
             background-color: var(--ag-theme-koobiq-scrollbar-thumb-color);
             border-radius: var(--kbq-size-border-radius);
             border: var(--ag-theme-koobiq-scrollbar-offset) solid var(--ag-theme-koobiq-scrollbar-track-color);
+
             // https://stackoverflow.com/a/16829330/6386666
             background-clip: content-box;
 
