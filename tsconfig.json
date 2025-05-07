@@ -22,10 +22,8 @@
     },
     "exclude": ["node_modules", "tmp", "dist"],
     "angularCompilerOptions": {
-        "enableI18nLegacyMessageIdFormat": false,
         "strictInjectionParameters": true,
         "strictInputAccessModifiers": true,
-        "strictTemplates": true,
-        "compilationMode": "partial"
+        "strictTemplates": true
     }
 }
