@@ -5,5 +5,8 @@
             "path": "./tsconfig.lib.json"
         }
     ],
-    "files": []
+    "files": [],
+    "angularCompilerOptions": {
+        "compilationMode": "partial"
+    }
 }
