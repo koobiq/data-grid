@@ -2297,10 +2297,10 @@
   dependencies:
     buffer "^6.0.3"
 
-"@koobiq/design-tokens@^3.12.1":
-  version "3.12.1"
-  resolved "https://registry.yarnpkg.com/@koobiq/design-tokens/-/design-tokens-3.12.1.tgz#b07124d44bfb059d28ed134951422b897c068f6d"
-  integrity sha512-mROGt9r61y7LbP314bCWRxdyzya6H2K/14VLadQodeztazfygJiB52uHVOQsJcotyCDPEq2kiOYgaykQU/9GBA==
+"@koobiq/design-tokens@^3.13.1":
+  version "3.13.1"
+  resolved "https://registry.yarnpkg.com/@koobiq/design-tokens/-/design-tokens-3.13.1.tgz#8b3c7e0d1909d4e537b752e2918d5f59df380b96"
+  integrity sha512-gm1+ZDAEFyr0UFDK+AZlQ1rYqD10uDkEroYJd6owZhj4V1Zr1mhM1KLRMQs++/uSXM2LMpFpztlRviD23IIvPQ==
 
 "@koobiq/icons@^9.4.1":
   version "9.4.1"
