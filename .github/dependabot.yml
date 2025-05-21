@@ -7,19 +7,25 @@ updates:
       day: 'monday'
       time: '13:00'
       timezone: 'Europe/Moscow'
-    # Ignores any major updates
     ignore:
+      # Ignores any major updates
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
     groups:
-      linters:
+      eslint:
         patterns:
           - 'eslint*'
           - '@typescript-eslint/*'
           - '@angular-eslint/*'
-          - 'prettier*'
-          - 'stylelint*'
+      commitlint:
+        patterns:
           - '@commitlint/*'
+      stylelint:
+        patterns:
+          - 'stylelint*'
+      prettier:
+        patterns:
+          - 'prettier*'
       nx:
         patterns:
           - 'nx'
