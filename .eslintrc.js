@@ -3,21 +3,24 @@
 const isCI = !!process.env.CI;
 
 /** @type {import('eslint').Linter.ConfigOverride} */
-const JS_AND_TS = {
+const javascriptAndTypescriptRules = {
     files: ['*.js', '*.ts'],
     extends: ['eslint:recommended'],
     rules: {}
 };
 
 /** @type {import('eslint').Linter.ConfigOverride} */
-const TS = {
+const typescriptRules = {
     files: ['*.ts'],
     parser: '@typescript-eslint/parser',
     parserOptions: {
         project: './tsconfig.eslint.json',
         tsconfigRootDir: __dirname
     },
-    extends: ['plugin:@typescript-eslint/all'],
+    extends: [
+        /** @see https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/eslintrc/all.ts */
+        'plugin:@typescript-eslint/all'
+    ],
     rules: {
         // plugin:@typescript-eslint
         '@typescript-eslint/consistent-type-definitions': [1, 'type'],
@@ -77,9 +80,13 @@ const TS = {
 };
 
 /** @type {import('eslint').Linter.ConfigOverride} */
-const ANGULAR = {
+const angularRules = {
     files: ['*.ng.ts'],
-    extends: ['plugin:@angular-eslint/all', 'plugin:@angular-eslint/template/process-inline-templates'],
+    extends: [
+        /** @see https://github.com/angular-eslint/angular-eslint/blob/main/packages/angular-eslint/src/configs/ts-all.ts */
+        'plugin:@angular-eslint/all',
+        'plugin:@angular-eslint/template/process-inline-templates'
+    ],
     rules: {
         // plugin:@angular-eslint
         '@angular-eslint/component-class-suffix': 0,
@@ -90,7 +97,7 @@ const ANGULAR = {
 };
 
 /** @type {import('eslint').Linter.ConfigOverride} */
-const ANGULAR_DEV = {
+const angularDEVRules = {
     files: ['dev/**/*.ng.ts'],
     rules: {
         // plugin:@angular-eslint
@@ -100,7 +107,7 @@ const ANGULAR_DEV = {
 };
 
 /** @type {import('eslint').Linter.ConfigOverride} */
-const ANGULAR_PACKAGES = {
+const angularPackageRules = {
     files: ['packages/**/*.ng.ts'],
     rules: {
         // plugin:@angular-eslint
@@ -110,7 +117,7 @@ const ANGULAR_PACKAGES = {
 };
 
 /** @type {import('eslint').Linter.ConfigOverride} */
-const ANGULAR_TEMPLATE = {
+const angularTemplateRules = {
     // @TODO should add *.ng.html suffix
     files: ['*.html'],
     extends: ['plugin:@angular-eslint/template/all'],
@@ -122,7 +129,7 @@ const ANGULAR_TEMPLATE = {
 };
 
 /** @type {import('eslint').Linter.ConfigOverride} */
-const PRETTIER = {
+const prettierRules = {
     files: ['*.js', '*.ts', '*.html'],
     extends: ['plugin:prettier/recommended']
 };
@@ -145,14 +152,14 @@ const config = {
         'eslint-comments/no-unused-disable': 1
     },
     overrides: [
-        JS_AND_TS,
-        TS,
-        ANGULAR,
-        ANGULAR_DEV,
-        ANGULAR_PACKAGES,
-        ANGULAR_TEMPLATE,
+        javascriptAndTypescriptRules,
+        typescriptRules,
+        angularRules,
+        angularDEVRules,
+        angularPackageRules,
+        angularTemplateRules,
         // should be last
-        PRETTIER
+        prettierRules
     ]
 };
 
