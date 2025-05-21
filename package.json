@@ -43,7 +43,7 @@
         "@angular/platform-browser-dynamic": "^18.2.13",
         "@angular/router": "^18.2.13",
         "@fontsource/inter": "^5.2.5",
-        "@koobiq/design-tokens": "^3.13.1",
+        "@koobiq/design-tokens": "^3.13.2",
         "@koobiq/icons": "^9.4.1",
         "ag-grid-angular": "^30.2.1",
         "ag-grid-community": "^30.2.1",
