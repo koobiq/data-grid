@@ -8,5 +8,6 @@
         "extensions": [".js", ".ts", ".html"]
     },
     "eslint.validate": ["javascript", "typescript", "html"],
-    "editor.rulers": [120]
+    "editor.rulers": [120],
+    "nxConsole.generateAiAgentRules": true
 }
