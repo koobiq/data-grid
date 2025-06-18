@@ -31,83 +31,95 @@ enum DevThemeSelector {
     imports: [AgGridModule, KbqAgGridTheme, FormsModule],
     selector: 'dev-root',
     template: `
-        <a class="dev-github-link" href="https://github.com/koobiq/data-grid" target="_blank" rel="noopener noreferrer">
-            <img src="https://img.shields.io/github/stars/koobiq/data-grid?style=social" alt="GitHub" />
-        </a>
-        <div class="dev-grid-options">
-            <label>
-                <input type="checkbox" [(ngModel)]="lightTheme" />
-                Light Theme
-            </label>
-            <label>
-                <input type="checkbox" [(ngModel)]="checkboxSelection" />
-                Checkbox Selection
-            </label>
-            <label>
-                <input type="checkbox" [(ngModel)]="multipleRowSelection" />
-                Multiple Row Selection
-            </label>
-            <label>
-                <input type="checkbox" [(ngModel)]="suppressRowClickSelection" />
-                Suppress Row Click Selection
-            </label>
-            <label>
-                <input type="checkbox" [(ngModel)]="editable" />
-                Editable Cell
-            </label>
-            <label>
-                <input type="checkbox" [(ngModel)]="resizable" />
-                Resizable Column
-            </label>
-            <label>
-                <input type="checkbox" [(ngModel)]="suppressMovable" />
-                Suppress Column Movable
-            </label>
-            <label>
-                <input type="checkbox" [disabled]="floatingFilter()" [(ngModel)]="filter" />
-                Filter
-            </label>
-            <label>
-                <input type="checkbox" [(ngModel)]="floatingFilter" />
-                Floating Filter
-            </label>
-            <label>
-                <input type="checkbox" [(ngModel)]="sortable" />
-                Sortable
-            </label>
-            <label>
-                <input type="checkbox" [(ngModel)]="pagination" />
-                Pagination
-            </label>
-            <label>
-                <!-- TODO: grid does not support dynamic RTL change -->
-                <input type="checkbox" disabled="" [(ngModel)]="enableRtl" />
-                RTL
-            </label>
-            <label>
-                <input type="checkbox" [(ngModel)]="columnHoverHighlight" />
-                Column Hover Highlight
-            </label>
-            <label>
-                <input type="checkbox" [(ngModel)]="tooltip" />
-                Tooltip
-            </label>
-            <label>
-                <input type="checkbox" [(ngModel)]="animateRows" />
-                Animate Rows
-            </label>
-            <label>
-                <input type="checkbox" [(ngModel)]="lockPinned" />
-                Lock Pinned
-            </label>
-            <label>
-                <input type="checkbox" [(ngModel)]="lockPosition" />
-                Lock Position
-            </label>
-        </div>
+        <details class="dev-accordion">
+            <summary>Options</summary>
+            <fieldset class="dev-options">
+                <legend>Global</legend>
+                <label>
+                    <input type="checkbox" [(ngModel)]="lightTheme" />
+                    Light Theme
+                </label>
+            </fieldset>
+            <fieldset class="dev-options">
+                <legend>AgGridAngular</legend>
+                <label>
+                    <input type="checkbox" [(ngModel)]="checkboxSelection" />
+                    Checkbox Selection
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="multipleRowSelection" />
+                    Multiple Row Selection
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="suppressRowClickSelection" />
+                    Suppress Row Click Selection
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="editable" />
+                    Editable Cell
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="resizable" />
+                    Resizable Column
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="suppressMovable" />
+                    Suppress Column Movable
+                </label>
+                <label>
+                    <input type="checkbox" [disabled]="floatingFilter()" [(ngModel)]="filter" />
+                    Filter
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="floatingFilter" />
+                    Floating Filter
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="sortable" />
+                    Sortable
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="pagination" />
+                    Pagination
+                </label>
+                <label>
+                    <!-- TODO: grid does not support dynamic RTL change -->
+                    <input type="checkbox" disabled="" [(ngModel)]="enableRtl" />
+                    RTL
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="columnHoverHighlight" />
+                    Column Hover Highlight
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="tooltip" />
+                    Tooltip
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="animateRows" />
+                    Animate Rows
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="lockPinned" />
+                    Lock Pinned
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="lockPosition" />
+                    Lock Position
+                </label>
+            </fieldset>
+            <fieldset class="dev-options">
+                <legend>KbqAgGridAngularTheme</legend>
+                <label>
+                    <input type="checkbox" [(ngModel)]="disableCellFocusStyles" />
+                    Disable cell focus styles
+                </label>
+            </fieldset>
+        </details>
 
         <ag-grid-angular
             kbqAgGridTheme
+            [disableCellFocusStyles]="disableCellFocusStyles()"
             [columnDefs]="columnDefs()"
             [rowSelection]="rowSelection()"
             [defaultColDef]="defaultColDef()"
@@ -126,7 +138,7 @@ enum DevThemeSelector {
         :host {
             display: flex;
             flex-direction: column;
-            padding: var(--kbq-size-l);
+            padding: var(--kbq-size-m);
             height: calc(100vh - calc(var(--kbq-size-l) * 2));
         }
 
@@ -135,19 +147,22 @@ enum DevThemeSelector {
             max-width: 2036px;
         }
 
-        .dev-grid-options {
+        .dev-accordion {
+            margin-bottom: var(--kbq-size-s);
+        }
+
+        .dev-accordion > summary {
+            user-select: none;
+        }
+
+        .dev-options {
             display: flex;
             flex-wrap: wrap;
-            gap: var(--kbq-size-s);
-            margin-bottom: var(--kbq-size-m);
+            gap: var(--kbq-size-xs);
         }
 
-        .dev-grid-options label {
+        .dev-options > label {
             white-space: nowrap;
-        }
-
-        .dev-github-link {
-            align-self: end;
         }
     `,
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -170,6 +185,7 @@ export class DevApp {
     readonly animateRows = model(false);
     readonly lockPinned = model(false);
     readonly lockPosition = model(false);
+    readonly disableCellFocusStyles = model(true);
 
     private gridApi!: GridApi | null;
     private gridColumnApi!: ColumnApi | null;
