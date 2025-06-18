@@ -11,6 +11,8 @@ import { booleanAttribute, Directive, input } from '@angular/core';
 export class KbqAgGridTheme {
     /**
      * Disables ag-grid cell focus styles (e.g. border-color).
+     *
+     * @default false
      */
     readonly disableCellFocusStyles = input(false, { transform: booleanAttribute });
 }
