@@ -37,3 +37,9 @@ body {
     background: var(--kbq-background-bg);
     color: var(--kbq-foreground-contrast);
 }
+
+.dev-github-link {
+    position: absolute;
+    top: var(--kbq-size-s);
+    right: var(--kbq-size-s);
+}

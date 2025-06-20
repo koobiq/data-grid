@@ -590,6 +590,12 @@
     }
 }
 
+@mixin _ag-disable-cell-focus() {
+    .ag-cell-focus {
+        --ag-range-selection-border-color: transparent;
+    }
+}
+
 .ag-theme-koobiq {
     // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
     --ag-background-color: var(--kbq-background-bg);
@@ -616,4 +622,8 @@
     @include _ag-popup-editor();
     @include _ag-body-scrollbar();
     @include _ag-pinned-column-border();
+
+    &.ag-theme-koobiq_disable-cell-focus-styles {
+        @include _ag-disable-cell-focus();
+    }
 }
