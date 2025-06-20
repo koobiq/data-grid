@@ -1,0 +1,34 @@
+name: Notification PR
+
+on:
+  pull_request_target:
+    types:
+      - opened
+
+jobs:
+  notify:
+    name: Pull Request Notification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notification
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        uses: mattermost/action-mattermost-notify@2.0.0
+        env:
+          PR_URL: https://github.com/${{ github.repository }}/pull/${{ github.event.number }}
+        with:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MM_WEBHOOK_URL }}
+          MATTERMOST_CHANNEL: ${{ secrets.MM_CHANNEL_NAME }}
+          MATTERMOST_USERNAME: ${{ secrets.MM_BOT_NAME }}
+          TEXT: |
+            [${{ github.repository }}] | [${{ github.event.pull_request.title }} #${{ github.event.number }}](${{ env.PR_URL }}) was created by ${{ github.actor }}
+
+      - name: Notification to BotChannel
+        uses: mattermost/action-mattermost-notify@2.0.0
+        env:
+          PR_URL: https://github.com/${{ github.repository }}/pull/${{ github.event.number }}
+        with:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MM_WEBHOOK_URL }}
+          MATTERMOST_CHANNEL: ${{ secrets.MM_CHANNEL_BOT_PR }}
+          MATTERMOST_USERNAME: ${{ secrets.MM_BOT_NAME }}
+          TEXT: |
+            [${{ github.repository }}] | [${{ github.event.pull_request.title }} #${{ github.event.number }}](${{ env.PR_URL }}) was created by ${{ github.actor }}
