@@ -2,15 +2,74 @@
 
 const isCI = !!process.env.CI;
 
+/**
+ * @param {string} str
+ * @returns {string}
+ */
+const capitalizeFirst = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
+/**
+ * @see https://typescript-eslint.io/rules/naming-convention/#options
+ *
+ * @param {string | undefined} prefix
+ */
+const makeNamingConventionOptions = (prefix = undefined) => {
+    /** @type {unknown[]} */
+    const rules = [
+        { selector: 'variable', format: ['camelCase', 'UPPER_CASE'], leadingUnderscore: 'allow' },
+        { selector: 'function', format: ['camelCase'] },
+        { selector: 'interface', format: ['PascalCase'] },
+        { selector: 'typeLike', format: ['PascalCase'] },
+        { selector: 'enum', format: ['PascalCase'] },
+        { selector: 'enumMember', format: ['PascalCase'] },
+        { selector: 'class', format: ['PascalCase'] },
+        { selector: 'classMethod', format: ['camelCase'] },
+        { selector: 'classProperty', format: ['camelCase', 'UPPER_CASE'], leadingUnderscore: 'allow' }
+    ];
+
+    if (prefix) {
+        rules.push(
+            {
+                selector: 'variable',
+                modifiers: ['exported'],
+                format: ['StrictPascalCase', 'UPPER_CASE'],
+                prefix: [prefix, `${prefix.toUpperCase()}_`]
+            },
+            { selector: 'function', modifiers: ['exported'], format: ['StrictPascalCase'], prefix: [prefix] },
+            {
+                selector: 'interface',
+                modifiers: ['exported'],
+                format: ['StrictPascalCase'],
+                prefix: [capitalizeFirst(prefix)]
+            },
+            {
+                selector: 'typeLike',
+                modifiers: ['exported'],
+                format: ['StrictPascalCase'],
+                prefix: [capitalizeFirst(prefix)]
+            },
+            {
+                selector: 'enum',
+                modifiers: ['exported'],
+                format: ['StrictPascalCase'],
+                prefix: [capitalizeFirst(prefix)]
+            },
+            { selector: 'class', modifiers: ['exported'], format: ['PascalCase'], prefix: [capitalizeFirst(prefix)] }
+        );
+    }
+
+    return rules;
+};
+
 /** @type {import('eslint').Linter.ConfigOverride} */
-const javascriptAndTypescriptRules = {
+const jsAndTsRules = {
     files: ['*.js', '*.ts'],
     extends: ['eslint:recommended'],
     rules: {}
 };
 
 /** @type {import('eslint').Linter.ConfigOverride} */
-const typescriptRules = {
+const tsRules = {
     files: ['*.ts'],
     parser: '@typescript-eslint/parser',
     parserOptions: {
@@ -30,47 +89,7 @@ const typescriptRules = {
         '@typescript-eslint/explicit-member-accessibility': 0,
         '@typescript-eslint/no-confusing-void-expression': 0,
         '@typescript-eslint/consistent-type-imports': 0,
-        '@typescript-eslint/naming-convention': [
-            1,
-            {
-                selector: 'variable',
-                format: ['camelCase', 'UPPER_CASE'],
-                leadingUnderscore: 'allow'
-            },
-            {
-                selector: 'function',
-                format: ['camelCase']
-            },
-            {
-                selector: 'interface',
-                format: ['PascalCase']
-            },
-            {
-                selector: 'typeLike',
-                format: ['PascalCase'],
-                leadingUnderscore: 'allow'
-            },
-            {
-                selector: 'enum',
-                format: ['PascalCase']
-            },
-            {
-                selector: 'enumMember',
-                format: ['PascalCase']
-            },
-            {
-                selector: 'class',
-                format: ['PascalCase']
-            },
-            {
-                selector: 'classMethod',
-                format: ['camelCase']
-            },
-            {
-                selector: 'classProperty',
-                format: ['camelCase', 'UPPER_CASE']
-            }
-        ],
+        '@typescript-eslint/naming-convention': [1, ...makeNamingConventionOptions()],
         '@typescript-eslint/member-ordering': 0,
         '@typescript-eslint/no-non-null-assertion': 0,
         '@typescript-eslint/strict-boolean-expressions': 0,
@@ -80,7 +99,7 @@ const typescriptRules = {
 };
 
 /** @type {import('eslint').Linter.ConfigOverride} */
-const angularRules = {
+const ngTsRules = {
     files: ['*.ng.ts'],
     extends: [
         /** @see https://github.com/angular-eslint/angular-eslint/blob/main/packages/angular-eslint/src/configs/ts-all.ts */
@@ -97,7 +116,16 @@ const angularRules = {
 };
 
 /** @type {import('eslint').Linter.ConfigOverride} */
-const angularDEVRules = {
+const tsDevRules = {
+    files: ['dev/**/*.ts'],
+    rules: {
+        // plugin:@typescript-eslint
+        '@typescript-eslint/naming-convention': [1, ...makeNamingConventionOptions('dev')]
+    }
+};
+
+/** @type {import('eslint').Linter.ConfigOverride} */
+const ngTsDevRules = {
     files: ['dev/**/*.ng.ts'],
     rules: {
         // plugin:@angular-eslint
@@ -107,7 +135,16 @@ const angularDEVRules = {
 };
 
 /** @type {import('eslint').Linter.ConfigOverride} */
-const angularPackageRules = {
+const tsPackagesRules = {
+    files: ['packages/**/*.ts'],
+    rules: {
+        // plugin:@typescript-eslint
+        '@typescript-eslint/naming-convention': [1, ...makeNamingConventionOptions('kbq')]
+    }
+};
+
+/** @type {import('eslint').Linter.ConfigOverride} */
+const ngTsPackagesRules = {
     files: ['packages/**/*.ng.ts'],
     rules: {
         // plugin:@angular-eslint
@@ -117,7 +154,7 @@ const angularPackageRules = {
 };
 
 /** @type {import('eslint').Linter.ConfigOverride} */
-const angularTemplateRules = {
+const ngTemplateRules = {
     // @TODO should add *.ng.html suffix
     files: ['*.html'],
     extends: ['plugin:@angular-eslint/template/all'],
@@ -152,12 +189,14 @@ const config = {
         'eslint-comments/no-unused-disable': 1
     },
     overrides: [
-        javascriptAndTypescriptRules,
-        typescriptRules,
-        angularRules,
-        angularDEVRules,
-        angularPackageRules,
-        angularTemplateRules,
+        jsAndTsRules,
+        tsRules,
+        ngTsRules,
+        tsDevRules,
+        ngTsDevRules,
+        tsPackagesRules,
+        ngTsPackagesRules,
+        ngTemplateRules,
         // should be last
         prettierRules
     ]
