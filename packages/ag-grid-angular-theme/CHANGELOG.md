@@ -1,3 +1,18 @@
+## 30.1.0 (2025-07-04)
+
+### 🚀 Features
+
+- **ag-grid-angular-theme:** added drag and drop styles (#DS-3890) ([#67](https://github.com/koobiq/data-grid/pull/67))
+- **ag-grid-angular-theme:** added disableCellFocusStyles input (#DS-3614) ([#64](https://github.com/koobiq/data-grid/pull/64))
+
+### 🩹 Fixes
+
+- **ag-grid-angular-theme:** minimal @koobiq/icons version (#DS-3910) ([#66](https://github.com/koobiq/data-grid/pull/66))
+
+### ❤️ Thank You
+
+- Artem Belik @artembelik
+
 ## 30.0.6 (2025-04-25)
 
 ### 🩹 Fixes
