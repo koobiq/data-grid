@@ -5,7 +5,17 @@ import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-i
 import { FormsModule } from '@angular/forms';
 import { KbqAgGridTheme } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
-import { ColDef, ColumnApi, FirstDataRenderedEvent, GridApi, GridReadyEvent, ITooltipParams } from 'ag-grid-community';
+import {
+    ColDef,
+    ColumnApi,
+    DragStartedEvent,
+    DragStoppedEvent,
+    FirstDataRenderedEvent,
+    GridApi,
+    GridReadyEvent,
+    ITooltipParams,
+    RowDragEvent
+} from 'ag-grid-community';
 import { catchError, of } from 'rxjs';
 
 type DevOlympicData = {
@@ -107,6 +117,14 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="lockPosition" />
                     Lock Position
                 </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="rowDrag" />
+                    Row Drag
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="suppressMoveWhenRowDragging" />
+                    Suppress Move When Row Dragging
+                </label>
             </fieldset>
             <fieldset class="dev-options">
                 <legend>KbqAgGridAngularTheme</legend>
@@ -124,6 +142,9 @@ enum DevThemeSelector {
             [rowSelection]="rowSelection()"
             [defaultColDef]="defaultColDef()"
             [rowData]="rowData()"
+            [rowDragManaged]="rowDrag()"
+            [rowDragMultiRow]="rowDrag()"
+            [suppressMoveWhenRowDragging]="suppressMoveWhenRowDragging()"
             [pagination]="pagination()"
             [enableRtl]="enableRtl()"
             [columnHoverHighlight]="columnHoverHighlight()"
@@ -132,6 +153,11 @@ enum DevThemeSelector {
             [animateRows]="animateRows()"
             (gridReady)="onGridReady($event)"
             (firstDataRendered)="onFirstDataRendered($event)"
+            (dragStarted)="onDragStarted($event)"
+            (dragStopped)="onDragStopped($event)"
+            (rowDragEnter)="onRowDragEnter($event)"
+            (rowDragLeave)="onRowDragLeave($event)"
+            (rowDragEnd)="onRowDragEnd($event)"
         />
     `,
     styles: `
@@ -186,6 +212,8 @@ export class DevApp {
     readonly lockPinned = model(false);
     readonly lockPosition = model(false);
     readonly disableCellFocusStyles = model(true);
+    readonly rowDrag = model(true);
+    readonly suppressMoveWhenRowDragging = model(true);
 
     private gridApi!: GridApi | null;
     private gridColumnApi!: ColumnApi | null;
@@ -197,6 +225,7 @@ export class DevApp {
     readonly columnDefs = computed<ColDef[]>(() => {
         const checkboxSelection = this.checkboxSelection();
         const tooltip = this.tooltip();
+        const rowDrag = this.rowDrag();
 
         return [
             {
@@ -216,7 +245,13 @@ export class DevApp {
                 field: 'athlete',
                 headerTooltip: tooltip ? 'Tooltip for Athlete Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>): string | null =>
-                    tooltip ? 'Tooltip for Athlete Cell: ' + data!.country : null
+                    tooltip ? 'Tooltip for Athlete Cell: ' + data!.country : null,
+                rowDrag: rowDrag
+                    ? (parameter): boolean => {
+                          const rowIndex = parameter.node.rowIndex!;
+                          return rowIndex !== 1 && rowIndex !== 2;
+                      }
+                    : false
             },
             {
                 field: 'age',
@@ -358,12 +393,20 @@ export class DevApp {
             });
     }
 
-    onGridReady({ api, columnApi }: GridReadyEvent): void {
+    onGridReady(event: GridReadyEvent): void {
+        console.debug('onGridReady:', event);
+
+        const { api, columnApi } = event;
+
         this.gridApi = api;
         this.gridColumnApi = columnApi;
     }
 
-    onFirstDataRendered({ api }: FirstDataRenderedEvent): void {
+    onFirstDataRendered(event: FirstDataRenderedEvent): void {
+        console.debug('onFirstDataRendered:', event);
+
+        const { api } = event;
+
         // Set initial focused cell
         api.setFocusedCell(0, 'athlete');
 
@@ -373,5 +416,25 @@ export class DevApp {
                 node.setSelected(true);
             }
         });
+    }
+
+    onDragStarted(event: DragStartedEvent): void {
+        console.debug('onDragStarted:', event);
+    }
+
+    onDragStopped(event: DragStoppedEvent): void {
+        console.debug('onDragStopped:', event);
+    }
+
+    onRowDragEnter(event: RowDragEvent): void {
+        console.debug('onRowDragEnter:', event);
+    }
+
+    onRowDragLeave(event: RowDragEvent): void {
+        console.debug('onRowDragLeave:', event);
+    }
+
+    onRowDragEnd(event: RowDragEvent): void {
+        console.debug('onRowDragEnd:', event);
     }
 }

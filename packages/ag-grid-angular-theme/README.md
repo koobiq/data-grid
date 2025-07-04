@@ -1,6 +1,6 @@
 # @koobiq/ag-grid-angular-theme
 
-The package provides a theme for the [AG Grid](https://www.ag-grid.com/archive/30.2.0/angular-data-grid/) (see [overview](https://data-grid-next.web.app/)).
+The package provides a theme for the [ag-grid-angular@^30](https://www.ag-grid.com/archive/30.2.0/angular-data-grid/) (see [overview](https://data-grid-next.web.app/)).
 
 ## Installation
 
