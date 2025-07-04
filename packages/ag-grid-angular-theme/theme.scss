@@ -27,7 +27,7 @@
         --ag-data-color: var(--kbq-foreground-contrast),
         // Cell
         --ag-cell-horizontal-padding: var(--ag-grid-size),
-        --ag-cell-widget-spacing: calc(var(--ag-grid-size) * 2),
+        --ag-cell-widget-spacing: var(--ag-grid-size),
         // Icon
         // @TODO Should be refactored, by adding css variables to the font-family and icon unicode names (#DS-3601)
         --ag-icon-font-family: 'Koobiq Icons',
@@ -201,6 +201,48 @@
 
             &:active {
                 --ag-theme-koobiq-row-background-color: var(--kbq-states-background-theme-less-active);
+            }
+        }
+    }
+}
+
+@mixin _ag-drag-and-drop() {
+    .ag-row {
+        &.ag-row-highlight-above::after,
+        &.ag-row-highlight-below::after {
+            height: 2px;
+            width: 100%;
+        }
+
+        &.ag-row-highlight-above::after,
+        &.ag-row-highlight-above.ag-row-first::after {
+            top: 0;
+        }
+
+        &.ag-row-highlight-below::after,
+        &.ag-row-highlight-below.ag-row-last::after {
+            bottom: 0;
+        }
+
+        &.ag-row-dragging {
+            opacity: var(--kbq-opacity-disabled);
+        }
+    }
+
+    &.ag-dnd-ghost {
+        --ag-background-color: var(--kbq-background-card);
+        --ag-card-shadow: var(--kbq-popup-shadow);
+
+        padding: 10px var(--ag-grid-size);
+        height: unset !important;
+        min-height: var(--ag-header-height);
+        border: unset;
+
+        .ag-dnd-ghost-icon {
+            --ag-foreground-color: var(--kbq-icon-contrast);
+
+            .ag-icon {
+                color: inherit;
             }
         }
     }
@@ -605,6 +647,7 @@
     @include _ag-theme-typography();
     @include _ag-row-highlight();
     @include _ag-row-border-radius();
+    @include _ag-drag-and-drop();
     @include _ag-tooltip();
     @include _ag-icon-color();
     @include _ag-header-cell-resize();

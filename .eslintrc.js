@@ -65,7 +65,10 @@ const makeNamingConventionOptions = (prefix = undefined) => {
 const jsAndTsRules = {
     files: ['*.js', '*.ts'],
     extends: ['eslint:recommended'],
-    rules: {}
+    rules: {
+        // plugin:eslint
+        'no-console': [1, { allow: ['debug', 'warn', 'error'] }]
+    }
 };
 
 /** @type {import('eslint').Linter.ConfigOverride} */
