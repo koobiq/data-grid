@@ -250,28 +250,73 @@
 
 @mixin _ag-row-border-radius() {
     .ag-row {
-        border-radius: var(--ag-border-radius);
+        --ag-theme-koobiq-row-border-top-left-radius: var(--ag-border-radius);
+        --ag-theme-koobiq-row-border-top-right-radius: var(--ag-border-radius);
+        --ag-theme-koobiq-row-border-bottom-right-radius: var(--ag-border-radius);
+        --ag-theme-koobiq-row-border-bottom-left-radius: var(--ag-border-radius);
+
+        border-radius: var(--ag-theme-koobiq-row-border-top-left-radius)
+            var(--ag-theme-koobiq-row-border-top-right-radius) var(--ag-theme-koobiq-row-border-bottom-right-radius)
+            var(--ag-theme-koobiq-row-border-bottom-left-radius);
 
         &.ag-row-first {
-            border-top-left-radius: unset;
-            border-top-right-radius: unset;
+            --ag-theme-koobiq-row-border-top-left-radius: 0;
+            --ag-theme-koobiq-row-border-top-right-radius: 0;
         }
 
         &.ag-row-last {
-            border-bottom-left-radius: unset;
-            border-bottom-right-radius: unset;
+            --ag-theme-koobiq-row-border-bottom-right-radius: 0;
+            --ag-theme-koobiq-row-border-bottom-left-radius: 0;
         }
 
         $selectors: '.ag-row-selected, .ag-row-focus';
 
         &:is(#{$selectors}):has(+ :is(#{$selectors})) {
-            border-bottom-left-radius: unset;
-            border-bottom-right-radius: unset;
+            --ag-theme-koobiq-row-border-bottom-right-radius: 0;
+            --ag-theme-koobiq-row-border-bottom-left-radius: 0;
         }
 
         &:is(#{$selectors}) + :is(#{$selectors}) {
-            border-top-left-radius: unset;
-            border-top-right-radius: unset;
+            --ag-theme-koobiq-row-border-top-left-radius: 0;
+            --ag-theme-koobiq-row-border-top-right-radius: 0;
+        }
+    }
+
+    .ag-body-viewport {
+        &:has(.ag-pinned-left-cols-container:not(.ag-hidden)):has(.ag-center-cols-container:not(.ag-hidden)) {
+            .ag-pinned-left-cols-container .ag-row {
+                --ag-theme-koobiq-row-border-top-right-radius: 0;
+                --ag-theme-koobiq-row-border-bottom-right-radius: 0;
+            }
+
+            .ag-center-cols-container .ag-row {
+                --ag-theme-koobiq-row-border-top-left-radius: 0;
+                --ag-theme-koobiq-row-border-bottom-left-radius: 0;
+            }
+        }
+
+        &:has(.ag-center-cols-container:not(.ag-hidden)):has(.ag-pinned-right-cols-container:not(.ag-hidden)) {
+            .ag-center-cols-container .ag-row {
+                --ag-theme-koobiq-row-border-top-right-radius: 0;
+                --ag-theme-koobiq-row-border-bottom-right-radius: 0;
+            }
+
+            .ag-pinned-right-cols-container .ag-row {
+                --ag-theme-koobiq-row-border-top-left-radius: 0;
+                --ag-theme-koobiq-row-border-bottom-left-radius: 0;
+            }
+        }
+
+        &:has(.ag-pinned-left-cols-container:not(.ag-hidden)):has(.ag-pinned-right-cols-container:not(.ag-hidden)) {
+            .ag-pinned-left-cols-container .ag-row {
+                --ag-theme-koobiq-row-border-top-right-radius: 0;
+                --ag-theme-koobiq-row-border-bottom-right-radius: 0;
+            }
+
+            .ag-pinned-right-cols-container .ag-row {
+                --ag-theme-koobiq-row-border-top-left-radius: 0;
+                --ag-theme-koobiq-row-border-bottom-left-radius: 0;
+            }
         }
     }
 }

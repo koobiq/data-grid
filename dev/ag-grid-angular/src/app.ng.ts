@@ -125,6 +125,14 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="suppressMoveWhenRowDragging" />
                     Suppress Move When Row Dragging
                 </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="pinFirstColumn" />
+                    Pin First Column
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="pinLastColumn" />
+                    Pin Last Column
+                </label>
             </fieldset>
             <fieldset class="dev-options">
                 <legend>KbqAgGridAngularTheme</legend>
@@ -214,6 +222,8 @@ export class DevApp {
     readonly disableCellFocusStyles = model(true);
     readonly rowDrag = model(true);
     readonly suppressMoveWhenRowDragging = model(true);
+    readonly pinFirstColumn = model(false);
+    readonly pinLastColumn = model(false);
 
     private gridApi!: GridApi | null;
     private gridColumnApi!: ColumnApi | null;
@@ -226,6 +236,8 @@ export class DevApp {
         const checkboxSelection = this.checkboxSelection();
         const tooltip = this.tooltip();
         const rowDrag = this.rowDrag();
+        const pinFirstColumn = this.pinFirstColumn();
+        const pinLastColumn = this.pinLastColumn();
 
         return [
             {
@@ -239,7 +251,8 @@ export class DevApp {
                 resizable: false,
                 suppressMovable: true,
                 editable: false,
-                lockPosition: true
+                lockPosition: true,
+                pinned: pinFirstColumn ? 'left' : false
             },
             {
                 field: 'athlete',
@@ -251,7 +264,8 @@ export class DevApp {
                           const rowIndex = parameter.node.rowIndex!;
                           return rowIndex !== 1 && rowIndex !== 2;
                       }
-                    : false
+                    : false,
+                pinned: pinFirstColumn ? 'left' : false
             },
             {
                 field: 'age',
@@ -315,7 +329,8 @@ export class DevApp {
                 headerTooltip: tooltip ? 'Tooltip for Total Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>): string | null =>
                     tooltip ? 'Tooltip for Total Cell: ' + data!.athlete : null,
-                cellEditor: 'agNumberCellEditor'
+                cellEditor: 'agNumberCellEditor',
+                pinned: pinLastColumn ? 'right' : false
             }
         ];
     });
