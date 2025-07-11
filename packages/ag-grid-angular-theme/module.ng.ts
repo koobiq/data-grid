@@ -1,11 +1,14 @@
 import { A, DOWN_ARROW, UP_ARROW } from '@angular/cdk/keycodes';
-import { Directive, inject, Injectable } from '@angular/core';
+import { booleanAttribute, Directive, inject, Injectable, input, NgModule } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgGridAngular } from 'ag-grid-angular';
 import { CellKeyDownEvent, CellPosition, FullWidthCellKeyDownEvent, TabToNextCellParams } from 'ag-grid-community';
 
 const isKeyboardEvent = (event: unknown): event is KeyboardEvent => event instanceof KeyboardEvent;
 
+/**
+ * Service that provides keyboard interaction functionalities for ag-grid-angular.
+ */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridKeyboard {
     private selectionAnchorRowIndex: number | null = null;
@@ -15,7 +18,7 @@ export class KbqAgGridKeyboard {
      *
      * @example
      * ```html
-     * <ag-grid-angular (cellKeyDown)="keyboard.selectRowsByShiftArrow($event)"></ag-grid-angular>
+     * <ag-grid-angular kbqAgGridTheme (cellKeyDown)="keyboard.selectRowsByShiftArrow($event)" />
      * ```
      */
     selectRowsByShiftArrow({ event, node, api }: CellKeyDownEvent | FullWidthCellKeyDownEvent): void {
@@ -127,7 +130,7 @@ export class KbqAgGridKeyboard {
      *
      * @example
      * ```html
-     * <ag-grid-angular (cellKeyDown)="keyboard.selectAllRowsByCtrlA($event)"></ag-grid-angular>
+     * <ag-grid-angular kbqAgGridTheme (cellKeyDown)="keyboard.selectAllRowsByCtrlA($event)" />
      * ```
      */
     selectAllRowsByCtrlA({ event, api }: CellKeyDownEvent | FullWidthCellKeyDownEvent): void {
@@ -149,7 +152,7 @@ export class KbqAgGridKeyboard {
      *
      * @example
      * ```html
-     * <ag-grid-angular [tabToNextCell]="keyboard.toNextRowByTab.bind(this)"></ag-grid-angular>
+     * <ag-grid-angular kbqAgGridTheme [tabToNextCell]="keyboard.toNextRowByTab.bind(this)" />
      * ```
      */
     toNextRowByTab({ previousCellPosition, api, backwards }: TabToNextCellParams): CellPosition | null {
@@ -174,11 +177,36 @@ export class KbqAgGridKeyboard {
 }
 
 /**
+ * Directive that applies the koobiq theme to ag-grid-angular.
+ *
+ * @example
+ * ```html
+ * <ag-grid-angular kbqAgGridTheme />
+ * ```
+ */
+@Directive({
+    standalone: true,
+    selector: 'ag-grid-angular[kbqAgGridTheme]',
+    host: {
+        class: 'ag-theme-koobiq',
+        '[class.ag-theme-koobiq_disable-cell-focus-styles]': 'disableCellFocusStyles()'
+    }
+})
+export class KbqAgGridTheme {
+    /**
+     * Disables ag-grid cell focus styles (e.g. border-color).
+     *
+     * @default false
+     */
+    readonly disableCellFocusStyles = input(false, { transform: booleanAttribute });
+}
+
+/**
  * Directive that modifies tab navigation to move focus to the next row instead of the next cell.
  *
  * @example
  * ```html
- * <ag-grid-angular kbqAgGridTheme toNextRowByTab></ag-grid-angular>
+ * <ag-grid-angular kbqAgGridTheme toNextRowByTab />
  * ```
  */
 @Directive({
@@ -199,7 +227,7 @@ export class KbqAgGridToNextRowByTab {
  *
  * @example
  * ```html
- * <ag-grid-angular kbqAgGridTheme selectAllRowsByCtrlA></ag-grid-angular>
+ * <ag-grid-angular kbqAgGridTheme selectAllRowsByCtrlA />
  * ```
  */
 @Directive({
@@ -222,7 +250,7 @@ export class KbqAgGridSelectAllRowsByCtrlA {
  *
  * @example
  * ```html
- * <ag-grid-angular kbqAgGridTheme selectRowsByShiftArrow></ag-grid-angular>
+ * <ag-grid-angular kbqAgGridTheme selectRowsByShiftArrow />
  * ```
  */
 @Directive({
@@ -239,3 +267,17 @@ export class KbqAgGridSelectRowsByShiftArrow {
         });
     }
 }
+
+const COMPONENTS = [
+    KbqAgGridTheme,
+    KbqAgGridToNextRowByTab,
+    KbqAgGridSelectAllRowsByCtrlA,
+    KbqAgGridSelectRowsByShiftArrow
+];
+
+@NgModule({
+    imports: COMPONENTS,
+    exports: COMPONENTS,
+    providers: [KbqAgGridKeyboard]
+})
+export class KbqAgGridThemeModule {}

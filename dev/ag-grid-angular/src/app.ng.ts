@@ -12,12 +12,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import {
-    KbqAgGridSelectAllRowsByCtrlA,
-    KbqAgGridSelectRowsByShiftArrow,
-    KbqAgGridTheme,
-    KbqAgGridToNextRowByTab
-} from '@koobiq/ag-grid-angular-theme';
+import { KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import {
     CellKeyDownEvent,
@@ -54,14 +49,7 @@ enum DevThemeSelector {
 
 @Component({
     standalone: true,
-    imports: [
-        AgGridModule,
-        KbqAgGridTheme,
-        KbqAgGridToNextRowByTab,
-        KbqAgGridSelectAllRowsByCtrlA,
-        KbqAgGridSelectRowsByShiftArrow,
-        FormsModule
-    ],
+    imports: [AgGridModule, KbqAgGridThemeModule, FormsModule],
     selector: 'dev-root',
     template: `
         <details class="dev-accordion">

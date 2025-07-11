@@ -1,2 +1,1 @@
-export * from './keyboard.ng';
-export * from './theme.ng';
+export * from './module.ng';
