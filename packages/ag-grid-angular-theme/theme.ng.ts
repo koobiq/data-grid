@@ -1,5 +1,13 @@
 import { booleanAttribute, Directive, input } from '@angular/core';
 
+/**
+ * Directive that applies the koobiq theme to ag-grid-angular.
+ *
+ * @example
+ * ```html
+ * <ag-grid-angular kbqAgGridTheme></ag-grid-angular>
+ * ```
+ */
 @Directive({
     standalone: true,
     selector: 'ag-grid-angular[kbqAgGridTheme]',
