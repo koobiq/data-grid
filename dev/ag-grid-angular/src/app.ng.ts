@@ -154,6 +154,21 @@ enum DevThemeSelector {
                 </label>
             </fieldset>
             <fieldset class="dev-options">
+                <legend>Keyboard</legend>
+                <label>
+                    <input type="checkbox" [(ngModel)]="selectAllRowsByCtrlA" />
+                    Select All Rows by Ctrl+A
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="selectRowsByShiftArrow" />
+                    Select Rows by Shift+Arrow
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="toNextRowByTab" />
+                    To Next Row by Tab
+                </label>
+            </fieldset>
+            <fieldset class="dev-options">
                 <legend>KbqAgGridAngularTheme</legend>
                 <label>
                     <input type="checkbox" [(ngModel)]="disableCellFocusStyles" />
@@ -164,9 +179,9 @@ enum DevThemeSelector {
 
         <ag-grid-angular
             kbqAgGridTheme
-            kbqAgGridToNextRowByTab
-            kbqAgGridSelectAllRowsByCtrlA
-            kbqAgGridSelectRowsByShiftArrow
+            [kbqAgGridToNextRowByTab]="toNextRowByTab()"
+            [kbqAgGridSelectRowsByShiftArrow]="selectRowsByShiftArrow()"
+            [kbqAgGridSelectAllRowsByCtrlA]="selectAllRowsByCtrlA()"
             [disableCellFocusStyles]="disableCellFocusStyles()"
             [columnDefs]="columnDefs()"
             [rowSelection]="rowSelection()"
@@ -256,6 +271,9 @@ export class DevApp {
     readonly pinLastColumn = model(false);
     readonly suppressCellFocus = model(false);
     readonly showIndexColumn = model(isDevMode());
+    readonly selectAllRowsByCtrlA = model(true);
+    readonly selectRowsByShiftArrow = model(true);
+    readonly toNextRowByTab = model(true);
 
     readonly rowSelection = computed(() => {
         return this.multipleRowSelection() ? 'multiple' : 'single';

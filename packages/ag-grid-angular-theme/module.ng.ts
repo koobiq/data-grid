@@ -210,8 +210,13 @@ export class KbqAgGridToNextRowByTab {
     private readonly grid = inject(AgGridAngular);
     private readonly keyboard = inject(KbqAgGridKeyboard);
 
+    /** Indicates whether the directive is enabled. */
+    readonly enabled = input(true, { transform: booleanAttribute, alias: 'kbqAgGridToNextRowByTab' });
+
     constructor() {
-        this.grid.tabToNextCell = this.keyboard.toNextRowByTab.bind(this);
+        this.grid.tabToNextCell = (params: TabToNextCellParams): CellPosition | null => {
+            return this.enabled() ? this.keyboard.toNextRowByTab(params) : params.nextCellPosition;
+        };
     }
 }
 
@@ -231,9 +236,12 @@ export class KbqAgGridSelectAllRowsByCtrlA {
     private readonly grid = inject(AgGridAngular);
     private readonly keyboard = inject(KbqAgGridKeyboard);
 
+    /** Indicates whether the directive is enabled. */
+    readonly enabled = input(true, { transform: booleanAttribute, alias: 'kbqAgGridSelectAllRowsByCtrlA' });
+
     constructor() {
         this.grid.cellKeyDown.pipe(takeUntilDestroyed()).subscribe((event) => {
-            this.keyboard.selectAllRowsByCtrlA(event);
+            if (this.enabled()) this.keyboard.selectAllRowsByCtrlA(event);
         });
     }
 }
@@ -254,9 +262,12 @@ export class KbqAgGridSelectRowsByShiftArrow {
     private readonly grid = inject(AgGridAngular);
     private readonly keyboard = inject(KbqAgGridKeyboard);
 
+    /** Indicates whether the directive is enabled. */
+    readonly enabled = input(true, { transform: booleanAttribute, alias: 'kbqAgGridSelectRowsByShiftArrow' });
+
     constructor() {
         this.grid.cellKeyDown.pipe(takeUntilDestroyed()).subscribe((event) => {
-            this.keyboard.selectRowsByShiftArrow(event);
+            if (this.enabled()) this.keyboard.selectRowsByShiftArrow(event);
         });
     }
 }
