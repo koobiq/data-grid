@@ -206,12 +206,12 @@ export class KbqAgGridTheme {
  *
  * @example
  * ```html
- * <ag-grid-angular kbqAgGridTheme toNextRowByTab />
+ * <ag-grid-angular kbqAgGridTheme kbqAgGridToNextRowByTab />
  * ```
  */
 @Directive({
     standalone: true,
-    selector: 'ag-grid-angular[kbqAgGridTheme][toNextRowByTab]'
+    selector: 'ag-grid-angular[kbqAgGridToNextRowByTab]'
 })
 export class KbqAgGridToNextRowByTab {
     private readonly grid = inject(AgGridAngular);
@@ -227,12 +227,12 @@ export class KbqAgGridToNextRowByTab {
  *
  * @example
  * ```html
- * <ag-grid-angular kbqAgGridTheme selectAllRowsByCtrlA />
+ * <ag-grid-angular kbqAgGridTheme kbqAgGridSelectAllRowsByCtrlA />
  * ```
  */
 @Directive({
     standalone: true,
-    selector: 'ag-grid-angular[kbqAgGridTheme][selectAllRowsByCtrlA]'
+    selector: 'ag-grid-angular[kbqAgGridSelectAllRowsByCtrlA]'
 })
 export class KbqAgGridSelectAllRowsByCtrlA {
     private readonly grid = inject(AgGridAngular);
@@ -250,12 +250,12 @@ export class KbqAgGridSelectAllRowsByCtrlA {
  *
  * @example
  * ```html
- * <ag-grid-angular kbqAgGridTheme selectRowsByShiftArrow />
+ * <ag-grid-angular kbqAgGridTheme kbqAgGridSelectRowsByShiftArrow />
  * ```
  */
 @Directive({
     standalone: true,
-    selector: 'ag-grid-angular[kbqAgGridTheme][selectRowsByShiftArrow]'
+    selector: 'ag-grid-angular[kbqAgGridSelectRowsByShiftArrow]'
 })
 export class KbqAgGridSelectRowsByShiftArrow {
     private readonly grid = inject(AgGridAngular);

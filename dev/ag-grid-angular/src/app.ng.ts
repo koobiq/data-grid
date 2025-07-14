@@ -164,9 +164,9 @@ enum DevThemeSelector {
 
         <ag-grid-angular
             kbqAgGridTheme
-            toNextRowByTab
-            selectAllRowsByCtrlA
-            selectRowsByShiftArrow
+            kbqAgGridToNextRowByTab
+            kbqAgGridSelectAllRowsByCtrlA
+            kbqAgGridSelectRowsByShiftArrow
             [disableCellFocusStyles]="disableCellFocusStyles()"
             [columnDefs]="columnDefs()"
             [rowSelection]="rowSelection()"
