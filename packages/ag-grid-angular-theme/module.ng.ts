@@ -156,23 +156,16 @@ export class KbqAgGridKeyboard {
      * ```
      */
     toNextRowByTab({ previousCellPosition, api, backwards }: TabToNextCellParams): CellPosition | null {
-        const previousCell = previousCellPosition;
-        const lastRowIndex = previousCell.rowIndex;
-        const renderedRowCount = api.getModel().getRowCount();
-        let nextRowIndex = backwards ? lastRowIndex - 1 : lastRowIndex + 1;
+        const { rowIndex, column, rowPinned } = previousCellPosition;
+        const rowsCount = api.getModel().getRowCount();
+        let nextRowIndex = backwards ? rowIndex - 1 : rowIndex + 1;
 
         if (nextRowIndex < 0) nextRowIndex = -1;
-        if (nextRowIndex >= renderedRowCount) nextRowIndex = renderedRowCount - 1;
+        if (nextRowIndex >= rowsCount) nextRowIndex = rowsCount - 1;
 
-        const isLastRow = nextRowIndex === renderedRowCount - 1;
+        const isLastRow = nextRowIndex === rowsCount - 1;
 
-        return isLastRow
-            ? null
-            : {
-                  rowIndex: nextRowIndex,
-                  column: previousCell.column,
-                  rowPinned: previousCell.rowPinned
-              };
+        return isLastRow ? null : { rowIndex: nextRowIndex, column, rowPinned };
     }
 }
 
