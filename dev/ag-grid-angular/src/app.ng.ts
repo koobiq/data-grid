@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import {
+    CellClickedEvent,
     CellKeyDownEvent,
     ColDef,
     ColumnApi,
@@ -167,6 +168,10 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="toNextRowByTab" />
                     To Next Row by Tab
                 </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="selectRowsByCtrlClick" />
+                    Select Row by Ctrl+Click
+                </label>
             </fieldset>
             <fieldset class="dev-options">
                 <legend>KbqAgGridAngularTheme</legend>
@@ -182,6 +187,7 @@ enum DevThemeSelector {
             [kbqAgGridToNextRowByTab]="toNextRowByTab()"
             [kbqAgGridSelectRowsByShiftArrow]="selectRowsByShiftArrow()"
             [kbqAgGridSelectAllRowsByCtrlA]="selectAllRowsByCtrlA()"
+            [kbqAgGridSelectRowsByCtrlClick]="selectRowsByCtrlClick()"
             [disableCellFocusStyles]="disableCellFocusStyles()"
             [columnDefs]="columnDefs()"
             [rowSelection]="rowSelection()"
@@ -205,6 +211,7 @@ enum DevThemeSelector {
             (rowDragLeave)="onRowDragLeave($event)"
             (rowDragEnd)="onRowDragEnd($event)"
             (cellKeyDown)="onCellKeyDown($event)"
+            (cellClicked)="onCellClicked($event)"
         />
     `,
     styles: `
@@ -260,7 +267,7 @@ export class DevApp {
     readonly enableRtl = model(false);
     readonly columnHoverHighlight = model(false);
     readonly tooltip = model(false);
-    readonly suppressRowClickSelection = model(false);
+    readonly suppressRowClickSelection = model(true);
     readonly animateRows = model(false);
     readonly lockPinned = model(false);
     readonly lockPosition = model(false);
@@ -273,6 +280,7 @@ export class DevApp {
     readonly showIndexColumn = model(isDevMode());
     readonly selectAllRowsByCtrlA = model(true);
     readonly selectRowsByShiftArrow = model(true);
+    readonly selectRowsByCtrlClick = model(true);
     readonly toNextRowByTab = model(true);
 
     readonly rowSelection = computed(() => {
@@ -512,5 +520,9 @@ export class DevApp {
 
     onCellKeyDown(event: CellKeyDownEvent | FullWidthCellKeyDownEvent): void {
         console.debug('onCellKeyDown:', event);
+    }
+
+    onCellClicked(event: CellClickedEvent): void {
+        console.debug('onCellClicked:', event);
     }
 }
