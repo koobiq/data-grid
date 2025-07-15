@@ -260,7 +260,7 @@ export class DevApp {
     readonly enableRtl = model(false);
     readonly columnHoverHighlight = model(false);
     readonly tooltip = model(false);
-    readonly suppressRowClickSelection = model(true);
+    readonly suppressRowClickSelection = model(false);
     readonly animateRows = model(false);
     readonly lockPinned = model(false);
     readonly lockPosition = model(false);
