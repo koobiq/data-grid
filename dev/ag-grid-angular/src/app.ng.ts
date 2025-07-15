@@ -264,7 +264,7 @@ export class DevApp {
     readonly animateRows = model(false);
     readonly lockPinned = model(false);
     readonly lockPosition = model(false);
-    readonly disableCellFocusStyles = model(false);
+    readonly disableCellFocusStyles = model(true);
     readonly rowDrag = model(true);
     readonly suppressMoveWhenRowDragging = model(true);
     readonly pinFirstColumn = model(false);
