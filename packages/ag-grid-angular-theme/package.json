@@ -21,6 +21,7 @@
         "access": "public"
     },
     "peerDependencies": {
+        "@angular/cdk": ">=16.0.0",
         "@angular/core": ">=16.0.0",
         "@koobiq/design-tokens": "^3.0.0",
         "@koobiq/icons": ">=9.0.0",
