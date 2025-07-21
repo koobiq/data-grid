@@ -1,1 +1,1 @@
-export * from './theme.ng';
+export * from './module.ng';

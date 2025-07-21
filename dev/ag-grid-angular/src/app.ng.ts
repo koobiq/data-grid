@@ -1,16 +1,28 @@
 import { DOCUMENT } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, inject, model, Renderer2, Signal } from '@angular/core';
+import {
+    ChangeDetectionStrategy,
+    Component,
+    computed,
+    inject,
+    isDevMode,
+    model,
+    Renderer2,
+    Signal
+} from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { KbqAgGridTheme } from '@koobiq/ag-grid-angular-theme';
+import { KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import {
+    CellClickedEvent,
+    CellKeyDownEvent,
     ColDef,
     ColumnApi,
     DragStartedEvent,
     DragStoppedEvent,
     FirstDataRenderedEvent,
+    FullWidthCellKeyDownEvent,
     GridApi,
     GridReadyEvent,
     ITooltipParams,
@@ -38,7 +50,7 @@ enum DevThemeSelector {
 
 @Component({
     standalone: true,
-    imports: [AgGridModule, KbqAgGridTheme, FormsModule],
+    imports: [AgGridModule, KbqAgGridThemeModule, FormsModule],
     selector: 'dev-root',
     template: `
         <details class="dev-accordion">
@@ -133,6 +145,33 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="pinLastColumn" />
                     Pin Last Column
                 </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="suppressCellFocus" />
+                    Suppress Cell Focus
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="showIndexColumn" />
+                    Show Index Column
+                </label>
+            </fieldset>
+            <fieldset class="dev-options">
+                <legend>Keyboard</legend>
+                <label>
+                    <input type="checkbox" [(ngModel)]="selectAllRowsByCtrlA" />
+                    Select All Rows by Ctrl+A
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="selectRowsByShiftArrow" />
+                    Select Rows by Shift+Arrow
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="toNextRowByTab" />
+                    To Next Row by Tab
+                </label>
+                <label>
+                    <input type="checkbox" [(ngModel)]="selectRowsByCtrlClick" />
+                    Select Row by Ctrl+Click
+                </label>
             </fieldset>
             <fieldset class="dev-options">
                 <legend>KbqAgGridAngularTheme</legend>
@@ -145,6 +184,10 @@ enum DevThemeSelector {
 
         <ag-grid-angular
             kbqAgGridTheme
+            [kbqAgGridToNextRowByTab]="toNextRowByTab()"
+            [kbqAgGridSelectRowsByShiftArrow]="selectRowsByShiftArrow()"
+            [kbqAgGridSelectAllRowsByCtrlA]="selectAllRowsByCtrlA()"
+            [kbqAgGridSelectRowsByCtrlClick]="selectRowsByCtrlClick()"
             [disableCellFocusStyles]="disableCellFocusStyles()"
             [columnDefs]="columnDefs()"
             [rowSelection]="rowSelection()"
@@ -157,6 +200,7 @@ enum DevThemeSelector {
             [enableRtl]="enableRtl()"
             [columnHoverHighlight]="columnHoverHighlight()"
             [suppressRowClickSelection]="suppressRowClickSelection()"
+            [suppressCellFocus]="suppressCellFocus()"
             [tooltipShowDelay]="500"
             [animateRows]="animateRows()"
             (gridReady)="onGridReady($event)"
@@ -166,6 +210,8 @@ enum DevThemeSelector {
             (rowDragEnter)="onRowDragEnter($event)"
             (rowDragLeave)="onRowDragLeave($event)"
             (rowDragEnd)="onRowDragEnd($event)"
+            (cellKeyDown)="onCellKeyDown($event)"
+            (cellClicked)="onCellClicked($event)"
         />
     `,
     styles: `
@@ -202,6 +248,12 @@ enum DevThemeSelector {
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DevApp {
+    private readonly renderer = inject(Renderer2);
+    private readonly document = inject(DOCUMENT);
+
+    private gridApi!: GridApi | null;
+    private gridColumnApi!: ColumnApi | null;
+
     readonly lightTheme = model(true);
     readonly checkboxSelection = model(true);
     readonly multipleRowSelection = model(true);
@@ -224,9 +276,12 @@ export class DevApp {
     readonly suppressMoveWhenRowDragging = model(true);
     readonly pinFirstColumn = model(false);
     readonly pinLastColumn = model(false);
-
-    private gridApi!: GridApi | null;
-    private gridColumnApi!: ColumnApi | null;
+    readonly suppressCellFocus = model(false);
+    readonly showIndexColumn = model(isDevMode());
+    readonly selectAllRowsByCtrlA = model(true);
+    readonly selectRowsByShiftArrow = model(true);
+    readonly selectRowsByCtrlClick = model(true);
+    readonly toNextRowByTab = model(true);
 
     readonly rowSelection = computed(() => {
         return this.multipleRowSelection() ? 'multiple' : 'single';
@@ -238,12 +293,27 @@ export class DevApp {
         const rowDrag = this.rowDrag();
         const pinFirstColumn = this.pinFirstColumn();
         const pinLastColumn = this.pinLastColumn();
+        const showIndexColumn = this.showIndexColumn();
 
         return [
+            {
+                hide: !showIndexColumn,
+                headerName: 'index',
+                valueGetter: 'node.rowIndex',
+                width: 70,
+                sortable: false,
+                filter: false,
+                resizable: false,
+                suppressMovable: true,
+                editable: false,
+                lockPosition: true,
+                pinned: pinFirstColumn ? 'left' : false
+            },
             {
                 hide: !checkboxSelection,
                 headerCheckboxSelection: checkboxSelection,
                 checkboxSelection: checkboxSelection,
+                showDisabledCheckboxes: true,
                 width: 34,
                 headerName: '',
                 sortable: false,
@@ -350,9 +420,6 @@ export class DevApp {
 
     readonly rowData: Signal<DevOlympicData[]>;
 
-    private readonly renderer = inject(Renderer2);
-    private readonly document = inject(DOCUMENT);
-
     constructor() {
         this.rowData = toSignal(
             inject(HttpClient)
@@ -422,10 +489,8 @@ export class DevApp {
 
         const { api } = event;
 
-        // Set initial focused cell
         api.setFocusedCell(0, 'athlete');
 
-        // Set initial selected rows
         api.forEachNode((node) => {
             if (node.rowIndex === 4 || node.rowIndex === 5) {
                 node.setSelected(true);
@@ -451,5 +516,13 @@ export class DevApp {
 
     onRowDragEnd(event: RowDragEvent): void {
         console.debug('onRowDragEnd:', event);
+    }
+
+    onCellKeyDown(event: CellKeyDownEvent | FullWidthCellKeyDownEvent): void {
+        console.debug('onCellKeyDown:', event);
+    }
+
+    onCellClicked(event: CellClickedEvent): void {
+        console.debug('onCellClicked:', event);
     }
 }
