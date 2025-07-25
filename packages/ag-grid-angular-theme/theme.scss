@@ -231,7 +231,7 @@
 
     &.ag-dnd-ghost {
         --ag-background-color: var(--kbq-background-card);
-        --ag-card-shadow: var(--kbq-popup-shadow);
+        --ag-card-shadow: var(--kbq-shadow-popup);
 
         padding: 10px var(--ag-grid-size);
         height: unset !important;
