@@ -438,11 +438,17 @@
 
 @mixin _ag-paging-panel() {
     .ag-paging-panel {
-        height: var(--kbq-size-3xl);
-        border: unset;
-        color: var(--ag-data-color);
+        --ag-border-color: var(--kbq-line-contrast-less);
+        --ag-header-height: calc(var(--kbq-size-m) * 3);
+        --ag-secondary-foreground-color: var(--kbq-foreground-contrast);
+
         font-size: var(--kbq-typography-text-compact-font-size);
         line-height: var(--kbq-typography-text-compact-line-height);
+
+        .ag-paging-row-summary-panel,
+        .ag-paging-page-summary-panel {
+            --ag-cell-horizontal-padding: var(--kbq-size-m);
+        }
 
         .ag-button {
             --ag-icon-size: var(--kbq-size-m);
