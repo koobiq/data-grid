@@ -388,8 +388,8 @@
 
         &::after {
             mask: var(--ag-theme-koobiq-checkbox-svg) center / contain no-repeat;
-            width: 100%;
-            height: 100%;
+            width: var(--ag-icon-size);
+            height: var(--ag-icon-size);
             background-color: var(--ag-theme-koobiq-checkbox-fill);
         }
 
@@ -410,8 +410,8 @@
 
         &::after {
             mask: var(--ag-theme-koobiq-radio-button-svg) center / contain no-repeat;
-            width: 100%;
-            height: 100%;
+            width: var(--ag-icon-size);
+            height: var(--ag-icon-size);
             background-color: var(--ag-theme-koobiq-radio-button-fill);
         }
 
@@ -683,6 +683,25 @@
     }
 }
 
+@mixin _ag-cell-with-selection-checkbox() {
+    .ag-cell:has(.ag-selection-checkbox) {
+        .ag-checkbox-input-wrapper {
+            position: unset;
+
+            .ag-checkbox-input {
+                position: absolute;
+                left: 0;
+                top: 0;
+            }
+
+            &::after {
+                position: unset;
+                display: block;
+            }
+        }
+    }
+}
+
 .ag-theme-koobiq {
     // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
     --ag-background-color: var(--kbq-background-bg);
@@ -710,6 +729,7 @@
     @include _ag-popup-editor();
     @include _ag-body-scrollbar();
     @include _ag-pinned-column-border();
+    @include _ag-cell-with-selection-checkbox();
 
     &.ag-theme-koobiq_disable-cell-focus-styles {
         @include _ag-disable-cell-focus();
