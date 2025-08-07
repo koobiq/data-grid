@@ -1,3 +1,21 @@
+## 30.2.0 (2025-08-07)
+
+### 🚀 Features
+
+- **ag-grid-angular-theme:** added pagination customization (#DS-3623) ([#71](https://github.com/koobiq/data-grid/pull/71))
+- **ag-grid-angular-theme:** expanded row selection checkbox click-area (#DS-3630) ([#72](https://github.com/koobiq/data-grid/pull/72))
+- **ag-grid-angular-theme:** added keyboard interaction directives for selection and focus rows (#DS-3629) ([#69](https://github.com/koobiq/data-grid/pull/69))
+- **ag-grid-angular-theme:** updated pinned columns styles (#DS-3625) ([#68](https://github.com/koobiq/data-grid/pull/68))
+
+### 🩹 Fixes
+
+- **ag-grid-angular-theme:** renamed dnd shadow css-variable (#DS-3956) ([#70](https://github.com/koobiq/data-grid/pull/70))
+
+### ❤️ Thank You
+
+- Artem Belik @artembelik
+- Nikita Guryev
+
 ## 30.1.0 (2025-07-04)
 
 ### 🚀 Features
