@@ -70,7 +70,7 @@ You can apply custom keyboard shortcuts by adding the corresponding directives t
 | `Ctrl + A`     | Select all rows            | `kbqAgGridSelectAllRowsByCtrlA`   |
 | `Ctrl + Click` | Select row                 | `kbqAgGridSelectRowsByCtrlClick`  |
 
-## Create gitHub release and publish
+## Create GitHub release and publish
 
 To create a new GitHub release, run the following command:
 
@@ -79,6 +79,12 @@ yarn run release:theme
 ```
 
 Once the GitHub release is created, the package is automatically published to NPM using GitHub [Publish Action](.github/workflows/publish.yml).
+
+To debug the release process without actually publishing, you can use the `--dry-run` flag, where `X.X.X` is the version you want to test:
+
+```bash
+yarn run release:theme X.X.X --dry-run
+```
 
 ## Development
 
