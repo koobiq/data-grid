@@ -1,6 +1,17 @@
 # @koobiq/ag-grid-angular-theme
 
+[![NPM Version](https://img.shields.io/npm/v/%40koobiq%2Fag-grid-angular-theme?label=%40koobiq%2Fag-grid-angular-theme&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40koobiq%2Fag-grid-angular-theme)](https://www.npmjs.com/package/@koobiq/ag-grid-angular-theme)
+
 The package provides a theme for the [ag-grid-angular@^30](https://www.ag-grid.com/archive/30.2.0/angular-data-grid/) (see [overview](https://data-grid-next.web.app/)).
+
+Navigation:
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [Custom Keyboard Shortcuts](#custom-keyboard-shortcuts)
+- [Create GitHub Release and Publish](#create-github-release-and-publish)
+- [Development](#development)
+- [Build](#build)
 
 ## Installation
 
@@ -48,7 +59,18 @@ import { AgGridModule } from 'ag-grid-angular';
 })
 ```
 
-## Create GitHub Release and Publish
+### Custom keyboard shortcuts
+
+You can apply custom keyboard shortcuts by adding the corresponding directives to your `<ag-grid-angular>` component.
+
+| Key            | Action                     | Directive                         |
+| -------------- | -------------------------- | --------------------------------- |
+| `Tab`          | Move focus to the next row | `kbqAgGridToNextRowByTab`         |
+| `Shift + ↓↑`   | Select multiple rows       | `kbqAgGridSelectRowsByShiftArrow` |
+| `Ctrl + A`     | Select all rows            | `kbqAgGridSelectAllRowsByCtrlA`   |
+| `Ctrl + Click` | Select row                 | `kbqAgGridSelectRowsByCtrlClick`  |
+
+## Create gitHub release and publish
 
 To create a new GitHub release, run the following command:
 
