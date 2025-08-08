@@ -64,7 +64,7 @@ const makeNamingConventionOptions = (prefix = undefined) => {
 /** @type {import('eslint').Linter.ConfigOverride} */
 const jsAndTsRules = {
     files: ['*.js', '*.ts'],
-    extends: ['eslint:recommended'],
+    extends: ['eslint:recommended', 'plugin:promise/recommended'],
     rules: {
         // plugin:eslint
         'no-console': [1, { allow: ['debug', 'warn', 'error'] }]
@@ -81,7 +81,8 @@ const tsRules = {
     },
     extends: [
         /** @see https://github.com/typescript-eslint/typescript-eslint/blob/main/packages/eslint-plugin/src/configs/eslintrc/all.ts */
-        'plugin:@typescript-eslint/all'
+        'plugin:@typescript-eslint/all',
+        'plugin:rxjs/recommended'
     ],
     rules: {
         // plugin:@typescript-eslint
