@@ -57,7 +57,7 @@ enum DevThemeSelector {
             <summary>Options</summary>
             <fieldset class="dev-options">
                 <legend>Global</legend>
-                <label>
+                <label data-testid="e2eLightThemeToggle">
                     <input type="checkbox" [(ngModel)]="lightTheme" />
                     Light Theme
                 </label>
@@ -100,7 +100,7 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="sortable" />
                     Sortable
                 </label>
-                <label>
+                <label data-testid="e2ePaginationToggle">
                     <input type="checkbox" [(ngModel)]="pagination" />
                     Pagination
                 </label>
@@ -113,7 +113,7 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="columnHoverHighlight" />
                     Column Hover Highlight
                 </label>
-                <label>
+                <label data-testid="e2eTooltipToggle">
                     <input type="checkbox" [(ngModel)]="tooltip" />
                     Tooltip
                 </label>
@@ -137,11 +137,11 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="suppressMoveWhenRowDragging" />
                     Suppress Move When Row Dragging
                 </label>
-                <label>
+                <label data-testid="e2ePinFirstColumnToggle">
                     <input type="checkbox" [(ngModel)]="pinFirstColumn" />
                     Pin First Column
                 </label>
-                <label>
+                <label data-testid="e2ePinLastColumnToggle">
                     <input type="checkbox" [(ngModel)]="pinLastColumn" />
                     Pin Last Column
                 </label>
@@ -149,7 +149,7 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="suppressCellFocus" />
                     Suppress Cell Focus
                 </label>
-                <label>
+                <label data-testid="e2eShowIndexColumnToggle">
                     <input type="checkbox" [(ngModel)]="showIndexColumn" />
                     Show Index Column
                 </label>
@@ -183,6 +183,7 @@ enum DevThemeSelector {
         </details>
 
         <ag-grid-angular
+            data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
             [kbqAgGridToNextRowByTab]="toNextRowByTab()"
             [kbqAgGridSelectRowsByShiftArrow]="selectRowsByShiftArrow()"
@@ -423,7 +424,7 @@ export class DevApp {
     constructor() {
         this.rowData = toSignal(
             inject(HttpClient)
-                .get<DevOlympicData[]>('https://www.ag-grid.com/example-assets/olympic-winners.json')
+                .get<DevOlympicData[]>('/olympic-winners.json')
                 .pipe(catchError(() => of([]))),
             { initialValue: [] }
         );
