@@ -3,3 +3,6 @@
 /.nx
 .angular
 .yarn/releases
+
+# Mock data
+dev/ag-grid-angular/public/olympic-winners.json
