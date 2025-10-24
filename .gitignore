@@ -36,3 +36,10 @@ typings/
 !.yarn/versions
 
 .cursor/rules/nx-rules.mdc
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

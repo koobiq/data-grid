@@ -17,7 +17,7 @@
     "packageManager": "yarn@1.22.22",
     "scripts": {
         "prepare": "husky",
-        "clean": "nx reset && rimraf .angular dist tmp --verbose",
+        "clean": "nx reset && playwright clear-cache && rimraf .angular dist tmp playwright-report test-results --verbose",
         "-----SERVE-----": "------------------------------------------------------------------------------------------",
         "dev": "nx run ag-grid-angular:serve --configuration=development",
         "-----BUILD-----": "------------------------------------------------------------------------------------------",
@@ -26,13 +26,16 @@
         "build": "nx run-many --target=build",
         "-----GITHUB_RELEASE-----": "---------------------------------------------------------------------------------",
         "release:theme": "nx release --projects=ag-grid-angular-theme --skip-publish",
-        "-----CI-----": "---------------------------------------------------------------------------------------------",
+        "-----LINTERS-----": "----------------------------------------------------------------------------------------",
         "prettier": "prettier '**/*.{css,scss,md,yml,json,js,ts,html}' --check",
         "prettier:fix": "yarn run prettier --write",
         "eslint": "eslint . --ext='.js,.ts,.html'",
         "eslint:fix": "yarn run eslint --fix",
         "stylelint": "stylelint '**/*.{css,scss}'",
-        "stylelint:fix": "yarn run stylelint --fix"
+        "stylelint:fix": "yarn run stylelint --fix",
+        "-----E2E_TESTS-----": "--------------------------------------------------------------------------------------",
+        "e2e:setup": "playwright install chromium --with-deps",
+        "e2e:dev-ag-grid-angular": "playwright test ./dev/ag-grid-angular"
     },
     "dependencies": {
         "@angular/cdk": "^18.2.13",
@@ -64,6 +67,7 @@
         "@commitlint/cli": "^19.8.1",
         "@commitlint/config-conventional": "^19.8.1",
         "@nx/angular": "^20.8.2",
+        "@playwright/test": "^1.56.1",
         "@schematics/angular": "^18.2.18",
         "@swc-node/register": "^1.11.1",
         "@swc/core": "^1.13.5",
