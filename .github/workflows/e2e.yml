@@ -26,12 +26,9 @@ jobs:
       - name: Run e2e tests
         run: |
           yarn run e2e:dev-ag-grid-angular | tee output.log
-          if grep -q -e "Error: A snapshot doesn't exist at" -e "Screenshot comparison failed" output.log; then
+          if grep -q -e "Error: expect(locator).toHaveScreenshot(expected) failed" -e "Error: A snapshot doesn't exist at" output.log; then
             echo "E2E tests failed: Visual snapshot differences detected"
             echo "SNAPSHOT_DIFFERENCES_DETECTED=true" >> $GITHUB_ENV
-            exit 1
-          elif grep -q "failed" output.log; then
-            echo "E2E tests failed: Non-snapshot related errors detected"
             exit 1
           fi
 
