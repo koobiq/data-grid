@@ -39,7 +39,7 @@ export default defineConfig({
         reuseExistingServer: !isCI
     },
     use: {
-        baseURL: baseURL,
+        baseURL,
         trace: 'on-first-retry',
         contextOptions: {
             deviceScaleFactor: 2,
