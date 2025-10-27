@@ -14,7 +14,10 @@ export default defineConfig({
     forbidOnly: isCI,
     retries: isCI ? 2 : 0,
     workers: isCI ? 1 : undefined,
-    reporter: [['line'], ['html', { open: 'never' }]],
+    reporter: [
+        ['list', { printSteps: true }],
+        ['html', { open: 'never' }]
+    ],
     projects: [
         {
             name: 'Chrome',

@@ -24,28 +24,24 @@ jobs:
         run: yarn run e2e:setup
 
       - name: Run e2e tests
-        run: |
-          yarn run e2e:dev-ag-grid-angular | tee output.log
-          if grep -q -e "Error: expect(locator).toHaveScreenshot(expected) failed" -e "Error: A snapshot doesn't exist at" output.log; then
-            echo "E2E tests failed: Visual snapshot differences detected"
-            echo "SNAPSHOT_DIFFERENCES_DETECTED=true" >> $GITHUB_ENV
-            exit 1
-          fi
+        id: run-e2e-tests
+        run: yarn run e2e:dev-ag-grid-angular
 
       - name: Upload report
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         id: upload-report
-        if: always()
         with:
           name: playwright-report
           path: playwright-report/
-          retention-days: 1
+          retention-days: 5
 
-      - name: Comment on PR
+      - name: Failure comment
+        if: ${{ steps.run-e2e-tests.outcome == 'failure' }}
         uses: thollander/actions-comment-pull-request@v3
-        if: failure() && env.SNAPSHOT_DIFFERENCES_DETECTED == 'true'
         with:
           message: |
-            ### 📸 Snapshot differences detected
+            ### 🚨 E2E tests failed
             Review the [report](${{ steps.upload-report.outputs.artifact-url }}) for details.
-            Comment `/approve-snapshots` to approve changes.
+            ---
+            💡 Comment `/approve-snapshots` to approve snapshot changes.
