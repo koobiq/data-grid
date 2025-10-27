@@ -49,8 +49,8 @@
         "@fontsource/inter": "^5.2.6",
         "@koobiq/design-tokens": "^3.14.0",
         "@koobiq/icons": "^10.8.0",
-        "ag-grid-angular": "^31.3.4",
-        "ag-grid-community": "^31.3.4",
+        "ag-grid-angular": "^32.3.8",
+        "ag-grid-community": "^32.3.8",
         "rxjs": "~7.8.0",
         "zone.js": "~0.15.1"
     },
