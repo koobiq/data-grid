@@ -2,7 +2,13 @@ import { A, DOWN_ARROW, UP_ARROW } from '@angular/cdk/keycodes';
 import { booleanAttribute, Directive, inject, Injectable, input, NgModule } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgGridAngular } from 'ag-grid-angular';
-import { CellKeyDownEvent, CellPosition, FullWidthCellKeyDownEvent, TabToNextCellParams } from 'ag-grid-community';
+import {
+    CellClickedEvent,
+    CellKeyDownEvent,
+    CellPosition,
+    FullWidthCellKeyDownEvent,
+    TabToNextCellParams
+} from 'ag-grid-community';
 
 const isKeyboardEvent = (event: unknown): event is KeyboardEvent => event instanceof KeyboardEvent;
 
@@ -178,7 +184,7 @@ export class KbqAgGridShortcuts {
      * <ag-grid-angular kbqAgGridTheme (cellClicked)="keyboard.selectRowsByCtrlClick($event)" />
      * ```
      */
-    selectRowsByCtrlClick({ event, node }: CellKeyDownEvent | FullWidthCellKeyDownEvent): void {
+    selectRowsByCtrlClick({ event, node }: CellClickedEvent): void {
         if (!isMouseEvent(event) || !node.selectable) return;
 
         const { metaKey, ctrlKey } = event;
