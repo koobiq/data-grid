@@ -6,15 +6,6 @@ on:
       - main
   pull_request:
 
-permissions: read-all
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  CI: true
-
 jobs:
   ci:
     runs-on: ubuntu-latest

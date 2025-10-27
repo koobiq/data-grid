@@ -13,10 +13,6 @@ permissions:
   # https://nx.dev/recipes/nx-release/publish-in-ci-cd#npm-provenance
   id-token: write
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   publish:
     if: ${{ github.repository_owner == 'koobiq' }}
