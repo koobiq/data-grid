@@ -2,5 +2,5 @@
     "extends": "./tsconfig.json",
     "include": ["src/**/*.ts"],
     "compilerOptions": {},
-    "exclude": ["src/**/*.spec.ts"]
+    "exclude": ["src/**/*.spec.ts", "src/**/*.playwright-spec.ts"]
 }
