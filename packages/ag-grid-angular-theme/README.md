@@ -2,21 +2,19 @@
 
 [![NPM Version](https://img.shields.io/npm/v/%40koobiq%2Fag-grid-angular-theme?label=%40koobiq%2Fag-grid-angular-theme&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40koobiq%2Fag-grid-angular-theme)](https://www.npmjs.com/package/@koobiq/ag-grid-angular-theme)
 
-The package provides a theme for the [ag-grid-angular@^30](https://www.ag-grid.com/archive/30.2.0/angular-data-grid/) (see [overview](https://data-grid-next.web.app/)).
+The package provides a theme for the [ag-grid-angular@^31](https://www.ag-grid.com/archive/31.3.4/angular-data-grid/) (see [overview](https://data-grid-next.web.app/)).
 
 Navigation:
 
 - [Installation](#installation)
 - [Usage](#usage)
 - [Custom Keyboard Shortcuts](#custom-keyboard-shortcuts)
-- [Create GitHub Release and Publish](#create-github-release-and-publish)
 - [Development](#development)
-- [Build](#build)
 
 ## Installation
 
 ```bash
-npm install @koobiq/ag-grid-angular-theme@^30 ag-grid-community@^30 ag-grid-angular@^30
+npm install @koobiq/ag-grid-angular-theme@^31 ag-grid-community@^31 ag-grid-angular@^31
 ```
 
 ## Usage
@@ -70,9 +68,39 @@ You can apply custom keyboard shortcuts by adding the corresponding directives t
 | `Ctrl + A`     | Select all rows            | `kbqAgGridSelectAllRowsByCtrlA`   |
 | `Ctrl + Click` | Select row                 | `kbqAgGridSelectRowsByCtrlClick`  |
 
-## Create GitHub release and publish
+---
 
-To create a new GitHub release, run the following command:
+## Development
+
+### Setup Node.js
+
+Make sure you have the [correct version](.nvmrc) of Node.js installed (we recommend use [nvm](https://github.com/nvm-sh/nvm)):
+
+```bash
+nvm use
+```
+
+### Install dependencies
+
+```bash
+yarn install
+```
+
+### Run dev application
+
+```bash
+yarn run dev
+```
+
+Then open http://localhost:4200/
+
+### Build package
+
+```bash
+yarn run build:theme
+```
+
+### Create GitHub release and publish
 
 ```bash
 yarn run release:theme
@@ -84,32 +112,4 @@ To debug the release process without actually publishing, you can use the `--dry
 
 ```bash
 yarn run release:theme X.X.X --dry-run
-```
-
-## Development
-
-Make sure you have the [correct version](.nvmrc) of Node.js installed (we recommend use [nvm](https://github.com/nvm-sh/nvm)):
-
-```bash
-nvm use
-```
-
-Install dependencies:
-
-```bash
-yarn install
-```
-
-Run dev server:
-
-```bash
-yarn run dev
-```
-
-Then open http://localhost:4200/
-
-## Build
-
-```bash
-yarn run build:theme
 ```
