@@ -25,7 +25,7 @@ jobs:
       - name: Started comment
         uses: thollander/actions-comment-pull-request@v3
         with:
-          message: 🔄 Updating snapshots - check the [status here](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+          message: 🔄 [Updating](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) snapshots.
 
       - name: Setup Node & Yarn
         uses: ./.github/actions/setup-node
@@ -37,13 +37,21 @@ jobs:
         run: |
           yarn run e2e:dev-ag-grid-angular --update-snapshots
 
-      - name: Commit and push snapshots
+      - name: Commit and push
+        id: commit-and-push
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'test: update e2e snapshots'
           file_pattern: '**/*.png'
 
       - name: Successful comment
+        if: steps.commit-and-push.outputs.changes_detected == 'true'
         uses: thollander/actions-comment-pull-request@v3
         with:
-          message: ✅ Snapshots updated!
+          message: ✅ Snapshots [updated](https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}/commits/${{ steps.commit-and-push.outputs.commit_hash }})!
+
+      - name: No changes comment
+        if: steps.commit-and-push.outputs.changes_detected == 'false'
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: ⚠️ No snapshots changes detected.

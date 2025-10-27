@@ -25,12 +25,11 @@ jobs:
 
       - name: Run e2e tests
         id: run-e2e-tests
-        continue-on-error: true
         run: |
           yarn run e2e:dev-ag-grid-angular
 
       - name: Upload report
-        if: ${{ !cancelled() }}
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         id: upload-report
         with:
@@ -39,11 +38,14 @@ jobs:
           retention-days: 5
 
       - name: Failure comment
-        if: ${{ steps.run-e2e-tests.outcome == 'failure' }}
+        if: ${{ failure() && steps.run-e2e-tests.outcome == 'failure' }}
         uses: thollander/actions-comment-pull-request@v3
         with:
           message: |
             ### 🚨 E2E tests failed
+
             Review the [report](${{ steps.upload-report.outputs.artifact-url }}) for details.
+
             ---
+
             💡 Comment `/approve-snapshots` to approve snapshot changes.
