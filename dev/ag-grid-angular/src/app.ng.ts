@@ -18,7 +18,6 @@ import {
     CellClickedEvent,
     CellKeyDownEvent,
     ColDef,
-    ColumnApi,
     DragStartedEvent,
     DragStoppedEvent,
     FirstDataRenderedEvent,
@@ -253,7 +252,6 @@ export class DevApp {
     private readonly document = inject(DOCUMENT);
 
     private gridApi!: GridApi | null;
-    private gridColumnApi!: ColumnApi | null;
 
     readonly lightTheme = model(true);
     readonly checkboxSelection = model(true);
@@ -462,7 +460,7 @@ export class DevApp {
         toObservable(this.sortable)
             .pipe(takeUntilDestroyed())
             .subscribe(() => {
-                this.gridColumnApi?.applyColumnState({
+                this.gridApi?.applyColumnState({
                     defaultState: { sort: null }
                 });
             });
@@ -470,7 +468,7 @@ export class DevApp {
         toObservable(this.lockPinned)
             .pipe(takeUntilDestroyed())
             .subscribe(() => {
-                this.gridColumnApi?.applyColumnState({
+                this.gridApi?.applyColumnState({
                     defaultState: { pinned: null }
                 });
             });
@@ -479,10 +477,9 @@ export class DevApp {
     onGridReady(event: GridReadyEvent): void {
         console.debug('onGridReady:', event);
 
-        const { api, columnApi } = event;
+        const { api } = event;
 
         this.gridApi = api;
-        this.gridColumnApi = columnApi;
     }
 
     onFirstDataRendered(event: FirstDataRenderedEvent): void {
