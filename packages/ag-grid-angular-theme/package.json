@@ -21,11 +21,12 @@
         "access": "public"
     },
     "peerDependencies": {
-        "@angular/cdk": ">=16.0.0",
-        "@angular/core": ">=16.0.0",
+        "@angular/cdk": ">=17.0.0",
+        "@angular/core": ">=17.0.0",
         "@koobiq/design-tokens": "^3.0.0",
         "@koobiq/icons": ">=9.0.0",
-        "ag-grid-community": "^30.0.0"
+        "ag-grid-angular": "^31.0.0",
+        "ag-grid-community": "^31.0.0"
     },
     "exports": {
         ".": {

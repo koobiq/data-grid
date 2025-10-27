@@ -2,7 +2,7 @@
 @include ag.grid-styles(
     (
         // Full AG Grid variables list:
-        // https://www.ag-grid.com/archive/30.2.0/angular-data-grid/global-style-customisation-variables/
+        // https://www.ag-grid.com/archive/31.3.4/angular-data-grid/global-style-customisation-variables/
         theme: koobiq,
         --ag-foreground-color: var(--kbq-foreground-contrast-secondary),
         --ag-secondary-border-color: transparent,
@@ -588,7 +588,7 @@
         }
 
         &::-webkit-scrollbar {
-            // https://github.com/ag-grid/ag-grid/blob/v30.2.1/grid-community-modules/all-modules/styles/_css-content.scss#L7910
+            // https://github.com/ag-grid/ag-grid/blob/v31.3.4/community-modules/styles/_css-content.scss#L1342
             display: unset;
 
             &:vertical {
@@ -639,7 +639,7 @@
 
         // For Firefox compatibility
         @supports not selector(::-webkit-scrollbar) {
-            // https://github.com/ag-grid/ag-grid/blob/v30.2.1/grid-community-modules/all-modules/styles/_css-content.scss#L7907
+            // https://github.com/ag-grid/ag-grid/blob/v31.3.4/community-modules/styles/_css-content.scss#L9690
             scrollbar-width: unset;
             scrollbar-color: var(--ag-theme-koobiq-scrollbar-thumb-color) var(--ag-theme-koobiq-scrollbar-track-color);
 

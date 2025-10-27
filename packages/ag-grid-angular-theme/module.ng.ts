@@ -159,7 +159,7 @@ export class KbqAgGridShortcuts {
      */
     toNextRowByTab({ previousCellPosition, api, backwards }: TabToNextCellParams): CellPosition | null {
         const { rowIndex, column, rowPinned } = previousCellPosition;
-        const rowsCount = api.getModel().getRowCount();
+        const rowsCount = api.getDisplayedRowCount();
         let nextRowIndex = backwards ? rowIndex - 1 : rowIndex + 1;
 
         if (nextRowIndex < 0) nextRowIndex = -1;
