@@ -25,8 +25,8 @@
         "@angular/core": ">=17.0.0",
         "@koobiq/design-tokens": "^3.0.0",
         "@koobiq/icons": ">=9.0.0",
-        "ag-grid-angular": "^32.0.0",
-        "ag-grid-community": "^32.0.0"
+        "ag-grid-angular": "^33.0.0",
+        "ag-grid-community": "^33.0.0"
     },
     "exports": {
         ".": {
