@@ -1,5 +1,5 @@
 name: Setup Node
-description: Common setup for Node & Yarn
+description: Setup Node.js environment and install dependencies
 runs:
   using: composite
   steps:
