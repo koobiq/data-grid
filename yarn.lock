@@ -2438,10 +2438,10 @@
   resolved "https://registry.yarnpkg.com/@koobiq/design-tokens/-/design-tokens-3.14.0.tgz#9a43b6e3bacd1daf7727aa97b0054feb38b58ad1"
   integrity sha512-FLtcCI5hm79SJcVBOhsiQRaYlC6IsFeAzX+CYLDrEDNcsX87bUUsGfRI61pqt0sSZFhL/EuGp5mh9LBHGKzhjg==
 
-"@koobiq/icons@^10.8.0":
-  version "10.8.0"
-  resolved "https://registry.yarnpkg.com/@koobiq/icons/-/icons-10.8.0.tgz#04244aa20b50025666a30b1f4093cd63d42414c4"
-  integrity sha512-iGE51+Dj/3Zb+XFKVm1zhAMU7sHNETUii1GmghT8F8kaoMaum8pCrSjo6NcWpYE0KDeXSLPwnvmCb4iK1bkdjA==
+"@koobiq/icons@^10.10.0":
+  version "10.10.0"
+  resolved "https://registry.yarnpkg.com/@koobiq/icons/-/icons-10.10.0.tgz#2ee6aaca508a8b6756af65bc3e7194ff3d5a8285"
+  integrity sha512-Xf1BKmJnekorVdkYcrsQ8joBQGrvOq3asqQNlXDVrg5g05rjOHQ8NT0Ti3dXn0mUlZeEgqVwn12NWdhsn7Cjxw==
 
 "@leichtgewicht/ip-codec@^2.0.1":
   version "2.0.5"
