@@ -29,14 +29,13 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v5
         id: commit-and-push
         with:
-          commit_message: 'test: update e2e snapshots'
+          commit_message: 'test: updated e2e snapshots'
           file_pattern: '**/*.png'
-      - name: Successful comment
+      - uses: thollander/actions-comment-pull-request@v3
         if: ${{ steps.commit-and-push.outputs.changes_detected == 'true' }}
-        uses: thollander/actions-comment-pull-request@v3
         with:
           message: ✅ Snapshots [updated](https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}/commits/${{ steps.commit-and-push.outputs.commit_hash }})!
       - uses: thollander/actions-comment-pull-request@v3
-        if: ${{ steps.commit-and-push.outputs.changes_detected == 'false' }}
+        if: ${{ steps.commit-and-push.outputs.changes_detected != 'true' }}
         with:
           message: ⚠️ No snapshots changes detected.
