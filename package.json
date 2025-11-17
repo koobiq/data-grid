@@ -27,7 +27,7 @@
         "-----GITHUB_RELEASE-----": "---------------------------------------------------------------------------------",
         "release:theme": "nx release --projects=ag-grid-angular-theme --skip-publish",
         "-----LINTERS-----": "----------------------------------------------------------------------------------------",
-        "prettier": "prettier --check .",
+        "prettier": "prettier --check . --ignore-unknown",
         "prettier:fix": "yarn run prettier --write",
         "eslint": "eslint . --ext='.js,.ts,.html'",
         "eslint:fix": "yarn run eslint --fix",

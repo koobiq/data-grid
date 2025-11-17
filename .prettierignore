@@ -1,7 +1,4 @@
-/dist
-/coverage
-/.nx
-.angular
+# Yarn
 .yarn/releases
 
 # Mock data
