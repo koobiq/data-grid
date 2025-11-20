@@ -325,8 +325,7 @@ export class DevApp {
                 resizable: false,
                 suppressMovable: true,
                 editable: false,
-                lockPosition: true,
-                pinned: pinFirstColumn ? 'left' : false
+                lockPosition: true
             },
             {
                 field: 'athlete',
@@ -485,6 +484,8 @@ export class DevApp {
         const { api } = event;
 
         this.gridApi = api;
+
+        this.gridApi.setColumnWidths([{ key: 'ag-Grid-SelectionColumn', newWidth: 36 }]);
     }
 
     onFirstDataRendered(event: FirstDataRenderedEvent): void {
