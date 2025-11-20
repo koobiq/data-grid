@@ -163,7 +163,7 @@ export class KbqAgGridShortcuts {
      * <ag-grid-angular kbqAgGridTheme [tabToNextCell]="keyboard.toNextRowByTab.bind(this)" />
      * ```
      */
-    toNextRowByTab({ previousCellPosition, api, backwards }: TabToNextCellParams): CellPosition | null {
+    toNextRowByTab({ previousCellPosition, api, backwards }: TabToNextCellParams): CellPosition | boolean {
         const { rowIndex, column, rowPinned } = previousCellPosition;
         const rowsCount = api.getDisplayedRowCount();
         let nextRowIndex = backwards ? rowIndex - 1 : rowIndex + 1;
@@ -173,7 +173,7 @@ export class KbqAgGridShortcuts {
 
         const isLastRow = nextRowIndex === rowsCount - 1;
 
-        return isLastRow ? null : { rowIndex: nextRowIndex, column, rowPinned };
+        return isLastRow ? false : { rowIndex: nextRowIndex, column, rowPinned };
     }
 
     /**
@@ -217,12 +217,19 @@ export class KbqAgGridShortcuts {
     }
 })
 export class KbqAgGridTheme {
+    private readonly grid = inject(AgGridAngular);
+
     /**
      * Disables ag-grid cell focus styles (e.g. border-color).
      *
      * @default false
      */
     readonly disableCellFocusStyles = input(false, { transform: booleanAttribute });
+
+    constructor() {
+        // https://www.ag-grid.com/archive/33.3.2/angular-data-grid/errors/239/?_version_=33.3.2
+        this.grid.theme = 'legacy';
+    }
 }
 
 /**
@@ -245,8 +252,8 @@ export class KbqAgGridToNextRowByTab {
     readonly enabled = input(true, { transform: booleanAttribute, alias: 'kbqAgGridToNextRowByTab' });
 
     constructor() {
-        this.grid.tabToNextCell = (params: TabToNextCellParams): CellPosition | null => {
-            return this.enabled() ? this.shortcuts.toNextRowByTab(params) : params.nextCellPosition;
+        this.grid.tabToNextCell = (params: TabToNextCellParams): CellPosition | boolean => {
+            return this.enabled() ? this.shortcuts.toNextRowByTab(params) : (params.nextCellPosition ?? false);
         };
     }
 }
