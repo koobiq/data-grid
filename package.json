@@ -26,6 +26,7 @@
         "build": "nx run-many --target=build",
         "-----GITHUB_RELEASE-----": "---------------------------------------------------------------------------------",
         "release:theme": "nx release --projects=ag-grid-angular-theme --skip-publish",
+        "release:theme:preview": "nx release --projects=ag-grid-angular-theme --skip-publish --dry-run",
         "-----LINTERS-----": "----------------------------------------------------------------------------------------",
         "prettier": "prettier --check . --ignore-unknown",
         "prettier:fix": "yarn run prettier --write",

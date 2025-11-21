@@ -108,8 +108,8 @@ yarn run release:theme
 
 Once the GitHub release is created, the package is automatically published to NPM using GitHub [Publish Action](.github/workflows/publish.yml).
 
-To debug the release process without actually publishing, you can use the `--dry-run` flag, where `X.X.X` is the version you want to test:
+To preview the release process without actually publishing the package, run:
 
 ```bash
-yarn run release:theme X.X.X --dry-run
+yarn run release:theme:preview X.X.X
 ```
