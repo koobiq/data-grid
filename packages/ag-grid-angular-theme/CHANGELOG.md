@@ -1,3 +1,13 @@
+# 34.0.0 (2025-11-21)
+
+### 🚀 Features
+
+- **ag-grid-angular-theme:** updated ag-grid to 34 version (#DS-3957) ([#99](https://github.com/koobiq/data-grid/pull/99))
+
+### ❤️ Thank You
+
+- Artem Belik @artembelik
+
 # 33.0.0 (2025-11-21)
 
 ### 🚀 Features
