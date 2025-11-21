@@ -3,7 +3,7 @@ import { defineConfig, devices, ViewportSize } from '@playwright/test';
 const isCI = !!process.env.CI;
 const viewport: ViewportSize = { width: 1200, height: 720 };
 const baseURL = process.env.BASE_URL ?? 'http://localhost:4200';
-const webServerCommand = process.env.WEB_SERVER_COMMAND ?? 'yarn run dev';
+const webServerCommand = process.env.WEB_SERVER_COMMAND ?? 'yarn run dev:theme';
 
 /** @see https://playwright.dev/docs/test-configuration */
 export default defineConfig({
