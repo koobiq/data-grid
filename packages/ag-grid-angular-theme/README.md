@@ -2,7 +2,7 @@
 
 [![NPM Version](https://img.shields.io/npm/v/%40koobiq%2Fag-grid-angular-theme?label=%40koobiq%2Fag-grid-angular-theme&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40koobiq%2Fag-grid-angular-theme)](https://www.npmjs.com/package/@koobiq/ag-grid-angular-theme)
 
-The package provides a theme for the [ag-grid-angular@^33](https://www.ag-grid.com/archive/33.3.2/angular-data-grid/) (see [overview](https://data-grid-next.web.app/)).
+The package provides a theme for the [ag-grid-angular@^34](https://www.ag-grid.com/archive/34.3.1/angular-data-grid/) (see [overview](https://data-grid-next.web.app/)).
 
 Navigation:
 
@@ -14,7 +14,7 @@ Navigation:
 ## Installation
 
 ```bash
-npm install @koobiq/ag-grid-angular-theme@^33 ag-grid-community@^33 ag-grid-angular@^33
+npm install @koobiq/ag-grid-angular-theme@^34 ag-grid-community@^34 ag-grid-angular@^34
 ```
 
 ## Usage
@@ -89,7 +89,7 @@ yarn install
 ### Run dev application
 
 ```bash
-yarn run dev
+yarn run dev:theme
 ```
 
 Then open http://localhost:4200/

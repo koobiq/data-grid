@@ -439,7 +439,7 @@
 @mixin _ag-paging-panel() {
     .ag-paging-panel {
         --ag-border-color: var(--kbq-line-contrast-less);
-        --ag-header-height: calc(var(--kbq-size-m) * 3);
+        --ag-pagination-panel-height: calc(var(--kbq-size-m) * 3);
         --ag-secondary-foreground-color: var(--kbq-foreground-contrast);
 
         font-size: var(--kbq-typography-text-compact-font-size);
