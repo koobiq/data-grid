@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import {
+    AllCommunityModule,
     CellClickedEvent,
     CellKeyDownEvent,
     ColDef,
@@ -25,9 +26,13 @@ import {
     GridApi,
     GridReadyEvent,
     ITooltipParams,
-    RowDragEvent
+    ModuleRegistry,
+    RowDragEvent,
+    RowSelectionOptions
 } from 'ag-grid-community';
 import { catchError, of } from 'rxjs';
+
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 type DevOlympicData = {
     athlete: string;
@@ -64,16 +69,16 @@ enum DevThemeSelector {
             <fieldset class="dev-options">
                 <legend>AgGridAngular</legend>
                 <label>
-                    <input type="checkbox" [(ngModel)]="checkboxSelection" />
-                    Checkbox Selection
+                    <input type="checkbox" [(ngModel)]="checkboxes" />
+                    Checkboxes
                 </label>
                 <label>
                     <input type="checkbox" [(ngModel)]="multipleRowSelection" />
                     Multiple Row Selection
                 </label>
                 <label>
-                    <input type="checkbox" [(ngModel)]="suppressRowClickSelection" />
-                    Suppress Row Click Selection
+                    <input type="checkbox" [(ngModel)]="enableClickSelection" />
+                    Enable Click Selection
                 </label>
                 <label>
                     <input type="checkbox" [(ngModel)]="editable" />
@@ -199,7 +204,6 @@ enum DevThemeSelector {
             [pagination]="pagination()"
             [enableRtl]="enableRtl()"
             [columnHoverHighlight]="columnHoverHighlight()"
-            [suppressRowClickSelection]="suppressRowClickSelection()"
             [suppressCellFocus]="suppressCellFocus()"
             [tooltipShowDelay]="500"
             [animateRows]="animateRows()"
@@ -254,7 +258,7 @@ export class DevApp {
     private gridApi!: GridApi | null;
 
     readonly lightTheme = model(true);
-    readonly checkboxSelection = model(true);
+    readonly checkboxes = model(true);
     readonly multipleRowSelection = model(true);
     readonly editable = model(false);
     readonly resizable = model(true);
@@ -266,7 +270,6 @@ export class DevApp {
     readonly enableRtl = model(false);
     readonly columnHoverHighlight = model(false);
     readonly tooltip = model(false);
-    readonly suppressRowClickSelection = model(true);
     readonly animateRows = model(false);
     readonly lockPinned = model(false);
     readonly lockPosition = model(false);
@@ -281,13 +284,30 @@ export class DevApp {
     readonly selectRowsByShiftArrow = model(true);
     readonly selectRowsByCtrlClick = model(true);
     readonly toNextRowByTab = model(true);
+    readonly enableClickSelection = model(false);
 
-    readonly rowSelection = computed(() => {
-        return this.multipleRowSelection() ? 'multiple' : 'single';
+    readonly rowSelection = computed((): RowSelectionOptions => {
+        const enableClickSelection = this.enableClickSelection();
+        const hideDisabledCheckboxes = false;
+        const checkboxes = this.checkboxes();
+
+        return this.multipleRowSelection()
+            ? {
+                  mode: 'multiRow',
+                  enableClickSelection,
+                  hideDisabledCheckboxes,
+                  checkboxes,
+                  headerCheckbox: checkboxes
+              }
+            : {
+                  mode: 'singleRow',
+                  enableClickSelection,
+                  hideDisabledCheckboxes,
+                  checkboxes
+              };
     });
 
     readonly columnDefs = computed<ColDef[]>(() => {
-        const checkboxSelection = this.checkboxSelection();
         const tooltip = this.tooltip();
         const rowDrag = this.rowDrag();
         const pinFirstColumn = this.pinFirstColumn();
@@ -305,23 +325,7 @@ export class DevApp {
                 resizable: false,
                 suppressMovable: true,
                 editable: false,
-                lockPosition: true,
-                pinned: pinFirstColumn ? 'left' : false
-            },
-            {
-                hide: !checkboxSelection,
-                headerCheckboxSelection: checkboxSelection,
-                checkboxSelection: checkboxSelection,
-                showDisabledCheckboxes: true,
-                width: 34,
-                headerName: '',
-                sortable: false,
-                filter: false,
-                resizable: false,
-                suppressMovable: true,
-                editable: false,
-                lockPosition: true,
-                pinned: pinFirstColumn ? 'left' : false
+                lockPosition: true
             },
             {
                 field: 'athlete',
@@ -480,6 +484,8 @@ export class DevApp {
         const { api } = event;
 
         this.gridApi = api;
+
+        this.gridApi.setColumnWidths([{ key: 'ag-Grid-SelectionColumn', newWidth: 36 }]);
     }
 
     onFirstDataRendered(event: FirstDataRenderedEvent): void {
