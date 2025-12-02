@@ -68,7 +68,7 @@
         "@commitlint/cli": "^19.8.1",
         "@commitlint/config-conventional": "^19.8.1",
         "@nx/angular": "^20.8.3",
-        "@playwright/test": "^1.56.1",
+        "@playwright/test": "^1.57.0",
         "@schematics/angular": "^18.2.18",
         "@swc-node/register": "^1.11.1",
         "@swc/core": "^1.15.3",
