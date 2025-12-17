@@ -1,25 +1,17 @@
-name: PR deploy next
+name: Deploy preview
 
 on:
-  pull_request_target:
+  pull_request:
     branches:
       - main
-
-permissions:
-  checks: write
-  contents: read
-  pull-requests: write
+  workflow_dispatch:
 
 jobs:
   deploy:
-    if: ${{ github.repository_owner == 'koobiq' && github.actor != 'dependabot[bot]' }}
+    if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          fetch-depth: 0
       - uses: ./.github/actions/setup-node
       - run: yarn run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
