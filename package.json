@@ -34,6 +34,8 @@
         "eslint:fix": "yarn run eslint --fix",
         "stylelint": "stylelint '**/*.{css,scss}'",
         "stylelint:fix": "yarn run stylelint --fix",
+        "lint": "concurrently \"yarn:prettier\" \"yarn:eslint\" \"yarn:stylelint\"",
+        "lint:fix": "concurrently \"yarn:prettier:fix\" \"yarn:eslint:fix\" \"yarn:stylelint:fix\"",
         "-----E2E_TESTS-----": "--------------------------------------------------------------------------------------",
         "e2e:setup": "playwright install chromium --with-deps",
         "e2e:dev-ag-grid-angular": "playwright test ./dev/ag-grid-angular"
@@ -76,6 +78,7 @@
         "@types/node": "^18.19.101",
         "@typescript-eslint/eslint-plugin": "^8.48.0",
         "@typescript-eslint/parser": "^8.48.0",
+        "concurrently": "^9.2.1",
         "eslint": "^8.57.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-eslint-comments": "^3.2.0",
