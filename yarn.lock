@@ -6259,12 +6259,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^18.19.101":
-  version: 18.19.101
-  resolution: "@types/node@npm:18.19.101"
+"@types/node@npm:^24.10.4":
+  version: 24.10.4
+  resolution: "@types/node@npm:24.10.4"
   dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: 10c0/6163828df4830d8d2be7aed627e97b2d32a3cbb64cfa83e21a8ae91f525be4d0ae8fc64c4a409359749ee30e0fe0fe84994ed6879a4f94fdecb9ac5da4cf9439
+    undici-types: "npm:~7.16.0"
+  checksum: 10c0/069639cb7233ee747df1897b5e784f6b6c5da765c96c94773c580aac888fa1a585048d2a6e95eb8302d89c7a9df75801c8b5a0b7d0221d4249059cf09a5f4228
   languageName: node
   linkType: hard
 
@@ -8944,7 +8944,7 @@ __metadata:
     "@swc-node/register": "npm:^1.11.1"
     "@swc/core": "npm:^1.15.3"
     "@types/eslint": "npm:^8.56.12"
-    "@types/node": "npm:^18.19.101"
+    "@types/node": "npm:^24.10.4"
     "@typescript-eslint/eslint-plugin": "npm:^8.48.0"
     "@typescript-eslint/parser": "npm:^8.48.0"
     ag-grid-angular: "npm:^34.3.1"
@@ -19030,17 +19030,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"undici-types@npm:~5.26.4":
-  version: 5.26.5
-  resolution: "undici-types@npm:5.26.5"
-  checksum: 10c0/bb673d7876c2d411b6eb6c560e0c571eef4a01c1c19925175d16e3a30c4c428181fb8d7ae802a261f283e4166a0ac435e2f505743aa9e45d893f9a3df017b501
-  languageName: node
-  linkType: hard
-
 "undici-types@npm:~6.21.0":
   version: 6.21.0
   resolution: "undici-types@npm:6.21.0"
   checksum: 10c0/c01ed51829b10aa72fc3ce64b747f8e74ae9b60eafa19a7b46ef624403508a54c526ffab06a14a26b3120d055e1104d7abe7c9017e83ced038ea5cf52f8d5e04
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~7.16.0":
+  version: 7.16.0
+  resolution: "undici-types@npm:7.16.0"
+  checksum: 10c0/3033e2f2b5c9f1504bdc5934646cb54e37ecaca0f9249c983f7b1fc2e87c6d18399ebb05dc7fd5419e02b2e915f734d872a65da2e3eeed1813951c427d33cc9a
   languageName: node
   linkType: hard
 
