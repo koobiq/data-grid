@@ -68,7 +68,7 @@
         "@playwright/test": "^1.57.0",
         "@schematics/angular": "^18.2.18",
         "@swc-node/register": "^1.11.1",
-        "@swc/core": "^1.15.3",
+        "@swc/core": "^1.15.8",
         "@types/eslint": "^8.56.12",
         "@types/node": "^24.10.4",
         "@typescript-eslint/eslint-plugin": "^8.51.0",
