@@ -86,7 +86,7 @@
         "lint-staged": "^15.5.2",
         "ng-packagr": "^18.2.0",
         "nx": "^20.8.4",
-        "prettier": "^3.7.4",
+        "prettier": "^3.8.1",
         "prettier-plugin-organize-imports": "^4.3.0",
         "rimraf": "^5.0.5",
         "stylelint": "^16.26.1",
