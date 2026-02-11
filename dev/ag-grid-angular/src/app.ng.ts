@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
+import { KbqAgGridCopyFormatter, KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import {
     AllCommunityModule,
@@ -57,7 +57,7 @@ enum DevThemeSelector {
     imports: [AgGridModule, KbqAgGridThemeModule, FormsModule],
     selector: 'dev-root',
     template: `
-        <details class="dev-accordion">
+        <details class="dev-accordion" data-testid="e2eOptionsAccordion">
             <summary>Options</summary>
             <fieldset class="dev-options">
                 <legend>Global</legend>
@@ -157,6 +157,10 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="showIndexColumn" />
                     Show Index Column
                 </label>
+                <label data-testid="e2eCellTextSelectionToggle">
+                    <input type="checkbox" [(ngModel)]="cellTextSelection" />
+                    Cell Text Selection
+                </label>
             </fieldset>
             <fieldset class="dev-options">
                 <legend>Keyboard</legend>
@@ -176,6 +180,18 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="selectRowsByCtrlClick" />
                     Select Row by Ctrl+Click
                 </label>
+                <label data-testid="e2eCopyByCtrlCToggle">
+                    <input type="checkbox" [(ngModel)]="copyByCtrlC" />
+                    Copy by Ctrl+C
+                </label>
+                <label>
+                    Copy Format:
+                    <select data-testid="e2eCopyFormatSelect" [disabled]="!copyByCtrlC()" [(ngModel)]="copyFormat">
+                        <option value="tsv">TSV (default)</option>
+                        <option value="csv">CSV</option>
+                        <option value="json">JSON</option>
+                    </select>
+                </label>
             </fieldset>
             <fieldset class="dev-options">
                 <legend>KbqAgGridAngularTheme</legend>
@@ -193,6 +209,8 @@ enum DevThemeSelector {
             [kbqAgGridSelectRowsByShiftArrow]="selectRowsByShiftArrow()"
             [kbqAgGridSelectAllRowsByCtrlA]="selectAllRowsByCtrlA()"
             [kbqAgGridSelectRowsByCtrlClick]="selectRowsByCtrlClick()"
+            [kbqAgGridCopyByCtrlC]="copyByCtrlC()"
+            [kbqAgGridCopyFormatter]="copyFormatter()"
             [disableCellFocusStyles]="disableCellFocusStyles()"
             [columnDefs]="columnDefs()"
             [rowSelection]="rowSelection()"
@@ -207,6 +225,7 @@ enum DevThemeSelector {
             [suppressCellFocus]="suppressCellFocus()"
             [tooltipShowDelay]="500"
             [animateRows]="animateRows()"
+            [enableCellTextSelection]="cellTextSelection()"
             (gridReady)="onGridReady($event)"
             (firstDataRendered)="onFirstDataRendered($event)"
             (dragStarted)="onDragStarted($event)"
@@ -284,7 +303,53 @@ export class DevApp {
     readonly selectRowsByShiftArrow = model(true);
     readonly selectRowsByCtrlClick = model(true);
     readonly toNextRowByTab = model(true);
+    readonly copyByCtrlC = model(true);
+    readonly copyFormat = model<'tsv' | 'csv' | 'json'>('tsv');
     readonly enableClickSelection = model(false);
+    readonly cellTextSelection = model(true);
+
+    readonly copyFormatter = computed<KbqAgGridCopyFormatter | undefined>(() => {
+        const format = this.copyFormat();
+
+        if (format === 'tsv') return undefined;
+
+        return ({ selectedNodes, api }): string => {
+            const columns = api.getAllDisplayedColumns().filter((column) => !column.getColId().includes('ag-Grid-'));
+
+            if (format === 'csv') {
+                const headerRow = columns
+                    .map((column) => {
+                        const colDef = column.getColDef();
+                        return colDef.headerName ?? colDef.field ?? column.getColId();
+                    })
+                    .join(',');
+
+                const dataRows = selectedNodes.map((rowNode) =>
+                    columns
+                        .map((column) => api.getCellValue({ rowNode, colKey: column, useFormatter: true }) ?? '')
+                        .join(',')
+                );
+
+                return [headerRow, ...dataRows].join('\n');
+            }
+
+            // JSON format
+            return JSON.stringify(
+                selectedNodes.map((rowNode) =>
+                    Object.fromEntries(
+                        columns.map((column) => {
+                            const colDef = column.getColDef();
+                            const key = colDef.field ?? column.getColId();
+                            const value = api.getCellValue({ rowNode, colKey: column, useFormatter: true }) ?? '';
+                            return [key, value];
+                        })
+                    )
+                ),
+                null,
+                2
+            );
+        };
+    });
 
     readonly rowSelection = computed((): RowSelectionOptions => {
         const enableClickSelection = this.enableClickSelection();

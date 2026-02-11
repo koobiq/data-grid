@@ -11,9 +11,10 @@ export default defineConfig({
     testMatch: ['**/*.playwright-spec.ts'],
     tsconfig: 'tsconfig.playwright-spec.json',
     fullyParallel: true,
+    timeout: 15 * 1000,
     forbidOnly: isCI,
     retries: isCI ? 2 : 0,
-    workers: isCI ? 1 : undefined,
+    workers: isCI ? '100%' : undefined,
     reporter: [
         ['list', { printSteps: true }],
         ['html', { open: 'never' }]
@@ -27,10 +28,11 @@ export default defineConfig({
             }
         }
     ],
+    snapshotPathTemplate: '{testFileDir}/__snapshots__/{arg}{ext}',
     expect: {
         toHaveScreenshot: {
             pathTemplate: '{testFileDir}/__screenshots__/{arg}{ext}',
-            threshold: 0.2,
+            threshold: 0,
             scale: 'device',
             animations: 'disabled'
         }

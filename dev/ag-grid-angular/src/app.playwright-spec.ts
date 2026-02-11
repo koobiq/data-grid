@@ -11,32 +11,80 @@ test.describe('AgGridAngular', () => {
     test('default state', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/');
-
         await getShowIndexColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
         await getPaginationToggle(page).evaluate((label: HTMLLabelElement) => label.click());
-
-        await expect(getScreenshotTarget(page)).toHaveScreenshot();
-    });
-
-    test('default state (dark theme)', async ({ page }) => {
-        await page.setViewportSize({ width: 768, height: 500 });
-        await page.goto('/');
-
-        await getShowIndexColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
+        await expect(getScreenshotTarget(page)).toHaveScreenshot('01-light.png');
         await getLightThemeToggle(page).evaluate((label: HTMLLabelElement) => label.click());
-        await getPaginationToggle(page).evaluate((label: HTMLLabelElement) => label.click());
-
-        await expect(getScreenshotTarget(page)).toHaveScreenshot();
+        await expect(getScreenshotTarget(page)).toHaveScreenshot('01-dark.png');
     });
 
     test('with pinned columns', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/');
-
         await getShowIndexColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
         await getPinFirstColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
         await getPinLastColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
+        await expect(getScreenshotTarget(page)).toHaveScreenshot('02-light.png');
+    });
+});
 
-        await expect(getScreenshotTarget(page)).toHaveScreenshot();
+test.describe('KbqAgGridCopyByCtrlC', () => {
+    test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
+
+    const getCopyByCtrlCToggle = (page: Page): Locator => page.getByTestId('e2eCopyByCtrlCToggle');
+    const getCopyFormatSelect = (page: Page): Locator => page.getByTestId('e2eCopyFormatSelect');
+    const getClipboardText = async (page: Page): Promise<string> => {
+        return page.evaluate(async () => navigator.clipboard.readText());
+    };
+    const getCell = (page: Page, rowIndex: number, colField: string): Locator => {
+        return page.locator(`[row-index="${rowIndex}"] [col-id="${colField}"]`);
+    };
+    const deselectRow = async (page: Page, rowIndex: number): Promise<void> => {
+        return page.locator(`[row-index="${rowIndex}"] .ag-selection-checkbox`).click();
+    };
+    const displayDetails = async (page: Page): Promise<void> => {
+        return page.getByTestId('e2eOptionsAccordion').evaluate((element: HTMLDetailsElement) => {
+            element.open = true;
+        });
+    };
+
+    const pressCtrlC = async (page: Page): Promise<void> => page.keyboard.press('Control+c');
+
+    test('copies selected rows in TSV format by default', async ({ page }) => {
+        await page.goto('/');
+        await getCell(page, 4, 'athlete').focus();
+        await pressCtrlC(page);
+
+        expect(await getClipboardText(page)).toMatchSnapshot('01.txt');
+    });
+
+    test('does not copy when no rows are selected', async ({ page }) => {
+        await page.goto('/');
+        await page.evaluate(async () => navigator.clipboard.writeText('test'));
+        await deselectRow(page, 4);
+        await deselectRow(page, 5);
+        await getCell(page, 0, 'athlete').focus();
+        await pressCtrlC(page);
+
+        expect(await getClipboardText(page)).toBe('test');
+    });
+
+    test('copies selected rows in CSV format when custom formatter is set to CSV', async ({ page }) => {
+        await page.goto('/');
+        await displayDetails(page);
+        await getCopyFormatSelect(page).selectOption('csv');
+        await getCell(page, 4, 'athlete').focus();
+        await pressCtrlC(page);
+
+        expect(await getClipboardText(page)).toMatchSnapshot('02.txt');
+    });
+
+    test('does not copy when directive is disabled', async ({ page }) => {
+        await page.goto('/');
+        await getCopyByCtrlCToggle(page).evaluate((label: HTMLLabelElement) => label.click());
+        await getCell(page, 4, 'athlete').focus();
+        await pressCtrlC(page);
+
+        expect(await getClipboardText(page)).toBe('');
     });
 });
