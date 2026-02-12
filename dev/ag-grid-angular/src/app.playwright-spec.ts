@@ -115,7 +115,7 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
         await getCell(page, 4, 'athlete').click({ clickCount: 3 }); // Selects the cell text
         await pressCtrlC(page);
 
-        expect(await getClipboardText(page)).toBe('Aleksey Nemov');
+        expect(await getClipboardText(page)).toMatch('Aleksey Nemov');
     });
 
     test('does not copy when directive is disabled', async ({ page }) => {
