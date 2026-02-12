@@ -112,7 +112,7 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
     test('does not copy when text is selected on the page', async ({ page }) => {
         await page.goto('/');
         await clearClipboard(page);
-        await getCell(page, 4, 'athlete').dblclick(); // Selects the cell text
+        await getCell(page, 4, 'athlete').click({ clickCount: 3 }); // Selects the cell text
         await pressCtrlC(page);
 
         expect(await getClipboardText(page)).toBe('Aleksey Nemov');
