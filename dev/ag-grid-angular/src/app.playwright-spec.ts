@@ -112,18 +112,10 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
     test('does not copy when text is selected on the page', async ({ page }) => {
         await page.goto('/');
         await clearClipboard(page);
-        await setClipboardText(page, 'test');
-        await getCell(page, 4, 'athlete').focus();
-        await page.evaluate(() => {
-            const selection = document.getSelection();
-            selection?.removeAllRanges();
-            const range = document.createRange();
-            range.selectNodeContents(document.querySelector('[row-index="4"] [col-id="athlete"]')!);
-            selection?.addRange(range);
-        });
+        await getCell(page, 4, 'athlete').dblclick(); // Selects the cell text
         await pressCtrlC(page);
 
-        expect(await getClipboardText(page)).toBe('test');
+        expect(await getClipboardText(page)).toBe('Aleksey Nemov');
     });
 
     test('does not copy when directive is disabled', async ({ page }) => {
