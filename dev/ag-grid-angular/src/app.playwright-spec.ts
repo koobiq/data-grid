@@ -33,8 +33,14 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
 
     const getCopyByCtrlCToggle = (page: Page): Locator => page.getByTestId('e2eCopyByCtrlCToggle');
     const getCopyFormatSelect = (page: Page): Locator => page.getByTestId('e2eCopyFormatSelect');
+    const setClipboardText = async (page: Page, text: string): Promise<void> => {
+        await page.evaluate(async (t) => navigator.clipboard.writeText(t), text);
+    };
     const getClipboardText = async (page: Page): Promise<string> => {
         return page.evaluate(async () => navigator.clipboard.readText());
+    };
+    const clearClipboard = async (page: Page): Promise<void> => {
+        await setClipboardText(page, '');
     };
     const getCell = (page: Page, rowIndex: number, colField: string): Locator => {
         return page.locator(`[row-index="${rowIndex}"] [col-id="${colField}"]`);
@@ -47,20 +53,12 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
             element.open = true;
         });
     };
-
     const pressCtrlC = async (page: Page): Promise<void> => page.keyboard.press('Control+c');
-
-    test('copies selected rows in TSV format by default', async ({ page }) => {
-        await page.goto('/');
-        await getCell(page, 4, 'athlete').focus();
-        await pressCtrlC(page);
-
-        expect(await getClipboardText(page)).toMatchSnapshot('01.txt');
-    });
 
     test('does not copy when no rows are selected', async ({ page }) => {
         await page.goto('/');
-        await page.evaluate(async () => navigator.clipboard.writeText('test'));
+        await clearClipboard(page);
+        await setClipboardText(page, 'test');
         await deselectRow(page, 4);
         await deselectRow(page, 5);
         await getCell(page, 0, 'athlete').focus();
@@ -69,8 +67,18 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
         expect(await getClipboardText(page)).toBe('test');
     });
 
-    test('copies selected rows in CSV format when custom formatter is set to CSV', async ({ page }) => {
+    test('copies selected rows in TSV format by default', async ({ page }) => {
         await page.goto('/');
+        await clearClipboard(page);
+        await getCell(page, 4, 'athlete').focus();
+        await pressCtrlC(page);
+
+        expect(await getClipboardText(page)).toMatchSnapshot('01.txt');
+    });
+
+    test('copies selected rows in CSV', async ({ page }) => {
+        await page.goto('/');
+        await clearClipboard(page);
         await displayDetails(page);
         await getCopyFormatSelect(page).selectOption('csv');
         await getCell(page, 4, 'athlete').focus();
@@ -79,8 +87,48 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
         expect(await getClipboardText(page)).toMatchSnapshot('02.txt');
     });
 
+    test('copies selected rows in JSON', async ({ page }) => {
+        await page.goto('/');
+        await clearClipboard(page);
+        await displayDetails(page);
+        await getCopyFormatSelect(page).selectOption('json');
+        await getCell(page, 4, 'athlete').focus();
+        await pressCtrlC(page);
+
+        expect(await getClipboardText(page)).toMatchSnapshot('03.txt');
+    });
+
+    test('copies selected rows in custom format', async ({ page }) => {
+        await page.goto('/');
+        await clearClipboard(page);
+        await displayDetails(page);
+        await getCopyFormatSelect(page).selectOption('custom');
+        await getCell(page, 4, 'athlete').focus();
+        await pressCtrlC(page);
+
+        expect(await getClipboardText(page)).toBe('Custom Copy Formatter Output. Selected Nodes: 2.');
+    });
+
+    test('does not copy when text is selected on the page', async ({ page }) => {
+        await page.goto('/');
+        await clearClipboard(page);
+        await setClipboardText(page, 'test');
+        await getCell(page, 4, 'athlete').focus();
+        await page.evaluate(() => {
+            const selection = document.getSelection();
+            selection?.removeAllRanges();
+            const range = document.createRange();
+            range.selectNodeContents(document.querySelector('[row-index="4"] [col-id="athlete"]')!);
+            selection?.addRange(range);
+        });
+        await pressCtrlC(page);
+
+        expect(await getClipboardText(page)).toBe('test');
+    });
+
     test('does not copy when directive is disabled', async ({ page }) => {
         await page.goto('/');
+        await clearClipboard(page);
         await getCopyByCtrlCToggle(page).evaluate((label: HTMLLabelElement) => label.click());
         await getCell(page, 4, 'athlete').focus();
         await pressCtrlC(page);

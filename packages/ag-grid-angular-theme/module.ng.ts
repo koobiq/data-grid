@@ -25,6 +25,55 @@ const isMouseEvent = (event: unknown): event is MouseEvent => event instanceof M
  */
 export type KbqAgGridCopyFormatter = (params: { selectedNodes: IRowNode[]; api: GridApi }) => string;
 
+/** Formats selected rows as tab-separated values (TSV) with a header row. */
+export const kbqAgGridCopyFormatterTsv: KbqAgGridCopyFormatter = ({ selectedNodes, api }) => {
+    const columns = api.getAllDisplayedColumns().filter((column) => !column.getColId().includes('ag-Grid-'));
+    const headerRow = columns
+        .map((column) => {
+            const colDef = column.getColDef();
+            return colDef.headerName ?? colDef.field ?? column.getColId();
+        })
+        .join('\t');
+    const rows = selectedNodes.map((rowNode) =>
+        columns.map((column) => api.getCellValue({ rowNode, colKey: column, useFormatter: true }) ?? '').join('\t')
+    );
+
+    return [headerRow, ...rows].join('\n');
+};
+
+/** Formats selected rows as comma-separated values (CSV) with a header row. */
+export const kbqAgGridCopyFormatterCsv: KbqAgGridCopyFormatter = ({ selectedNodes, api }) => {
+    const columns = api.getAllDisplayedColumns().filter((column) => !column.getColId().includes('ag-Grid-'));
+    const headerRow = columns
+        .map((column) => {
+            const colDef = column.getColDef();
+            return colDef.headerName ?? colDef.field ?? column.getColId();
+        })
+        .join(',');
+    const rows = selectedNodes.map((rowNode) =>
+        columns.map((column) => api.getCellValue({ rowNode, colKey: column, useFormatter: true }) ?? '').join(',')
+    );
+
+    return [headerRow, ...rows].join('\n');
+};
+
+/** Formats selected rows as a JSON array of objects keyed by field names. */
+export const kbqAgGridCopyFormatterJson: KbqAgGridCopyFormatter = ({ selectedNodes, api }) => {
+    const columns = api.getAllDisplayedColumns().filter((column) => !column.getColId().includes('ag-Grid-'));
+    const rows = selectedNodes.map((rowNode) =>
+        Object.fromEntries(
+            columns.map((column) => {
+                const colDef = column.getColDef();
+                const key = colDef.field ?? column.getColId();
+                const value = api.getCellValue({ rowNode, colKey: column, useFormatter: true }) ?? '';
+                return [key, value];
+            })
+        )
+    );
+
+    return JSON.stringify(rows, null, 2);
+};
+
 /**
  * Service that provides keyboard interaction functionalities for ag-grid-angular.
  */
@@ -226,7 +275,7 @@ export class KbqAgGridShortcuts {
      */
     copySelectedByCtrlC(
         { event, api }: CellKeyDownEvent | FullWidthCellKeyDownEvent,
-        formatter: KbqAgGridCopyFormatter = this.defaultCopyFormatter
+        formatter: KbqAgGridCopyFormatter = kbqAgGridCopyFormatterTsv
     ): void {
         if (!isKeyboardEvent(event)) return;
 
@@ -237,7 +286,7 @@ export class KbqAgGridShortcuts {
 
         if (!targetShortcut) return;
 
-        const selection = this.document.defaultView?.getSelection();
+        const selection = this.document.getSelection();
 
         if (selection && selection.toString().length > 0) return;
 
@@ -251,23 +300,6 @@ export class KbqAgGridShortcuts {
 
         this.clipboard.copy(text);
     }
-
-    /** Default copy formatter that produces TSV with column headers. */
-    private readonly defaultCopyFormatter: KbqAgGridCopyFormatter = ({ selectedNodes, api }) => {
-        const columns = api.getAllDisplayedColumns().filter((column) => !column.getColId().includes('ag-Grid-'));
-        const headerRow = columns
-            .map((column) => {
-                const colDef = column.getColDef();
-                return colDef.headerName ?? colDef.field ?? column.getColId();
-            })
-            .join('\t');
-
-        const dataRows = selectedNodes.map((rowNode) =>
-            columns.map((column) => api.getCellValue({ rowNode, colKey: column, useFormatter: true }) ?? '').join('\t')
-        );
-
-        return [headerRow, ...dataRows].join('\n');
-    };
 }
 
 /**

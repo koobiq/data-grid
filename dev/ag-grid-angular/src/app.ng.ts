@@ -12,7 +12,12 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { KbqAgGridCopyFormatter, KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
+import {
+    KbqAgGridCopyFormatter,
+    kbqAgGridCopyFormatterCsv,
+    kbqAgGridCopyFormatterJson,
+    KbqAgGridThemeModule
+} from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import {
     AllCommunityModule,
@@ -187,9 +192,9 @@ enum DevThemeSelector {
                 <label>
                     Copy Format:
                     <select data-testid="e2eCopyFormatSelect" [disabled]="!copyByCtrlC()" [(ngModel)]="copyFormat">
-                        <option value="tsv">TSV (default)</option>
-                        <option value="csv">CSV</option>
-                        <option value="json">JSON</option>
+                        @for (option of copyFormatOptions; track option) {
+                            <option [value]="option">{{ option }}</option>
+                        }
                     </select>
                 </label>
             </fieldset>
@@ -274,6 +279,8 @@ export class DevApp {
     private readonly renderer = inject(Renderer2);
     private readonly document = inject(DOCUMENT);
 
+    readonly copyFormatOptions = ['tsv', 'csv', 'json', 'custom'] as const;
+
     private gridApi!: GridApi | null;
 
     readonly lightTheme = model(true);
@@ -304,51 +311,30 @@ export class DevApp {
     readonly selectRowsByCtrlClick = model(true);
     readonly toNextRowByTab = model(true);
     readonly copyByCtrlC = model(true);
-    readonly copyFormat = model<'tsv' | 'csv' | 'json'>('tsv');
+    readonly copyFormat = model<(typeof this.copyFormatOptions)[number]>('tsv');
     readonly enableClickSelection = model(false);
     readonly cellTextSelection = model(true);
 
     readonly copyFormatter = computed<KbqAgGridCopyFormatter | undefined>(() => {
         const format = this.copyFormat();
 
-        if (format === 'tsv') return undefined;
-
-        return ({ selectedNodes, api }): string => {
-            const columns = api.getAllDisplayedColumns().filter((column) => !column.getColId().includes('ag-Grid-'));
-
-            if (format === 'csv') {
-                const headerRow = columns
-                    .map((column) => {
-                        const colDef = column.getColDef();
-                        return colDef.headerName ?? colDef.field ?? column.getColId();
-                    })
-                    .join(',');
-
-                const dataRows = selectedNodes.map((rowNode) =>
-                    columns
-                        .map((column) => api.getCellValue({ rowNode, colKey: column, useFormatter: true }) ?? '')
-                        .join(',')
-                );
-
-                return [headerRow, ...dataRows].join('\n');
+        switch (format) {
+            case 'custom': {
+                const customFormatter: KbqAgGridCopyFormatter = ({ selectedNodes }): string =>
+                    `Custom Copy Formatter Output. Selected Nodes: ${selectedNodes.length}.`;
+                return customFormatter;
             }
-
-            // JSON format
-            return JSON.stringify(
-                selectedNodes.map((rowNode) =>
-                    Object.fromEntries(
-                        columns.map((column) => {
-                            const colDef = column.getColDef();
-                            const key = colDef.field ?? column.getColId();
-                            const value = api.getCellValue({ rowNode, colKey: column, useFormatter: true }) ?? '';
-                            return [key, value];
-                        })
-                    )
-                ),
-                null,
-                2
-            );
-        };
+            case 'csv': {
+                return kbqAgGridCopyFormatterCsv;
+            }
+            case 'json': {
+                return kbqAgGridCopyFormatterJson;
+            }
+            case 'tsv':
+            default: {
+                return undefined;
+            }
+        }
     });
 
     readonly rowSelection = computed((): RowSelectionOptions => {
