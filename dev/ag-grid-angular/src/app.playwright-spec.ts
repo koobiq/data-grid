@@ -53,7 +53,7 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
             element.open = true;
         });
     };
-    const pressCtrlC = async (page: Page): Promise<void> => page.keyboard.press('Control+c');
+    const pressCtrlC = async (page: Page): Promise<void> => page.keyboard.press('ControlOrMeta+c');
 
     test('does not copy when no rows are selected', async ({ page }) => {
         await page.goto('/');
