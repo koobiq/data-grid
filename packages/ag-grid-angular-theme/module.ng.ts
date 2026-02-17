@@ -298,7 +298,11 @@ export class KbqAgGridShortcuts {
 
         const text = formatter({ selectedNodes, api });
 
-        this.clipboard.copy(text);
+        // Deferring clipboard.copy to the next tick prevents AG Grid's internal
+        // keyboard handling from interfering with the clipboard operation.
+        setTimeout(() => {
+            this.clipboard.copy(text);
+        });
     }
 }
 

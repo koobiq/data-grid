@@ -16,6 +16,7 @@ import {
     KbqAgGridCopyFormatter,
     kbqAgGridCopyFormatterCsv,
     kbqAgGridCopyFormatterJson,
+    kbqAgGridCopyFormatterTsv,
     KbqAgGridThemeModule
 } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
@@ -330,7 +331,9 @@ export class DevApp {
             case 'json': {
                 return kbqAgGridCopyFormatterJson;
             }
-            case 'tsv':
+            case 'tsv': {
+                return kbqAgGridCopyFormatterTsv;
+            }
             default: {
                 return undefined;
             }
