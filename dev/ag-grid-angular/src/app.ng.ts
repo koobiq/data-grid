@@ -13,7 +13,7 @@ import {
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
-import { AgGridModule } from 'ag-grid-angular';
+import { AgGridModule, ICellRendererAngularComp } from 'ag-grid-angular';
 import {
     AllCommunityModule,
     CellClickedEvent,
@@ -25,6 +25,7 @@ import {
     FullWidthCellKeyDownEvent,
     GridApi,
     GridReadyEvent,
+    ICellRendererParams,
     ITooltipParams,
     ModuleRegistry,
     RowDragEvent,
@@ -33,6 +34,43 @@ import {
 import { catchError, of } from 'rxjs';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
+
+@Component({
+    standalone: true,
+    selector: 'dev-row-actions',
+    template: `
+        <button type="button" (click)="onDelete()">Delete</button>
+    `,
+    styles: `
+        :host {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            height: 100%;
+            padding: 0 8px;
+        }
+
+        button {
+            cursor: pointer;
+        }
+    `,
+    changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class DevRowActionsRenderer implements ICellRendererAngularComp {
+    private params!: ICellRendererParams;
+
+    agInit(params: ICellRendererParams): void {
+        this.params = params;
+    }
+
+    refresh(): boolean {
+        return false;
+    }
+
+    onDelete(): void {
+        this.params.api.applyTransaction({ remove: [this.params.data] });
+    }
+}
 
 type DevOlympicData = {
     athlete: string;
@@ -231,6 +269,33 @@ enum DevThemeSelector {
             max-width: 2036px;
         }
 
+        :host ::ng-deep .ag-pinned-right-header:has([col-id='dev-actions-column']),
+        :host ::ng-deep .ag-pinned-right-cols-container:has([col-id='dev-actions-column']) {
+            position: absolute;
+            right: 0;
+        }
+
+        :host ::ng-deep .ag-header-row:has([col-id='dev-actions-column']),
+        :host ::ng-deep .ag-row:has([col-id='dev-actions-column']) {
+            background-color: transparent;
+            // background:
+            //     linear-gradient(to right, transparent 0%, var(--kbq-option-background) 70%),
+            //     linear-gradient(to right, transparent 0%, var(--kbq-background-bg) 80%);
+        }
+
+        :host ::ng-deep [col-id='dev-actions-column'] {
+            visibility: hidden;
+        }
+
+        :host ::ng-deep .ag-row-hover [col-id='dev-actions-column'] {
+            visibility: visible;
+        }
+
+        :host ::ng-deep .ag-pinned-right-header:has([col-id='dev-actions-column']),
+        :host ::ng-deep .ag-pinned-right-cols-container:has([col-id='dev-actions-column']) {
+            --ag-theme-koobiq-border: transparent;
+        }
+
         .dev-accordion {
             margin-bottom: var(--kbq-size-s);
         }
@@ -404,6 +469,19 @@ export class DevApp {
                     tooltip ? 'Tooltip for Total Cell: ' + data!.athlete : null,
                 cellEditor: 'agNumberCellEditor',
                 pinned: pinLastColumn ? 'right' : false
+            },
+            {
+                headerName: '',
+                colId: 'dev-actions-column',
+                width: 80,
+                pinned: 'right',
+                sortable: false,
+                filter: false,
+                resizable: false,
+                suppressMovable: true,
+                editable: false,
+                suppressHeaderMenuButton: true,
+                cellRenderer: DevRowActionsRenderer
             }
         ];
     });
