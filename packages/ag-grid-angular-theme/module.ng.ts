@@ -1,7 +1,7 @@
 import { Clipboard } from '@angular/cdk/clipboard';
 import { A, C, DOWN_ARROW, UP_ARROW } from '@angular/cdk/keycodes';
 import { DOCUMENT } from '@angular/common';
-import { booleanAttribute, Directive, inject, Injectable, input, NgModule } from '@angular/core';
+import { booleanAttribute, Directive, inject, Injectable, input, NgModule, output } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
@@ -273,35 +273,35 @@ export class KbqAgGridShortcuts {
      * <ag-grid-angular kbqAgGridTheme (cellKeyDown)="keyboard.copySelectedByCtrlC($event)" />
      * ```
      */
-    copySelectedByCtrlC(
+    async copySelectedByCtrlC(
         { event, api }: CellKeyDownEvent | FullWidthCellKeyDownEvent,
         formatter: KbqAgGridCopyFormatter = kbqAgGridCopyFormatterTsv
-    ): void {
-        if (!isKeyboardEvent(event)) return;
+    ): Promise<boolean> {
+        if (!isKeyboardEvent(event)) return Promise.resolve(false);
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const { keyCode, metaKey, ctrlKey } = event;
 
         const targetShortcut = (ctrlKey || metaKey) && keyCode === C;
 
-        if (!targetShortcut) return;
+        if (!targetShortcut) return Promise.resolve(false);
 
         const selection = this.document.getSelection();
 
-        if (selection && selection.toString().length > 0) return;
+        if (selection && selection.toString().length > 0) return Promise.resolve(false);
 
         const selectedNodes = api.getSelectedNodes();
 
-        if (selectedNodes.length === 0) return;
+        if (selectedNodes.length === 0) return Promise.resolve(false);
 
         event.preventDefault();
 
         const text = formatter({ selectedNodes, api });
 
-        // Deferring clipboard.copy to the next tick prevents AG Grid's internal
-        // keyboard handling from interfering with the clipboard operation.
-        setTimeout(() => {
-            this.clipboard.copy(text);
+        return new Promise((resolve) => {
+            // Deferring clipboard.copy to the next tick prevents AG Grid's internal
+            // keyboard handling from interfering with the clipboard operation.
+            setTimeout(() => resolve(this.clipboard.copy(text)));
         });
     }
 }
@@ -473,9 +473,19 @@ export class KbqAgGridCopyByCtrlC {
         alias: 'kbqAgGridCopyFormatter'
     });
 
+    /** Emits the result of the clipboard copy operation. */
+    readonly copied = output<boolean>({
+        // eslint-disable-next-line @angular-eslint/no-output-rename
+        alias: 'kbqAgGridCopyDone'
+    });
+
     constructor() {
         this.grid.cellKeyDown.pipe(takeUntilDestroyed()).subscribe((event) => {
-            if (this.enabled()) this.shortcuts.copySelectedByCtrlC(event, this.formatter());
+            if (this.enabled()) {
+                void this.shortcuts
+                    .copySelectedByCtrlC(event, this.formatter())
+                    .then((result) => this.copied.emit(result));
+            }
         });
     }
 }

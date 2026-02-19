@@ -232,6 +232,7 @@ enum DevThemeSelector {
             [tooltipShowDelay]="500"
             [animateRows]="animateRows()"
             [enableCellTextSelection]="cellTextSelection()"
+            (kbqAgGridCopyDone)="onCopyDone($event)"
             (gridReady)="onGridReady($event)"
             (firstDataRendered)="onFirstDataRendered($event)"
             (dragStarted)="onDragStarted($event)"
@@ -592,5 +593,9 @@ export class DevApp {
 
     onCellClicked(event: CellClickedEvent): void {
         console.debug('onCellClicked:', event);
+    }
+
+    onCopyDone(event: boolean): void {
+        console.debug('onCopyDone:', event);
     }
 }
