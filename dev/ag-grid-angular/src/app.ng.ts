@@ -12,7 +12,13 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
+import {
+    KbqAgGridCopyFormatter,
+    kbqAgGridCopyFormatterCsv,
+    kbqAgGridCopyFormatterJson,
+    kbqAgGridCopyFormatterTsv,
+    KbqAgGridThemeModule
+} from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import {
     AllCommunityModule,
@@ -57,7 +63,7 @@ enum DevThemeSelector {
     imports: [AgGridModule, KbqAgGridThemeModule, FormsModule],
     selector: 'dev-root',
     template: `
-        <details class="dev-accordion">
+        <details class="dev-accordion" data-testid="e2eOptionsAccordion">
             <summary>Options</summary>
             <fieldset class="dev-options">
                 <legend>Global</legend>
@@ -157,6 +163,10 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="showIndexColumn" />
                     Show Index Column
                 </label>
+                <label data-testid="e2eCellTextSelectionToggle">
+                    <input type="checkbox" [(ngModel)]="cellTextSelection" />
+                    Cell Text Selection
+                </label>
             </fieldset>
             <fieldset class="dev-options">
                 <legend>Keyboard</legend>
@@ -176,6 +186,18 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="selectRowsByCtrlClick" />
                     Select Row by Ctrl+Click
                 </label>
+                <label data-testid="e2eCopyByCtrlCToggle">
+                    <input type="checkbox" [(ngModel)]="copyByCtrlC" />
+                    Copy by Ctrl+C
+                </label>
+                <label>
+                    Copy Format:
+                    <select data-testid="e2eCopyFormatSelect" [disabled]="!copyByCtrlC()" [(ngModel)]="copyFormat">
+                        @for (option of copyFormatOptions; track option) {
+                            <option [value]="option">{{ option }}</option>
+                        }
+                    </select>
+                </label>
             </fieldset>
             <fieldset class="dev-options">
                 <legend>KbqAgGridAngularTheme</legend>
@@ -193,6 +215,8 @@ enum DevThemeSelector {
             [kbqAgGridSelectRowsByShiftArrow]="selectRowsByShiftArrow()"
             [kbqAgGridSelectAllRowsByCtrlA]="selectAllRowsByCtrlA()"
             [kbqAgGridSelectRowsByCtrlClick]="selectRowsByCtrlClick()"
+            [kbqAgGridCopyByCtrlC]="copyByCtrlC()"
+            [kbqAgGridCopyFormatter]="copyFormatter()"
             [disableCellFocusStyles]="disableCellFocusStyles()"
             [columnDefs]="columnDefs()"
             [rowSelection]="rowSelection()"
@@ -207,6 +231,8 @@ enum DevThemeSelector {
             [suppressCellFocus]="suppressCellFocus()"
             [tooltipShowDelay]="500"
             [animateRows]="animateRows()"
+            [enableCellTextSelection]="cellTextSelection()"
+            (kbqAgGridCopyDone)="onCopyDone($event)"
             (gridReady)="onGridReady($event)"
             (firstDataRendered)="onFirstDataRendered($event)"
             (dragStarted)="onDragStarted($event)"
@@ -255,6 +281,8 @@ export class DevApp {
     private readonly renderer = inject(Renderer2);
     private readonly document = inject(DOCUMENT);
 
+    readonly copyFormatOptions = ['tsv', 'csv', 'json', 'custom'] as const;
+
     private gridApi!: GridApi | null;
 
     readonly lightTheme = model(true);
@@ -284,7 +312,34 @@ export class DevApp {
     readonly selectRowsByShiftArrow = model(true);
     readonly selectRowsByCtrlClick = model(true);
     readonly toNextRowByTab = model(true);
+    readonly copyByCtrlC = model(true);
+    readonly copyFormat = model<(typeof this.copyFormatOptions)[number]>('tsv');
     readonly enableClickSelection = model(false);
+    readonly cellTextSelection = model(true);
+
+    readonly copyFormatter = computed<KbqAgGridCopyFormatter | undefined>(() => {
+        const format = this.copyFormat();
+
+        switch (format) {
+            case 'custom': {
+                const customFormatter: KbqAgGridCopyFormatter = ({ selectedNodes }): string =>
+                    `Custom Copy Formatter Output. Selected Nodes: ${selectedNodes.length}.`;
+                return customFormatter;
+            }
+            case 'csv': {
+                return kbqAgGridCopyFormatterCsv;
+            }
+            case 'json': {
+                return kbqAgGridCopyFormatterJson;
+            }
+            case 'tsv': {
+                return kbqAgGridCopyFormatterTsv;
+            }
+            default: {
+                return undefined;
+            }
+        }
+    });
 
     readonly rowSelection = computed((): RowSelectionOptions => {
         const enableClickSelection = this.enableClickSelection();
@@ -329,6 +384,7 @@ export class DevApp {
             },
             {
                 field: 'athlete',
+                headerName: 'Athlete',
                 headerTooltip: tooltip ? 'Tooltip for Athlete Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>): string | null =>
                     tooltip ? 'Tooltip for Athlete Cell: ' + data!.country : null,
@@ -342,6 +398,7 @@ export class DevApp {
             },
             {
                 field: 'age',
+                headerName: 'Age',
                 headerTooltip: tooltip ? 'Tooltip for Age Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>): string | null =>
                     tooltip ? 'Tooltip for Age Cell: ' + data!.athlete : null,
@@ -349,18 +406,21 @@ export class DevApp {
             },
             {
                 field: 'country',
+                headerName: 'Country',
                 headerTooltip: tooltip ? 'Tooltip for Country Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>): string | null =>
                     tooltip ? 'Tooltip for Country Cell: ' + data!.athlete : null
             },
             {
                 field: 'year',
+                headerName: 'Year',
                 headerTooltip: tooltip ? 'Tooltip for Year Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>): string | null =>
                     tooltip ? 'Tooltip for Year Cell: ' + data!.athlete : null
             },
             {
                 field: 'date',
+                headerName: 'Date',
                 headerTooltip: tooltip ? 'Tooltip for Date Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>): string | null =>
                     tooltip ? 'Tooltip for Date Cell: ' + data!.athlete : null,
@@ -368,6 +428,7 @@ export class DevApp {
             },
             {
                 field: 'sport',
+                headerName: 'Sport',
                 headerTooltip: tooltip ? 'Tooltip for Sport Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>): string | null =>
                     tooltip ? 'Tooltip for Sport Cell: ' + data!.athlete : null,
@@ -375,6 +436,7 @@ export class DevApp {
             },
             {
                 field: 'gold',
+                headerName: 'Gold',
                 headerTooltip: tooltip ? 'Tooltip for Gold Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>): string | null =>
                     tooltip ? 'Tooltip for Gold Cell: ' + data!.athlete : null,
@@ -385,6 +447,7 @@ export class DevApp {
             },
             {
                 field: 'silver',
+                headerName: 'Silver',
                 headerTooltip: tooltip ? 'Tooltip for Silver Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>): string | null =>
                     tooltip ? 'Tooltip for Silver Cell: ' + data!.athlete : null,
@@ -392,6 +455,7 @@ export class DevApp {
             },
             {
                 field: 'bronze',
+                headerName: 'Bronze',
                 headerTooltip: tooltip ? 'Tooltip for Bronze Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>): string | null =>
                     tooltip ? 'Tooltip for Bronze Cell: ' + data!.athlete : null,
@@ -399,6 +463,7 @@ export class DevApp {
             },
             {
                 field: 'total',
+                headerName: 'Total',
                 headerTooltip: tooltip ? 'Tooltip for Total Column Header' : undefined,
                 tooltipValueGetter: ({ data }: ITooltipParams<DevOlympicData>): string | null =>
                     tooltip ? 'Tooltip for Total Cell: ' + data!.athlete : null,
@@ -528,5 +593,9 @@ export class DevApp {
 
     onCellClicked(event: CellClickedEvent): void {
         console.debug('onCellClicked:', event);
+    }
+
+    onCopyDone(event: boolean): void {
+        console.debug('onCopyDone:', event);
     }
 }

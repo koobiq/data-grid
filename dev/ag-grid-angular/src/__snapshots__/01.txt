@@ -1,0 +1,3 @@
+index	Athlete	Age	Country	Year	Date	Sport	Gold	Silver	Bronze	Total
+4	Aleksey Nemov	24	Russia	2000	01/10/2000	Gymnastics	2	1	3	6
+5	Alicia Coutts	24	Australia	2012	12/08/2012	Swimming	1	3	1	5
