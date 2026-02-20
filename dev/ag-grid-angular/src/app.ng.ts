@@ -201,6 +201,10 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="showIndexColumn" />
                     Show Index Column
                 </label>
+                <label data-testid="e2eShowActionsColumnToggle">
+                    <input type="checkbox" [(ngModel)]="showActionsColumn" />
+                    Show Actions Column
+                </label>
                 <label data-testid="e2eCellTextSelectionToggle">
                     <input type="checkbox" [(ngModel)]="cellTextSelection" />
                     Cell Text Selection
@@ -303,14 +307,13 @@ enum DevThemeSelector {
 
         :host ::ng-deep .ag-header-row:has([col-id='dev-actions-column']),
         :host ::ng-deep .ag-row:has([col-id='dev-actions-column']) {
-            background-color: transparent;
-            // background:
-            //     linear-gradient(to right, transparent 0%, var(--kbq-option-background) 70%),
-            //     linear-gradient(to right, transparent 0%, var(--kbq-background-bg) 80%);
+            background:
+                linear-gradient(to right, transparent 0%, var(--ag-theme-koobiq-row-background-color) 70%),
+                linear-gradient(to right, transparent 0%, var(--kbq-background-bg) 80%);
         }
 
         :host ::ng-deep [col-id='dev-actions-column'] {
-            visibility: hidden;
+            // visibility: hidden;
         }
 
         :host ::ng-deep .ag-row-hover [col-id='dev-actions-column'] {
@@ -381,6 +384,7 @@ export class DevApp {
     readonly copyFormat = model<(typeof this.copyFormatOptions)[number]>('tsv');
     readonly enableClickSelection = model(false);
     readonly cellTextSelection = model(true);
+    readonly showActionsColumn = model(false);
 
     readonly copyFormatter = computed<KbqAgGridCopyFormatter | undefined>(() => {
         const format = this.copyFormat();
@@ -433,6 +437,7 @@ export class DevApp {
         const pinFirstColumn = this.pinFirstColumn();
         const pinLastColumn = this.pinLastColumn();
         const showIndexColumn = this.showIndexColumn();
+        const showActionsColumn = this.showActionsColumn();
 
         return [
             {
@@ -536,9 +541,10 @@ export class DevApp {
                 pinned: pinLastColumn ? 'right' : false
             },
             {
+                hide: !showActionsColumn,
                 headerName: '',
                 colId: 'dev-actions-column',
-                width: 80,
+                width: 100,
                 pinned: 'right',
                 sortable: false,
                 filter: false,
