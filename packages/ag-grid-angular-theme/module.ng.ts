@@ -8,6 +8,7 @@ import {
     CellClickedEvent,
     CellKeyDownEvent,
     CellPosition,
+    ColDef,
     FullWidthCellKeyDownEvent,
     GridApi,
     IRowNode,
@@ -16,6 +17,39 @@ import {
 
 const isKeyboardEvent = (event: unknown): event is KeyboardEvent => event instanceof KeyboardEvent;
 const isMouseEvent = (event: unknown): event is MouseEvent => event instanceof MouseEvent;
+
+/** Column ID for the row actions column. Use it to locate or manipulate the column via `GridApi`. */
+export const KBQ_AG_GRID_ACTIONS_COLUMN_ID = 'kbq-ag-grid-actions-column';
+
+/**
+ * Creates a column definition for the row actions column.
+ *
+ * Merges the provided `ColDef` with fixed settings: the column is pinned to the right,
+ * non-sortable, non-filterable, non-resizable, and cannot be moved or edited.
+ *
+ * @param colDef Base column definition (e.g. with a `cellRenderer`).
+ * @returns A `ColDef` with the row actions column settings applied.
+ *
+ * @example
+ * columnDefs = [
+ *     { field: 'name' },
+ *     kbqAgGridActionsColumn({ cellRenderer: MyActionsCellComponent })
+ * ];
+ */
+export const kbqAgGridActionsColumn = (colDef: ColDef): ColDef => {
+    return {
+        ...colDef,
+        headerName: '',
+        colId: KBQ_AG_GRID_ACTIONS_COLUMN_ID,
+        pinned: 'right',
+        sortable: false,
+        filter: false,
+        resizable: false,
+        suppressMovable: true,
+        editable: false,
+        suppressHeaderMenuButton: true
+    };
+};
 
 /**
  * Custom formatter function for {@link KbqAgGridCopyByCtrlC}.

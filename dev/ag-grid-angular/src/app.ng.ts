@@ -13,13 +13,14 @@ import {
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
+    kbqAgGridActionsColumn,
     KbqAgGridCopyFormatter,
     kbqAgGridCopyFormatterCsv,
     kbqAgGridCopyFormatterJson,
     kbqAgGridCopyFormatterTsv,
     KbqAgGridThemeModule
 } from '@koobiq/ag-grid-angular-theme';
-import { AgGridModule } from 'ag-grid-angular';
+import { AgGridModule, ICellRendererAngularComp } from 'ag-grid-angular';
 import {
     AllCommunityModule,
     CellClickedEvent,
@@ -53,7 +54,6 @@ ModuleRegistry.registerModules([AllCommunityModule]);
             align-items: center;
             justify-content: flex-end;
             height: 100%;
-            padding: 0 8px;
         }
 
         button {
@@ -197,14 +197,6 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="suppressCellFocus" />
                     Suppress Cell Focus
                 </label>
-                <label data-testid="e2eShowIndexColumnToggle">
-                    <input type="checkbox" [(ngModel)]="showIndexColumn" />
-                    Show Index Column
-                </label>
-                <label data-testid="e2eShowActionsColumnToggle">
-                    <input type="checkbox" [(ngModel)]="showActionsColumn" />
-                    Show Actions Column
-                </label>
                 <label data-testid="e2eCellTextSelectionToggle">
                     <input type="checkbox" [(ngModel)]="cellTextSelection" />
                     Cell Text Selection
@@ -246,6 +238,17 @@ enum DevThemeSelector {
                 <label>
                     <input type="checkbox" [(ngModel)]="disableCellFocusStyles" />
                     Disable cell focus styles
+                </label>
+            </fieldset>
+            <fieldset class="dev-options">
+                <legend>Custom</legend>
+                <label data-testid="e2eShowIndexColumnToggle">
+                    <input type="checkbox" [(ngModel)]="showIndexColumn" />
+                    Show Index Column
+                </label>
+                <label data-testid="e2eShowActionsColumnToggle">
+                    <input type="checkbox" [(ngModel)]="showActionsColumn" />
+                    Show Actions Column
                 </label>
             </fieldset>
         </details>
@@ -297,32 +300,6 @@ enum DevThemeSelector {
         ag-grid-angular {
             height: 100%;
             max-width: 2036px;
-        }
-
-        :host ::ng-deep .ag-pinned-right-header:has([col-id='dev-actions-column']),
-        :host ::ng-deep .ag-pinned-right-cols-container:has([col-id='dev-actions-column']) {
-            position: absolute;
-            right: 0;
-        }
-
-        :host ::ng-deep .ag-header-row:has([col-id='dev-actions-column']),
-        :host ::ng-deep .ag-row:has([col-id='dev-actions-column']) {
-            background:
-                linear-gradient(to right, transparent 0%, var(--ag-theme-koobiq-row-background-color) 70%),
-                linear-gradient(to right, transparent 0%, var(--kbq-background-bg) 80%);
-        }
-
-        :host ::ng-deep [col-id='dev-actions-column'] {
-            // visibility: hidden;
-        }
-
-        :host ::ng-deep .ag-row-hover [col-id='dev-actions-column'] {
-            visibility: visible;
-        }
-
-        :host ::ng-deep .ag-pinned-right-header:has([col-id='dev-actions-column']),
-        :host ::ng-deep .ag-pinned-right-cols-container:has([col-id='dev-actions-column']) {
-            --ag-theme-koobiq-border: transparent;
         }
 
         .dev-accordion {
@@ -540,20 +517,11 @@ export class DevApp {
                 cellEditor: 'agNumberCellEditor',
                 pinned: pinLastColumn ? 'right' : false
             },
-            {
+            kbqAgGridActionsColumn({
+                cellRenderer: DevRowActionsRenderer,
                 hide: !showActionsColumn,
-                headerName: '',
-                colId: 'dev-actions-column',
-                width: 100,
-                pinned: 'right',
-                sortable: false,
-                filter: false,
-                resizable: false,
-                suppressMovable: true,
-                editable: false,
-                suppressHeaderMenuButton: true,
-                cellRenderer: DevRowActionsRenderer
-            }
+                width: 100
+            })
         ];
     });
 
