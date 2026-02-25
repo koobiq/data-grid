@@ -4,6 +4,23 @@ import { DOCUMENT } from '@angular/common';
 import {
     ApplicationRef,
     booleanAttribute,
+    createComponent,
+    DestroyRef,
+    Directive,
+    ElementRef,
+    EnvironmentInjector,
+    inject,
+    Injectable,
+    InjectionToken,
+    Injector,
+    input,
+    NgModule,
+    output,
+    Type
+} from '@angular/core';
+import {
+    ApplicationRef,
+    booleanAttribute,
     ComponentRef,
     createComponent,
     Directive,
@@ -27,6 +44,7 @@ import {
     CellPosition,
     FullWidthCellKeyDownEvent,
     GridApi,
+    GridReadyEvent,
     IRowNode,
     TabToNextCellParams
 } from 'ag-grid-community';
@@ -507,6 +525,83 @@ export class KbqAgGridCopyByCtrlC {
     }
 }
 
+/** Parameters provided to a status bar component via {@link KBQ_AG_GRID_STATUS_BAR_PARAMS}. */
+export type KbqAgGridStatusBarParams = {
+    api: GridApi;
+};
+
+/**
+ * Injection token that provides {@link KbqAgGridStatusBarParams} to the status bar component.
+ *
+ * @example
+ * ```typescript
+ * @Component({ ... })
+ * export class MyStatusBarComponent {
+ *     private readonly params = inject(KBQ_AG_GRID_STATUS_BAR_PARAMS);
+ * }
+ * ```
+ */
+export const KBQ_AG_GRID_STATUS_BAR_PARAMS = new InjectionToken<KbqAgGridStatusBarParams>(
+    'KBQ_AG_GRID_STATUS_BAR_PARAMS'
+);
+
+/**
+ * Directive that renders a custom component as a status bar inside ag-grid-angular.
+ *
+ * The component is injected into the grid DOM below the grid body and above the pagination panel.
+ * It receives {@link KbqAgGridStatusBarParams} via the {@link KBQ_AG_GRID_STATUS_BAR_PARAMS} injection token.
+ *
+ * @example
+ * ```html
+ * <ag-grid-angular kbqAgGridTheme [kbqAgGridStatusBar]="myStatusBarComponent" />
+ * ```
+ */
+@Directive({
+    standalone: true,
+    selector: 'ag-grid-angular[kbqAgGridStatusBar]'
+})
+export class KbqAgGridStatusBar {
+    private readonly grid = inject(AgGridAngular);
+    private readonly applicationRef = inject(ApplicationRef);
+    private readonly environmentInjector = inject(EnvironmentInjector);
+    private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+    private readonly destroyRef = inject(DestroyRef);
+
+    readonly component = input.required<Type<unknown>>({ alias: 'kbqAgGridStatusBar' });
+
+    constructor() {
+        this.grid.gridReady.pipe(takeUntilDestroyed()).subscribe((event: GridReadyEvent) => this.init(event.api));
+    }
+
+    private init(api: GridApi): void {
+        const componentRef = createComponent(this.component(), {
+            environmentInjector: this.environmentInjector,
+            elementInjector: Injector.create({
+                providers: [{ provide: KBQ_AG_GRID_STATUS_BAR_PARAMS, useValue: { api } }]
+            })
+        });
+
+        this.applicationRef.attachView(componentRef.hostView);
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const componentElement: HTMLElement = componentRef.location.nativeElement;
+        const { nativeElement } = this.elementRef;
+        const rootWrapper = nativeElement.querySelector<HTMLElement>('.ag-root-wrapper');
+        const pagingPanel = nativeElement.querySelector<HTMLElement>('.ag-paging-panel');
+
+        if (pagingPanel) {
+            rootWrapper?.insertBefore(componentElement, pagingPanel);
+        } else {
+            rootWrapper?.appendChild(componentElement);
+        }
+
+        this.destroyRef.onDestroy(() => {
+            componentRef.destroy();
+            componentElement.remove();
+        });
+    }
+}
+
 /** Parameters provided to an actions column component via {@link KBQ_AG_GRID_ACTIONS_COLUMN_PARAMS}. */
 export type KbqAgGridRowActionsParams = {
     api: GridApi;
@@ -633,6 +728,8 @@ const COMPONENTS = [
     KbqAgGridSelectAllRowsByCtrlA,
     KbqAgGridSelectRowsByShiftArrow,
     KbqAgGridSelectRowsByCtrlClick,
+    KbqAgGridCopyByCtrlC,
+    KbqAgGridStatusBar
     KbqAgGridCopyByCtrlC,
     KbqAgGridRowActions
 ];
