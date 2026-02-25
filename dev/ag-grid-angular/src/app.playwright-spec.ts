@@ -1,11 +1,12 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 test.describe('KbqAgGridThemeModule', () => {
+    const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
+
     test.describe('KbqAgGridAngularTheme', () => {
         const getShowIndexColumnToggle = (page: Page): Locator => page.getByTestId('e2eShowIndexColumnToggle');
         const getLightThemeToggle = (page: Page): Locator => page.getByTestId('e2eLightThemeToggle');
         const getPaginationToggle = (page: Page): Locator => page.getByTestId('e2ePaginationToggle');
-        const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
         const getPinFirstColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinFirstColumnToggle');
         const getPinLastColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinLastColumnToggle');
 
@@ -127,6 +128,19 @@ test.describe('KbqAgGridThemeModule', () => {
             await pressCtrlC(page);
 
             expect(await getClipboardText(page)).toBe('');
+        });
+    });
+
+    test.describe('KbqAgGridRowActions', () => {
+        test('shows actions overlay on hover with horizontal scroll', async ({ page }) => {
+            await page.setViewportSize({ width: 650, height: 500 });
+            await page.goto('/');
+
+            const row = page.locator('[row-index="1"]').first();
+
+            await row.hover();
+
+            await expect(getScreenshotTarget(page)).toHaveScreenshot('03-light.png');
         });
     });
 });

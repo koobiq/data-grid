@@ -13,14 +13,14 @@ import {
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
-    kbqAgGridActionsColumn,
+    KBQ_AG_GRID_ROW_ACTIONS_PARAMS,
     KbqAgGridCopyFormatter,
     kbqAgGridCopyFormatterCsv,
     kbqAgGridCopyFormatterJson,
     kbqAgGridCopyFormatterTsv,
     KbqAgGridThemeModule
 } from '@koobiq/ag-grid-angular-theme';
-import { AgGridModule, ICellRendererAngularComp } from 'ag-grid-angular';
+import { AgGridModule } from 'ag-grid-angular';
 import {
     AllCommunityModule,
     CellClickedEvent,
@@ -32,7 +32,6 @@ import {
     FullWidthCellKeyDownEvent,
     GridApi,
     GridReadyEvent,
-    ICellRendererParams,
     ITooltipParams,
     ModuleRegistry,
     RowDragEvent,
@@ -54,6 +53,8 @@ ModuleRegistry.registerModules([AllCommunityModule]);
             align-items: center;
             justify-content: flex-end;
             height: 100%;
+            width: 100px;
+            padding: 0 var(--kbq-size-s);
         }
 
         button {
@@ -62,16 +63,8 @@ ModuleRegistry.registerModules([AllCommunityModule]);
     `,
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DevRowActionsRenderer implements ICellRendererAngularComp {
-    private params!: ICellRendererParams;
-
-    agInit(params: ICellRendererParams): void {
-        this.params = params;
-    }
-
-    refresh(): boolean {
-        return false;
-    }
+export class DevRowActionsComponent {
+    private readonly params = inject(KBQ_AG_GRID_ROW_ACTIONS_PARAMS);
 
     onDelete(): void {
         this.params.api.applyTransaction({ remove: [this.params.data] });
@@ -246,16 +239,13 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="showIndexColumn" />
                     Show Index Column
                 </label>
-                <label data-testid="e2eShowActionsColumnToggle">
-                    <input type="checkbox" [(ngModel)]="showActionsColumn" />
-                    Show Actions Column
-                </label>
             </fieldset>
         </details>
 
         <ag-grid-angular
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
+            [kbqAgGridRowActions]="rowActionsComponent"
             [kbqAgGridToNextRowByTab]="toNextRowByTab()"
             [kbqAgGridSelectRowsByShiftArrow]="selectRowsByShiftArrow()"
             [kbqAgGridSelectAllRowsByCtrlA]="selectAllRowsByCtrlA()"
@@ -326,6 +316,7 @@ export class DevApp {
     private readonly renderer = inject(Renderer2);
     private readonly document = inject(DOCUMENT);
 
+    readonly rowActionsComponent = DevRowActionsComponent;
     readonly copyFormatOptions = ['tsv', 'csv', 'json', 'custom'] as const;
 
     private gridApi!: GridApi | null;
@@ -361,7 +352,6 @@ export class DevApp {
     readonly copyFormat = model<(typeof this.copyFormatOptions)[number]>('tsv');
     readonly enableClickSelection = model(false);
     readonly cellTextSelection = model(true);
-    readonly showActionsColumn = model(false);
 
     readonly copyFormatter = computed<KbqAgGridCopyFormatter | undefined>(() => {
         const format = this.copyFormat();
@@ -414,7 +404,6 @@ export class DevApp {
         const pinFirstColumn = this.pinFirstColumn();
         const pinLastColumn = this.pinLastColumn();
         const showIndexColumn = this.showIndexColumn();
-        const showActionsColumn = this.showActionsColumn();
 
         return [
             {
@@ -516,12 +505,7 @@ export class DevApp {
                     tooltip ? 'Tooltip for Total Cell: ' + data!.athlete : null,
                 cellEditor: 'agNumberCellEditor',
                 pinned: pinLastColumn ? 'right' : false
-            },
-            kbqAgGridActionsColumn({
-                cellRenderer: DevRowActionsRenderer,
-                hide: !showActionsColumn,
-                width: 100
-            })
+            }
         ];
     });
 

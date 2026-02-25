@@ -708,42 +708,19 @@
     }
 }
 
-@mixin _ag-actions-column() {
-    // Based on `KBQ_AG_GRID_ACTIONS_COLUMN_ID`
-    $id: 'kbq-ag-grid-actions-column';
-    $selector: "[col-id='#{$id}']";
-
-    #{$selector} {
-        visibility: hidden;
-    }
-
-    .ag-row-hover #{$selector},
-    .ag-row-focus #{$selector} {
-        visibility: visible;
-    }
-
-    #{$selector} .ag-cell-wrapper,
-    #{$selector} .ag-cell-value {
-        height: inherit;
-    }
-
-    .ag-pinned-right-header:has(#{$selector}),
-    .ag-pinned-right-cols-container:has(#{$selector}) {
-        --ag-theme-koobiq-border: transparent;
-
-        position: absolute;
+@mixin _ag-row-actions-overlay() {
+    // Based on `KbqAgGridRowActions` directive
+    .kbq-ag-grid-row-actions-overlay {
+        background:
+            linear-gradient(to right, transparent 0%, var(--ag-theme-koobiq-row-background-color) 70%),
+            linear-gradient(to right, transparent 0%, var(--kbq-background-bg) 80%) !important;
+        position: sticky;
         right: 0;
-    }
-
-    .ag-row:has(#{$selector}) {
-        background: transparent;
-
-        &.ag-row-hover,
-        &.ag-row-focus {
-            background:
-                linear-gradient(to right, transparent 0%, var(--ag-theme-koobiq-row-background-color) 70%),
-                linear-gradient(to right, transparent 0%, var(--kbq-background-bg) 80%) !important;
-        }
+        height: 100%;
+        z-index: 1;
+        float: right;
+        display: flex;
+        align-items: center;
     }
 }
 
@@ -775,7 +752,7 @@
     @include _ag-body-scrollbar();
     @include _ag-pinned-column-border();
     @include _ag-cell-with-selection-checkbox();
-    @include _ag-actions-column();
+    @include _ag-row-actions-overlay();
 
     &.ag-theme-koobiq_disable-cell-focus-styles {
         @include _ag-disable-cell-focus();
