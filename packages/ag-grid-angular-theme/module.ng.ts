@@ -4,25 +4,9 @@ import { DOCUMENT } from '@angular/common';
 import {
     ApplicationRef,
     booleanAttribute,
-    createComponent,
-    DestroyRef,
-    Directive,
-    ElementRef,
-    EnvironmentInjector,
-    inject,
-    Injectable,
-    InjectionToken,
-    Injector,
-    input,
-    NgModule,
-    output,
-    Type
-} from '@angular/core';
-import {
-    ApplicationRef,
-    booleanAttribute,
     ComponentRef,
     createComponent,
+    DestroyRef,
     Directive,
     ElementRef,
     EnvironmentInjector,
@@ -586,8 +570,8 @@ export class KbqAgGridStatusBar {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const componentElement: HTMLElement = componentRef.location.nativeElement;
         const { nativeElement } = this.elementRef;
-        const rootWrapper = nativeElement.querySelector<HTMLElement>('.ag-root-wrapper');
-        const pagingPanel = nativeElement.querySelector<HTMLElement>('.ag-paging-panel');
+        const rootWrapper = nativeElement.querySelector('.ag-root-wrapper');
+        const pagingPanel = nativeElement.querySelector('.ag-paging-panel');
 
         if (pagingPanel) {
             rootWrapper?.insertBefore(componentElement, pagingPanel);
@@ -729,8 +713,7 @@ const COMPONENTS = [
     KbqAgGridSelectRowsByShiftArrow,
     KbqAgGridSelectRowsByCtrlClick,
     KbqAgGridCopyByCtrlC,
-    KbqAgGridStatusBar
-    KbqAgGridCopyByCtrlC,
+    KbqAgGridStatusBar,
     KbqAgGridRowActions
 ];
 
