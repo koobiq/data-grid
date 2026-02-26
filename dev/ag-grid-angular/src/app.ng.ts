@@ -13,6 +13,7 @@ import {
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
+    KBQ_AG_GRID_ROW_ACTIONS_PARAMS,
     KbqAgGridCopyFormatter,
     kbqAgGridCopyFormatterCsv,
     kbqAgGridCopyFormatterJson,
@@ -39,6 +40,36 @@ import {
 import { catchError, of } from 'rxjs';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
+
+@Component({
+    standalone: true,
+    selector: 'dev-row-actions',
+    template: `
+        <button type="button" (click)="onDelete()">Delete</button>
+    `,
+    styles: `
+        :host {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            height: 100%;
+            width: 100px;
+            padding: 0 var(--kbq-size-s);
+        }
+
+        button {
+            cursor: pointer;
+        }
+    `,
+    changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class DevRowActionsComponent {
+    private readonly params = inject(KBQ_AG_GRID_ROW_ACTIONS_PARAMS);
+
+    onDelete(): void {
+        this.params.api.applyTransaction({ remove: [this.params.data] });
+    }
+}
 
 type DevOlympicData = {
     athlete: string;
@@ -159,10 +190,6 @@ enum DevThemeSelector {
                     <input type="checkbox" [(ngModel)]="suppressCellFocus" />
                     Suppress Cell Focus
                 </label>
-                <label data-testid="e2eShowIndexColumnToggle">
-                    <input type="checkbox" [(ngModel)]="showIndexColumn" />
-                    Show Index Column
-                </label>
                 <label data-testid="e2eCellTextSelectionToggle">
                     <input type="checkbox" [(ngModel)]="cellTextSelection" />
                     Cell Text Selection
@@ -206,11 +233,19 @@ enum DevThemeSelector {
                     Disable cell focus styles
                 </label>
             </fieldset>
+            <fieldset class="dev-options">
+                <legend>Custom</legend>
+                <label data-testid="e2eShowIndexColumnToggle">
+                    <input type="checkbox" [(ngModel)]="showIndexColumn" />
+                    Show Index Column
+                </label>
+            </fieldset>
         </details>
 
         <ag-grid-angular
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
+            [kbqAgGridRowActions]="rowActionsComponent"
             [kbqAgGridToNextRowByTab]="toNextRowByTab()"
             [kbqAgGridSelectRowsByShiftArrow]="selectRowsByShiftArrow()"
             [kbqAgGridSelectAllRowsByCtrlA]="selectAllRowsByCtrlA()"
@@ -281,6 +316,7 @@ export class DevApp {
     private readonly renderer = inject(Renderer2);
     private readonly document = inject(DOCUMENT);
 
+    readonly rowActionsComponent = DevRowActionsComponent;
     readonly copyFormatOptions = ['tsv', 'csv', 'json', 'custom'] as const;
 
     private gridApi!: GridApi | null;

@@ -708,6 +708,22 @@
     }
 }
 
+@mixin _ag-row-actions-overlay() {
+    // Based on `KbqAgGridRowActions` directive
+    .kbq-ag-grid-row-actions-overlay {
+        background:
+            linear-gradient(to right, transparent 0%, var(--ag-theme-koobiq-row-background-color) 70%),
+            linear-gradient(to right, transparent 0%, var(--kbq-background-bg) 80%) !important;
+        position: sticky;
+        right: 0;
+        height: 100%;
+        z-index: 1;
+        float: right;
+        display: flex;
+        align-items: center;
+    }
+}
+
 .ag-theme-koobiq {
     // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
     --ag-background-color: var(--kbq-background-bg);
@@ -736,6 +752,7 @@
     @include _ag-body-scrollbar();
     @include _ag-pinned-column-border();
     @include _ag-cell-with-selection-checkbox();
+    @include _ag-row-actions-overlay();
 
     &.ag-theme-koobiq_disable-cell-focus-styles {
         @include _ag-disable-cell-focus();
