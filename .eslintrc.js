@@ -1,7 +1,5 @@
 // @ts-check
 
-const isCI = !!process.env.CI;
-
 /**
  * @param {string} str
  * @returns {string}
@@ -183,12 +181,8 @@ const config = {
         commonjs: true,
         node: true
     },
-    plugins: ['file-progress'],
     extends: ['plugin:eslint-comments/recommended'],
     rules: {
-        // plugin:file-progress
-        'file-progress/activate': isCI ? 0 : 1,
-
         // plugin:eslint-comments
         'eslint-comments/no-unused-disable': 1
     },

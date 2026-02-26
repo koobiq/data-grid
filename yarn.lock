@@ -9072,7 +9072,6 @@ __metadata:
     eslint: "npm:^8.57.0"
     eslint-config-prettier: "npm:^10.1.8"
     eslint-plugin-eslint-comments: "npm:^3.2.0"
-    eslint-plugin-file-progress: "npm:^1.5.0"
     eslint-plugin-prettier: "npm:^5.5.5"
     eslint-plugin-promise: "npm:^7.2.1"
     eslint-plugin-rxjs: "npm:^5.0.3"
@@ -10108,18 +10107,6 @@ __metadata:
   peerDependencies:
     eslint: ">=4.19.1"
   checksum: 10c0/c71db824592dc8ea498021572a0bd33d763ef26126bdb3b84a027ca75a1adbe0894ec95024f7de39ef12308560e62cbf8af0d06ffe472be5ba8bd9169c928e96
-  languageName: node
-  linkType: hard
-
-"eslint-plugin-file-progress@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "eslint-plugin-file-progress@npm:1.5.0"
-  dependencies:
-    nanospinner: "npm:^1.1.0"
-    picocolors: "npm:^1.0.1"
-  peerDependencies:
-    eslint: ^7.0.0 || ^8.0.0 || ^9.0.0
-  checksum: 10c0/7c5712d810102a4264998ebaba31a4a0d8a81693ec938b607fc48e837a65c3cd12a93e89de35a09326bd831133394b2ad9e8575ba22cfcda7d91a4fd2efa66b7
   languageName: node
   linkType: hard
 
@@ -14345,15 +14332,6 @@ __metadata:
   bin:
     nanoid: bin/nanoid.cjs
   checksum: 10c0/40e7f70b3d15f725ca072dfc4f74e81fcf1fbb02e491cf58ac0c79093adc9b0a73b152bcde57df4b79cd097e13023d7504acb38404a4da7bc1cd8e887b82fe0b
-  languageName: node
-  linkType: hard
-
-"nanospinner@npm:^1.1.0":
-  version: 1.2.2
-  resolution: "nanospinner@npm:1.2.2"
-  dependencies:
-    picocolors: "npm:^1.1.1"
-  checksum: 10c0/07264f63816a8ec24d84ffe216a605cf11dffd8b098d4c5e6790437304b47e10ce4fc341de8dbcfc1b59aa42107f9949c89bcc201239eb61a80e14b6b1a20c90
   languageName: node
   linkType: hard
 
