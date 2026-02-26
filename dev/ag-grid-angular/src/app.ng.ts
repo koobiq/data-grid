@@ -15,8 +15,8 @@ import {
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
-    KBQ_AG_GRID_STATUS_BAR_PARAMS,
     KBQ_AG_GRID_ROW_ACTIONS_PARAMS,
+    KBQ_AG_GRID_STATUS_BAR_PARAMS,
     KbqAgGridCopyFormatter,
     kbqAgGridCopyFormatterCsv,
     kbqAgGridCopyFormatterJson,
