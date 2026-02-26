@@ -1,3 +1,15 @@
+## 34.1.0 (2026-02-26)
+
+### 🚀 Features
+
+- **ag-grid-angular-theme:** add `KbqAgGridStatusBar` directive (#DS-3622) ([#130](https://github.com/koobiq/data-grid/pull/130))
+- **ag-grid-angular-theme:** add `KbqAgGridRowActions` directive (#DS-3944) ([#129](https://github.com/koobiq/data-grid/pull/129))
+- **ag-grid-angular-theme:** add `KbqAgGridCopyByCtrlC` directive (#DS-4222) ([#128](https://github.com/koobiq/data-grid/pull/128))
+
+### ❤️ Thank You
+
+- Artem Belik
+
 # 34.0.0 (2025-11-21)
 
 ### 🚀 Features
