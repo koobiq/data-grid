@@ -4,16 +4,19 @@ import {
     ChangeDetectionStrategy,
     Component,
     computed,
+    DestroyRef,
     inject,
     isDevMode,
     model,
     Renderer2,
-    Signal
+    Signal,
+    signal
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
     KBQ_AG_GRID_ROW_ACTIONS_PARAMS,
+    KBQ_AG_GRID_STATUS_BAR_PARAMS,
     KbqAgGridCopyFormatter,
     kbqAgGridCopyFormatterCsv,
     kbqAgGridCopyFormatterJson,
@@ -87,6 +90,48 @@ type DevOlympicData = {
 enum DevThemeSelector {
     Light = 'kbq-light',
     Dark = 'kbq-dark'
+}
+
+@Component({
+    standalone: true,
+    selector: 'dev-ag-grid-status-bar',
+    template: `
+        <div>Total rows: {{ totalRows() }}</div>
+        <div>Selected: {{ selectedRows() }}</div>
+    `,
+    styles: `
+        :host {
+            display: flex;
+            align-items: center;
+            gap: var(--kbq-size-l);
+            height: var(--kbq-size-4xl);
+            padding: 0 var(--kbq-size-l);
+            border-top: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
+        }
+    `,
+    changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class DevAgGridStatusBarComponent {
+    private readonly params = inject(KBQ_AG_GRID_STATUS_BAR_PARAMS);
+    private readonly destroyRef = inject(DestroyRef);
+
+    readonly totalRows = signal(0);
+    readonly selectedRows = signal(0);
+
+    constructor() {
+        const { api } = this.params;
+
+        const updateTotal = (): void => this.totalRows.set(api.getDisplayedRowCount());
+        const updateSelected = (): void => this.selectedRows.set(api.getSelectedNodes().length);
+
+        api.addEventListener('modelUpdated', updateTotal);
+        api.addEventListener('selectionChanged', updateSelected);
+
+        this.destroyRef.onDestroy(() => {
+            api.removeEventListener('modelUpdated', updateTotal);
+            api.removeEventListener('selectionChanged', updateSelected);
+        });
+    }
 }
 
 @Component({
@@ -253,6 +298,7 @@ enum DevThemeSelector {
             [kbqAgGridCopyByCtrlC]="copyByCtrlC()"
             [kbqAgGridCopyFormatter]="copyFormatter()"
             [disableCellFocusStyles]="disableCellFocusStyles()"
+            [kbqAgGridStatusBar]="statusBarComponent"
             [columnDefs]="columnDefs()"
             [rowSelection]="rowSelection()"
             [defaultColDef]="defaultColDef()"
@@ -352,6 +398,8 @@ export class DevApp {
     readonly copyFormat = model<(typeof this.copyFormatOptions)[number]>('tsv');
     readonly enableClickSelection = model(false);
     readonly cellTextSelection = model(true);
+
+    readonly statusBarComponent = DevAgGridStatusBarComponent;
 
     readonly copyFormatter = computed<KbqAgGridCopyFormatter | undefined>(() => {
         const format = this.copyFormat();
