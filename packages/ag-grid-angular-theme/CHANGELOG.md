@@ -1,3 +1,13 @@
+## 34.1.1 (2026-02-27)
+
+### 🩹 Fixes
+
+- **ag-grid-angular-theme:** emit copy event (#DS-4222) ([#131](https://github.com/koobiq/data-grid/pull/131))
+
+### ❤️ Thank You
+
+- Artem Belik @artembelik
+
 ## 34.1.0 (2026-02-26)
 
 ### 🚀 Features
