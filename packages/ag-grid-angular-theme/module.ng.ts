@@ -44,6 +44,14 @@ const isMouseEvent = (event: unknown): event is MouseEvent => event instanceof M
  */
 export type KbqAgGridCopyFormatter = (params: { selectedNodes: IRowNode[]; api: GridApi }) => string;
 
+/** Result of a clipboard copy operation performed by {@link KbqAgGridCopyByCtrlC}. */
+export type KbqAgGridCopyEvent = {
+    /** Whether the text was successfully written to the clipboard. */
+    success: boolean;
+    /** The text that was attempted to be copied. */
+    text: string;
+};
+
 /** Formats selected rows as tab-separated values (TSV) with a header row. */
 export const kbqAgGridCopyFormatterTsv: KbqAgGridCopyFormatter = ({ selectedNodes, api }) => {
     const columns = api.getAllDisplayedColumns().filter((column) => !column.getColId().includes('ag-Grid-'));
@@ -295,23 +303,23 @@ export class KbqAgGridShortcuts {
     async copySelectedByCtrlC(
         { event, api }: CellKeyDownEvent | FullWidthCellKeyDownEvent,
         formatter: KbqAgGridCopyFormatter = kbqAgGridCopyFormatterTsv
-    ): Promise<boolean> {
-        if (!isKeyboardEvent(event)) return Promise.resolve(false);
+    ): Promise<KbqAgGridCopyEvent | null> {
+        if (!isKeyboardEvent(event)) return null;
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const { keyCode, metaKey, ctrlKey } = event;
 
         const targetShortcut = (ctrlKey || metaKey) && keyCode === C;
 
-        if (!targetShortcut) return Promise.resolve(false);
+        if (!targetShortcut) return null;
 
         const selection = this.document.getSelection();
 
-        if (selection && selection.toString().length > 0) return Promise.resolve(false);
+        if (selection && selection.toString().length > 0) return null;
 
         const selectedNodes = api.getSelectedNodes();
 
-        if (selectedNodes.length === 0) return Promise.resolve(false);
+        if (selectedNodes.length === 0) return null;
 
         event.preventDefault();
 
@@ -320,7 +328,7 @@ export class KbqAgGridShortcuts {
         return new Promise((resolve) => {
             // Deferring clipboard.copy to the next tick prevents AG Grid's internal
             // keyboard handling from interfering with the clipboard operation.
-            setTimeout(() => resolve(this.clipboard.copy(text)));
+            setTimeout(() => resolve({ success: this.clipboard.copy(text), text }));
         });
     }
 }
@@ -493,7 +501,7 @@ export class KbqAgGridCopyByCtrlC {
     });
 
     /** Emits the result of the clipboard copy operation. */
-    readonly copied = output<boolean>({
+    readonly copied = output<KbqAgGridCopyEvent>({
         // eslint-disable-next-line @angular-eslint/no-output-rename
         alias: 'kbqAgGridCopyDone'
     });
@@ -503,7 +511,7 @@ export class KbqAgGridCopyByCtrlC {
             if (this.enabled()) {
                 void this.shortcuts
                     .copySelectedByCtrlC(event, this.formatter())
-                    .then((result) => this.copied.emit(result));
+                    .then((result) => (result === null ? undefined : this.copied.emit(result)));
             }
         });
     }

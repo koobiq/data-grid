@@ -17,6 +17,7 @@ import { FormsModule } from '@angular/forms';
 import {
     KBQ_AG_GRID_ROW_ACTIONS_PARAMS,
     KBQ_AG_GRID_STATUS_BAR_PARAMS,
+    KbqAgGridCopyEvent,
     KbqAgGridCopyFormatter,
     kbqAgGridCopyFormatterCsv,
     kbqAgGridCopyFormatterJson,
@@ -679,7 +680,7 @@ export class DevApp {
         console.debug('onCellClicked:', event);
     }
 
-    onCopyDone(event: boolean): void {
+    onCopyDone(event: KbqAgGridCopyEvent): void {
         console.debug('onCopyDone:', event);
     }
 }
