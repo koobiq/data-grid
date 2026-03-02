@@ -3457,10 +3457,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@koobiq/design-tokens@npm:^3.15.0":
-  version: 3.15.0
-  resolution: "@koobiq/design-tokens@npm:3.15.0"
-  checksum: 10c0/92a3bb2b82f4890067a3814e7b382392e17291bc9cae12c0871540f3194493e9207751bb1eac43f4222f373f5ad239365f8174ba3ec80da74922d5e26fd7e4b3
+"@koobiq/design-tokens@npm:^3.15.2":
+  version: 3.15.2
+  resolution: "@koobiq/design-tokens@npm:3.15.2"
+  checksum: 10c0/1416a60b65902d230680c50123089fbc6c3cdc65e7ebf10fcbadf9eeefca5df85b58e06d577f1b831ccad2f29f2fa350a969056381e522c8a64ba466ba367a91
   languageName: node
   linkType: hard
 
@@ -9071,7 +9071,7 @@ __metadata:
     "@commitlint/cli": "npm:^19.8.1"
     "@commitlint/config-conventional": "npm:^19.8.1"
     "@fontsource/inter": "npm:^5.2.8"
-    "@koobiq/design-tokens": "npm:^3.15.0"
+    "@koobiq/design-tokens": "npm:^3.15.2"
     "@koobiq/icons": "npm:^10.10.0"
     "@nx/angular": "npm:^20.8.4"
     "@playwright/test": "npm:^1.58.2"
