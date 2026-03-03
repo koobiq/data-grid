@@ -407,8 +407,8 @@ export class DevApp {
 
         switch (format) {
             case 'custom': {
-                const customFormatter: KbqAgGridCopyFormatter = ({ selectedNodes }): string =>
-                    `Custom Copy Formatter Output. Selected Nodes: ${selectedNodes.length}.`;
+                const customFormatter: KbqAgGridCopyFormatter = (api) =>
+                    `Custom Copy Formatter Output. Selected Nodes: ${api.getSelectedNodes().length}.`;
                 return customFormatter;
             }
             case 'csv': {

@@ -42,7 +42,7 @@ const isMouseEvent = (event: unknown): event is MouseEvent => event instanceof M
  * Receives selected nodes and the grid API.
  * Returns a string that will be written to the clipboard.
  */
-export type KbqAgGridCopyFormatter = (params: { selectedNodes: IRowNode[]; api: GridApi }) => string;
+export type KbqAgGridCopyFormatter = (api: GridApi) => string;
 
 /** Result of a clipboard copy operation performed by {@link KbqAgGridCopyByCtrlC}. */
 export type KbqAgGridCopyEvent = {
@@ -52,54 +52,35 @@ export type KbqAgGridCopyEvent = {
     text: string;
 };
 
-/** Formats selected rows as tab-separated values (TSV) with a header row. */
-export const kbqAgGridCopyFormatterTsv: KbqAgGridCopyFormatter = ({ selectedNodes, api }) => {
-    const columns = api.getAllDisplayedColumns().filter((column) => !column.getColId().includes('ag-Grid-'));
-    const headerRow = columns
-        .map((column) => {
-            const colDef = column.getColDef();
-            return colDef.headerName ?? colDef.field ?? column.getColId();
-        })
-        .join('\t');
-    const rows = selectedNodes.map((rowNode) =>
-        columns.map((column) => api.getCellValue({ rowNode, colKey: column, useFormatter: true }) ?? '').join('\t')
+/** Formats selected rows as tab-separated values (TSV). */
+export const kbqAgGridCopyFormatterTsv: KbqAgGridCopyFormatter = (api) =>
+    api
+        .getSelectedNodes()
+        .sort((r1, r2) => (r1.rowIndex ?? 0) - (r2.rowIndex ?? 0))
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        .map((row) => Object.values(row.data).join('\t'))
+        .join('\n');
+
+/** Formats selected rows as comma-separated values (CSV). */
+export const kbqAgGridCopyFormatterCsv: KbqAgGridCopyFormatter = (api) =>
+    api
+        .getSelectedNodes()
+        .sort((r1, r2) => (r1.rowIndex ?? 0) - (r2.rowIndex ?? 0))
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        .map((row) => Object.values(row.data).join(','))
+        .join('\n');
+
+/** Formats selected rows as a JSON array. */
+export const kbqAgGridCopyFormatterJson: KbqAgGridCopyFormatter = (api) =>
+    JSON.stringify(
+        api
+            .getSelectedNodes()
+            .sort((r1, r2) => (r1.rowIndex ?? 0) - (r2.rowIndex ?? 0))
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+            .map((row) => row.data),
+        null,
+        2
     );
-
-    return [headerRow, ...rows].join('\n');
-};
-
-/** Formats selected rows as comma-separated values (CSV) with a header row. */
-export const kbqAgGridCopyFormatterCsv: KbqAgGridCopyFormatter = ({ selectedNodes, api }) => {
-    const columns = api.getAllDisplayedColumns().filter((column) => !column.getColId().includes('ag-Grid-'));
-    const headerRow = columns
-        .map((column) => {
-            const colDef = column.getColDef();
-            return colDef.headerName ?? colDef.field ?? column.getColId();
-        })
-        .join(',');
-    const rows = selectedNodes.map((rowNode) =>
-        columns.map((column) => api.getCellValue({ rowNode, colKey: column, useFormatter: true }) ?? '').join(',')
-    );
-
-    return [headerRow, ...rows].join('\n');
-};
-
-/** Formats selected rows as a JSON array of objects keyed by field names. */
-export const kbqAgGridCopyFormatterJson: KbqAgGridCopyFormatter = ({ selectedNodes, api }) => {
-    const columns = api.getAllDisplayedColumns().filter((column) => !column.getColId().includes('ag-Grid-'));
-    const rows = selectedNodes.map((rowNode) =>
-        Object.fromEntries(
-            columns.map((column) => {
-                const colDef = column.getColDef();
-                const key = colDef.field ?? column.getColId();
-                const value = api.getCellValue({ rowNode, colKey: column, useFormatter: true }) ?? '';
-                return [key, value];
-            })
-        )
-    );
-
-    return JSON.stringify(rows, null, 2);
-};
 
 /**
  * Service that provides keyboard interaction functionalities for ag-grid-angular.
@@ -317,13 +298,11 @@ export class KbqAgGridShortcuts {
 
         if (selection && selection.toString().length > 0) return null;
 
-        const selectedNodes = api.getSelectedNodes();
-
-        if (selectedNodes.length === 0) return null;
+        if (api.getSelectedNodes().length === 0) return null;
 
         event.preventDefault();
 
-        const text = formatter({ selectedNodes, api });
+        const text = formatter(api);
 
         return new Promise((resolve) => {
             // Deferring clipboard.copy to the next tick prevents AG Grid's internal

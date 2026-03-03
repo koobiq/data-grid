@@ -47,7 +47,7 @@ test.describe('KbqAgGridThemeModule', () => {
         const getCell = (page: Page, rowIndex: number, colField: string): Locator => {
             return page.locator(`[row-index="${rowIndex}"] [col-id="${colField}"]`);
         };
-        const deselectRow = async (page: Page, rowIndex: number): Promise<void> => {
+        const toggleRowSelection = async (page: Page, rowIndex: number): Promise<void> => {
             return page.locator(`[row-index="${rowIndex}"] .ag-selection-checkbox`).click();
         };
         const displayDetails = async (page: Page): Promise<void> => {
@@ -61,8 +61,8 @@ test.describe('KbqAgGridThemeModule', () => {
             await page.goto('/');
             await clearClipboard(page);
             await setClipboardText(page, 'test');
-            await deselectRow(page, 4);
-            await deselectRow(page, 5);
+            await toggleRowSelection(page, 4);
+            await toggleRowSelection(page, 5);
             await getCell(page, 0, 'athlete').focus();
             await pressCtrlC(page);
 
@@ -72,6 +72,8 @@ test.describe('KbqAgGridThemeModule', () => {
         test('copies selected rows in TSV format by default', async ({ page }) => {
             await page.goto('/');
             await clearClipboard(page);
+            await toggleRowSelection(page, 2);
+            await toggleRowSelection(page, 7);
             await getCell(page, 4, 'athlete').focus();
             await pressCtrlC(page);
 
@@ -83,6 +85,8 @@ test.describe('KbqAgGridThemeModule', () => {
             await clearClipboard(page);
             await displayDetails(page);
             await getCopyFormatSelect(page).selectOption('csv');
+            await toggleRowSelection(page, 2);
+            await toggleRowSelection(page, 7);
             await getCell(page, 4, 'athlete').focus();
             await pressCtrlC(page);
 
@@ -94,6 +98,8 @@ test.describe('KbqAgGridThemeModule', () => {
             await clearClipboard(page);
             await displayDetails(page);
             await getCopyFormatSelect(page).selectOption('json');
+            await toggleRowSelection(page, 2);
+            await toggleRowSelection(page, 7);
             await getCell(page, 4, 'athlete').focus();
             await pressCtrlC(page);
 
