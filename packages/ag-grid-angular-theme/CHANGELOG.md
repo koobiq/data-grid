@@ -1,3 +1,13 @@
+## 34.1.2 (2026-03-03)
+
+### 🩹 Fixes
+
+- **ag-grid-angular-theme:** copy formatter rows order (#DS-4222) ([#138](https://github.com/koobiq/data-grid/pull/138))
+
+### ❤️ Thank You
+
+- Artem Belik @artembelik
+
 ## 34.1.1 (2026-02-27)
 
 ### 🩹 Fixes
