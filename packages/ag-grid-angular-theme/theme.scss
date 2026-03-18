@@ -4,6 +4,7 @@
         // Full AG Grid variables list:
         // https://www.ag-grid.com/archive/32.3.8/angular-data-grid/global-style-customisation-variables/
         theme: koobiq,
+        --ag-background-color: transparent,
         --ag-foreground-color: var(--kbq-foreground-contrast-secondary),
         --ag-secondary-border-color: transparent,
         --ag-tooltip-background-color: var(--kbq-background-night),
@@ -725,8 +726,6 @@
 }
 
 .ag-theme-koobiq {
-    // @TODO Should resolve - `[ERROR] $color: var(--kbq-background-bg) is not a color.`, when using for `ag.grid-styles`
-    --ag-background-color: var(--kbq-background-bg);
     --ag-theme-koobiq-active-color: var(--kbq-background-theme);
     --ag-theme-koobiq-border: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
 
