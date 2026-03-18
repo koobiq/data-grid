@@ -243,15 +243,15 @@ export class DevAgGridStatusBarComponent {
             </fieldset>
             <fieldset class="dev-options">
                 <legend>Keyboard</legend>
-                <label>
+                <label data-testid="e2eSelectRowsByShiftArrowToggle">
                     <input type="checkbox" [(ngModel)]="selectRowsByShiftArrow" />
                     Select Rows by Shift+Arrow
                 </label>
-                <label>
+                <label data-testid="e2eToNextRowByTabToggle">
                     <input type="checkbox" [(ngModel)]="toNextRowByTab" />
                     To Next Row by Tab
                 </label>
-                <label>
+                <label data-testid="e2eSelectRowsByCtrlClickToggle">
                     <input type="checkbox" [(ngModel)]="selectRowsByCtrlClick" />
                     Select Row by Ctrl+Click
                 </label>
