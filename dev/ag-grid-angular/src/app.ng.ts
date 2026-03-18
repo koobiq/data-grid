@@ -244,10 +244,6 @@ export class DevAgGridStatusBarComponent {
             <fieldset class="dev-options">
                 <legend>Keyboard</legend>
                 <label>
-                    <input type="checkbox" [(ngModel)]="selectAllRowsByCtrlA" />
-                    Select All Rows by Ctrl+A
-                </label>
-                <label>
                     <input type="checkbox" [(ngModel)]="selectRowsByShiftArrow" />
                     Select Rows by Shift+Arrow
                 </label>
@@ -294,7 +290,6 @@ export class DevAgGridStatusBarComponent {
             [kbqAgGridRowActions]="rowActionsComponent"
             [kbqAgGridToNextRowByTab]="toNextRowByTab()"
             [kbqAgGridSelectRowsByShiftArrow]="selectRowsByShiftArrow()"
-            [kbqAgGridSelectAllRowsByCtrlA]="selectAllRowsByCtrlA()"
             [kbqAgGridSelectRowsByCtrlClick]="selectRowsByCtrlClick()"
             [kbqAgGridCopyByCtrlC]="copyByCtrlC()"
             [kbqAgGridCopyFormatter]="copyFormatter()"
@@ -391,7 +386,6 @@ export class DevApp {
     readonly pinLastColumn = model(false);
     readonly suppressCellFocus = model(false);
     readonly showIndexColumn = model(isDevMode());
-    readonly selectAllRowsByCtrlA = model(true);
     readonly selectRowsByShiftArrow = model(true);
     readonly selectRowsByCtrlClick = model(true);
     readonly toNextRowByTab = model(true);
