@@ -210,6 +210,8 @@ export class KbqAgGridShortcuts {
      * ```html
      * <ag-grid-angular kbqAgGridTheme (cellKeyDown)="keyboard.selectAllRowsByCtrlA($event)" />
      * ```
+     *
+     * @deprecated AG Grid provides built-in Ctrl+A support for multi-row selection. Use `rowSelection: { mode: 'multiRow', selectAll: 'all' }` instead. Will be removed in the next major release.
      */
     selectAllRowsByCtrlA({ event, api }: CellKeyDownEvent | FullWidthCellKeyDownEvent): void {
         if (!isKeyboardEvent(event)) return;
@@ -377,6 +379,8 @@ export class KbqAgGridToNextRowByTab {
  * ```html
  * <ag-grid-angular kbqAgGridTheme kbqAgGridSelectAllRowsByCtrlA />
  * ```
+ *
+ * @deprecated AG Grid provides built-in Ctrl+A support for multi-row selection. Use `rowSelection: { mode: 'multiRow', selectAll: 'all' }` instead. Will be removed in the next major release.
  */
 @Directive({
     standalone: true,
@@ -391,6 +395,7 @@ export class KbqAgGridSelectAllRowsByCtrlA {
 
     constructor() {
         this.grid.cellKeyDown.pipe(takeUntilDestroyed()).subscribe((event) => {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             if (this.enabled()) this.shortcuts.selectAllRowsByCtrlA(event);
         });
     }
@@ -696,6 +701,7 @@ export class KbqAgGridRowActions {
 const COMPONENTS = [
     KbqAgGridTheme,
     KbqAgGridToNextRowByTab,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     KbqAgGridSelectAllRowsByCtrlA,
     KbqAgGridSelectRowsByShiftArrow,
     KbqAgGridSelectRowsByCtrlClick,
