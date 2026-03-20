@@ -766,7 +766,7 @@ export class KbqAgGridSelectRowsByShiftClick {
             const rangeEnd = Math.max(anchorIndex, rowIndex);
             const totalRows = api.getDisplayedRowCount();
 
-            const rangeNodes = [];
+            const rangeNodes: IRowNode[] = [];
 
             for (let i = rangeStart; i <= rangeEnd; i++) {
                 if (i >= 0 && i < totalRows) {
