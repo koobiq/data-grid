@@ -659,7 +659,9 @@ export class KbqAgGridRowActions {
 
         if (event.node.rowPinned) return;
 
-        const rowElement = this.elementRef.nativeElement.querySelector(`.ag-row[row-id="${rowId}"]`);
+        const rowElement = this.elementRef.nativeElement.querySelector(
+            `.ag-center-cols-viewport .ag-row[row-id="${rowId}"]`
+        );
 
         if (!rowElement) return;
 

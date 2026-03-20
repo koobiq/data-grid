@@ -24,13 +24,13 @@ test.describe('KbqAgGridThemeModule', () => {
     };
     const toggleRowSelection = async (page: Page, rowIndex: number): Promise<void> =>
         getRow(page, rowIndex).locator('.ag-checkbox-input').click();
+    const getPinFirstColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinFirstColumnToggle');
+    const getPinLastColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinLastColumnToggle');
 
     test.describe('KbqAgGridAngularTheme', () => {
         const getShowIndexColumnToggle = (page: Page): Locator => page.getByTestId('e2eShowIndexColumnToggle');
         const getLightThemeToggle = (page: Page): Locator => page.getByTestId('e2eLightThemeToggle');
         const getPaginationToggle = (page: Page): Locator => page.getByTestId('e2ePaginationToggle');
-        const getPinFirstColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinFirstColumnToggle');
-        const getPinLastColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinLastColumnToggle');
 
         test('default state', async ({ page }) => {
             await page.setViewportSize({ width: 768, height: 500 });
@@ -261,11 +261,9 @@ test.describe('KbqAgGridThemeModule', () => {
         test('shows actions overlay on hover with horizontal scroll', async ({ page }) => {
             await page.setViewportSize({ width: 650, height: 500 });
             await page.goto('/');
-
-            const row = getRow(page, 1).first();
-
-            await row.hover();
-
+            await getPinFirstColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
+            await getPinLastColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
+            await getRow(page, 1).first().hover();
             await expect(getScreenshotTarget(page)).toHaveScreenshot('03-light.png');
         });
     });
