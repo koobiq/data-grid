@@ -73,8 +73,6 @@ test.describe('KbqAgGridThemeModule', () => {
             await unselectAllRows(page);
             await clearClipboard(page);
             await setClipboardText(page, 'test');
-            await toggleRowSelection(page, 4);
-            await toggleRowSelection(page, 5);
             await getCell(page, 0, 'athlete').focus();
             await pressCtrlC(page);
             expect(await getClipboardText(page)).toBe('test');
@@ -85,6 +83,8 @@ test.describe('KbqAgGridThemeModule', () => {
             await unselectAllRows(page);
             await clearClipboard(page);
             await toggleRowSelection(page, 2);
+            await toggleRowSelection(page, 4);
+            await toggleRowSelection(page, 5);
             await toggleRowSelection(page, 7);
             await getCell(page, 4, 'athlete').focus();
             await pressCtrlC(page);
@@ -98,6 +98,8 @@ test.describe('KbqAgGridThemeModule', () => {
             await displayOptions(page);
             await getCopyFormatSelect(page).selectOption('csv');
             await toggleRowSelection(page, 2);
+            await toggleRowSelection(page, 4);
+            await toggleRowSelection(page, 5);
             await toggleRowSelection(page, 7);
             await getCell(page, 4, 'athlete').focus();
             await pressCtrlC(page);
@@ -111,6 +113,8 @@ test.describe('KbqAgGridThemeModule', () => {
             await displayOptions(page);
             await getCopyFormatSelect(page).selectOption('json');
             await toggleRowSelection(page, 2);
+            await toggleRowSelection(page, 4);
+            await toggleRowSelection(page, 5);
             await toggleRowSelection(page, 7);
             await getCell(page, 4, 'athlete').focus();
             await pressCtrlC(page);
@@ -123,6 +127,8 @@ test.describe('KbqAgGridThemeModule', () => {
             await clearClipboard(page);
             await displayOptions(page);
             await getCopyFormatSelect(page).selectOption('custom');
+            await toggleRowSelection(page, 8);
+            await toggleRowSelection(page, 9);
             await getCell(page, 4, 'athlete').focus();
             await pressCtrlC(page);
             expect(await getClipboardText(page)).toBe('Custom Copy Formatter Output. Selected Nodes: 2.');
