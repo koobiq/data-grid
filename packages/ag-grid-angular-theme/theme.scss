@@ -673,14 +673,20 @@
 }
 
 @mixin _ag-pinned-column-border() {
-    .ag-pinned-left-header,
-    .ag-pinned-left-cols-container {
-        border-right: var(--ag-theme-koobiq-border);
+    &.ag-theme-koobiq_columns-overflow-left {
+        .ag-pinned-left-header,
+        .ag-pinned-left-cols-container {
+            z-index: 1;
+            box-shadow: 8px 8px 12px 0 hsl(0deg 0% 0% / 6%);
+        }
     }
 
-    .ag-pinned-right-header,
-    .ag-pinned-right-cols-container {
-        border-left: var(--ag-theme-koobiq-border);
+    &.ag-theme-koobiq_columns-overflow-right {
+        .ag-pinned-right-header,
+        .ag-pinned-right-cols-container {
+            z-index: 1;
+            box-shadow: -8px 8px 12px 0 hsl(0deg 0% 0% / 6%);
+        }
     }
 }
 

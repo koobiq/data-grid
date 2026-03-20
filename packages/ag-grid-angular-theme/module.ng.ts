@@ -17,6 +17,7 @@ import {
     input,
     NgModule,
     output,
+    signal,
     Type
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -32,6 +33,7 @@ import {
     IRowNode,
     TabToNextCellParams
 } from 'ag-grid-community';
+import { startWith } from 'rxjs';
 
 const isKeyboardEvent = (event: unknown): event is KeyboardEvent => event instanceof KeyboardEvent;
 const isMouseEvent = (event: unknown): event is MouseEvent => event instanceof MouseEvent;
@@ -317,6 +319,10 @@ export class KbqAgGridShortcuts {
 /**
  * Directive that applies the koobiq theme for ag-grid-angular.
  *
+ * Adds the following host classes based on the horizontal scroll state of the central (unpinned) column area:
+ * - `ag-theme-koobiq_columns-overflow-left` — the central area is scrolled to the right (left content is clipped)
+ * - `ag-theme-koobiq_columns-overflow-right` — the central area can still scroll to the right (right content is clipped)
+ *
  * @example
  * ```html
  * <ag-grid-angular kbqAgGridTheme />
@@ -327,11 +333,14 @@ export class KbqAgGridShortcuts {
     selector: 'ag-grid-angular[kbqAgGridTheme]',
     host: {
         class: 'ag-theme-koobiq',
-        '[class.ag-theme-koobiq_disable-cell-focus-styles]': 'disableCellFocusStyles()'
+        '[class.ag-theme-koobiq_disable-cell-focus-styles]': 'disableCellFocusStyles()',
+        '[class.ag-theme-koobiq_columns-overflow-left]': 'columnsOverflowLeft()',
+        '[class.ag-theme-koobiq_columns-overflow-right]': 'columnsOverflowRight()'
     }
 })
 export class KbqAgGridTheme {
     private readonly grid = inject(AgGridAngular);
+    private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
     /**
      * Disables ag-grid cell focus styles (e.g. border-color).
@@ -340,9 +349,29 @@ export class KbqAgGridTheme {
      */
     readonly disableCellFocusStyles = input(false, { transform: booleanAttribute });
 
+    protected readonly columnsOverflowLeft = signal(false);
+    protected readonly columnsOverflowRight = signal(false);
+
     constructor() {
         // https://www.ag-grid.com/archive/33.3.2/angular-data-grid/errors/239/?_version_=33.3.2
         this.grid.theme = 'legacy';
+
+        this.grid.bodyScroll.pipe(startWith({ direction: 'horizontal' }), takeUntilDestroyed()).subscribe((event) => {
+            if (event.direction === 'horizontal') this.updateColumnsOverflow();
+        });
+    }
+
+    private updateColumnsOverflow(): void {
+        const viewport = this.elementRef.nativeElement.querySelector<HTMLElement>(
+            '.ag-body-horizontal-scroll-viewport'
+        );
+
+        if (!viewport) return;
+
+        const { scrollLeft, scrollWidth, clientWidth } = viewport;
+
+        this.columnsOverflowLeft.set(scrollLeft > 0);
+        this.columnsOverflowRight.set(Math.round(scrollLeft + clientWidth) < scrollWidth);
     }
 }
 
