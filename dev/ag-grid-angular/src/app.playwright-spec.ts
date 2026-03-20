@@ -191,7 +191,7 @@ test.describe('KbqAgGridThemeModule', () => {
             await unselectAllRows(page);
             await getCell(page, 2, 'athlete').focus();
             await page.keyboard.press('Shift+ArrowUp');
-            expect(await isRowSelected(page, 1)).toBe(false);
+            expect(await isRowSelected(page, 0)).toBe(false);
             expect(await isRowSelected(page, 1)).toBe(true);
             expect(await isRowSelected(page, 2)).toBe(true);
             expect(await isRowSelected(page, 3)).toBe(false);
