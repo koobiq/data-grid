@@ -373,17 +373,22 @@ test.describe('KbqAgGridThemeModule', () => {
             expect(await isRowSelected(page, 6)).toBe(true);
         });
 
-        test.skip('does not clear other selected rows when disabled', async ({ page }) => {
+        test('should preserve default AG Grid Shift+Click behavior when disabled', async ({ page }) => {
             await page.goto('/');
             await unselectAllRows(page);
             await displayOptions(page);
             await getSelectRowsByShiftClickToggle(page).evaluate((label: HTMLLabelElement) => label.click());
-            await toggleRowSelection(page, 6);
-            await toggleRowSelection(page, 7);
             await toggleRowSelection(page, 0);
-            await shiftClickCheckbox(page, 2);
-            expect(await isRowSelected(page, 6)).toBe(true);
-            expect(await isRowSelected(page, 7)).toBe(true);
+            await shiftClickCheckbox(page, 3);
+            expect(await isRowSelected(page, 0)).toBe(true);
+            expect(await isRowSelected(page, 1)).toBe(true);
+            expect(await isRowSelected(page, 2)).toBe(true);
+            expect(await isRowSelected(page, 3)).toBe(true);
+            await shiftClickCheckbox(page, 0);
+            expect(await isRowSelected(page, 0)).toBe(true);
+            expect(await isRowSelected(page, 1)).toBe(false);
+            expect(await isRowSelected(page, 2)).toBe(false);
+            expect(await isRowSelected(page, 3)).toBe(false);
         });
     });
 });
