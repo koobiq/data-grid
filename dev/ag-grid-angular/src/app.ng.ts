@@ -255,6 +255,10 @@ export class DevAgGridStatusBarComponent {
                     <input type="checkbox" [(ngModel)]="selectRowsByCtrlClick" />
                     Select Row by Ctrl+Click
                 </label>
+                <label data-testid="e2eSelectRowsByShiftClickToggle">
+                    <input type="checkbox" [(ngModel)]="selectRowsByShiftClick" />
+                    Select Rows by Shift+Click
+                </label>
                 <label data-testid="e2eCopyByCtrlCToggle">
                     <input type="checkbox" [(ngModel)]="copyByCtrlC" />
                     Copy by Ctrl+C
@@ -291,6 +295,7 @@ export class DevAgGridStatusBarComponent {
             [kbqAgGridToNextRowByTab]="toNextRowByTab()"
             [kbqAgGridSelectRowsByShiftArrow]="selectRowsByShiftArrow()"
             [kbqAgGridSelectRowsByCtrlClick]="selectRowsByCtrlClick()"
+            [kbqAgGridSelectRowsByShiftClick]="selectRowsByShiftClick()"
             [kbqAgGridCopyByCtrlC]="copyByCtrlC()"
             [kbqAgGridCopyFormatter]="copyFormatter()"
             [disableCellFocusStyles]="disableCellFocusStyles()"
@@ -388,6 +393,7 @@ export class DevApp {
     readonly showIndexColumn = model(isDevMode());
     readonly selectRowsByShiftArrow = model(true);
     readonly selectRowsByCtrlClick = model(true);
+    readonly selectRowsByShiftClick = model(true);
     readonly toNextRowByTab = model(true);
     readonly copyByCtrlC = model(true);
     readonly copyFormat = model<(typeof this.copyFormatOptions)[number]>('tsv');
