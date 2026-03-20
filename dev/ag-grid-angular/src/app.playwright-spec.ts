@@ -262,7 +262,7 @@ test.describe('KbqAgGridThemeModule', () => {
             await page.setViewportSize({ width: 650, height: 500 });
             await page.goto('/');
 
-            const row = page.locator('[row-index="1"]').first();
+            const row = getRow(page, 1).first();
 
             await row.hover();
 
