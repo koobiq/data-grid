@@ -33,7 +33,7 @@ import {
     IRowNode,
     TabToNextCellParams
 } from 'ag-grid-community';
-import { startWith } from 'rxjs';
+import { debounceTime, delay, filter, startWith } from 'rxjs';
 
 const isKeyboardEvent = (event: unknown): event is KeyboardEvent => event instanceof KeyboardEvent;
 const isMouseEvent = (event: unknown): event is MouseEvent => event instanceof MouseEvent;
@@ -319,10 +319,6 @@ export class KbqAgGridShortcuts {
 /**
  * Directive that applies the koobiq theme for ag-grid-angular.
  *
- * Adds the following host classes based on the horizontal scroll state of the central (unpinned) column area:
- * - `ag-theme-koobiq_columns-overflow-left` — the central area is scrolled to the right (left content is clipped)
- * - `ag-theme-koobiq_columns-overflow-right` — the central area can still scroll to the right (right content is clipped)
- *
  * @example
  * ```html
  * <ag-grid-angular kbqAgGridTheme />
@@ -334,8 +330,8 @@ export class KbqAgGridShortcuts {
     host: {
         class: 'ag-theme-koobiq',
         '[class.ag-theme-koobiq_disable-cell-focus-styles]': 'disableCellFocusStyles()',
-        '[class.ag-theme-koobiq_columns-overflow-left]': 'columnsOverflowLeft()',
-        '[class.ag-theme-koobiq_columns-overflow-right]': 'columnsOverflowRight()'
+        '[class.ag-theme-koobiq_pinned-left-cols-overflow]': 'columnsOverflowLeft()',
+        '[class.ag-theme-koobiq_pinned-right-cols-overflow]': 'columnsOverflowRight()'
     }
 })
 export class KbqAgGridTheme {
@@ -356,9 +352,15 @@ export class KbqAgGridTheme {
         // https://www.ag-grid.com/archive/33.3.2/angular-data-grid/errors/239/?_version_=33.3.2
         this.grid.theme = 'legacy';
 
-        this.grid.bodyScroll.pipe(startWith({ direction: 'horizontal' }), takeUntilDestroyed()).subscribe((event) => {
-            if (event.direction === 'horizontal') this.updateColumnsOverflow();
-        });
+        this.grid.bodyScroll
+            .pipe(
+                startWith({ direction: 'horizontal' }),
+                delay(100),
+                debounceTime(100),
+                filter(({ direction }) => direction === 'horizontal'),
+                takeUntilDestroyed()
+            )
+            .subscribe(() => this.updateColumnsOverflow());
     }
 
     private updateColumnsOverflow(): void {
