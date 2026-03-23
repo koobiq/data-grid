@@ -337,6 +337,7 @@ export class KbqAgGridShortcuts {
 export class KbqAgGridTheme {
     private readonly grid = inject(AgGridAngular);
     private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+    private readonly destroyRef = inject(DestroyRef);
 
     /**
      * Disables ag-grid cell focus styles (e.g. border-color).
@@ -352,28 +353,30 @@ export class KbqAgGridTheme {
         // https://www.ag-grid.com/archive/33.3.2/angular-data-grid/errors/239/?_version_=33.3.2
         this.grid.theme = 'legacy';
 
+        this.observeColumnsOverflow();
+    }
+
+    private observeColumnsOverflow(): void {
         this.grid.bodyScroll
             .pipe(
                 startWith({ direction: 'horizontal' }),
                 delay(100),
                 debounceTime(100),
                 filter(({ direction }) => direction === 'horizontal'),
-                takeUntilDestroyed()
+                takeUntilDestroyed(this.destroyRef)
             )
-            .subscribe(() => this.updateColumnsOverflow());
-    }
+            .subscribe(() => {
+                const viewport = this.elementRef.nativeElement.querySelector<HTMLElement>(
+                    '.ag-body-horizontal-scroll-viewport'
+                );
 
-    private updateColumnsOverflow(): void {
-        const viewport = this.elementRef.nativeElement.querySelector<HTMLElement>(
-            '.ag-body-horizontal-scroll-viewport'
-        );
+                if (!viewport) return;
 
-        if (!viewport) return;
+                const { scrollLeft, scrollWidth, clientWidth } = viewport;
 
-        const { scrollLeft, scrollWidth, clientWidth } = viewport;
-
-        this.columnsOverflowLeft.set(scrollLeft > 0);
-        this.columnsOverflowRight.set(Math.round(scrollLeft + clientWidth) < scrollWidth);
+                this.columnsOverflowLeft.set(scrollLeft > 0);
+                this.columnsOverflowRight.set(Math.round(scrollLeft + clientWidth) < scrollWidth);
+            });
     }
 }
 
