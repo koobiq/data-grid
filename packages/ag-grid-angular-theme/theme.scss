@@ -678,7 +678,11 @@
             .ag-pinned-#{$side}-header,
             .ag-pinned-#{$side}-cols-container {
                 z-index: 1;
-                box-shadow: var(--kbq-shadow-overflow-compact-#{$side});
+                box-shadow: if(
+                    $side == 'left',
+                    var(--kbq-shadow-overflow-compact-right),
+                    var(--kbq-shadow-overflow-compact-left)
+                );
             }
         }
     }
