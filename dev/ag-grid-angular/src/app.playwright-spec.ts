@@ -48,6 +48,9 @@ test.describe('KbqAgGridThemeModule', () => {
             await getShowIndexColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
             await getPinFirstColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
             await getPinLastColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
+            await page.locator('.ag-center-cols-viewport').evaluate((element: HTMLElement) => {
+                element.scrollTo({ left: 10 });
+            });
             await expect(getScreenshotTarget(page)).toHaveScreenshot('02-light.png');
         });
     });

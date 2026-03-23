@@ -673,14 +673,18 @@
 }
 
 @mixin _ag-pinned-column-border() {
-    .ag-pinned-left-header,
-    .ag-pinned-left-cols-container {
-        border-right: var(--ag-theme-koobiq-border);
-    }
-
-    .ag-pinned-right-header,
-    .ag-pinned-right-cols-container {
-        border-left: var(--ag-theme-koobiq-border);
+    @each $side in ('left', 'right') {
+        &.ag-theme-koobiq_pinned-#{$side}-cols-overflow {
+            .ag-pinned-#{$side}-header,
+            .ag-pinned-#{$side}-cols-container {
+                z-index: 1;
+                box-shadow: if(
+                    $side == 'left',
+                    var(--kbq-shadow-overflow-compact-right),
+                    var(--kbq-shadow-overflow-compact-left)
+                );
+            }
+        }
     }
 }
 
