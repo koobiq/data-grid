@@ -61,12 +61,13 @@ import { AgGridModule } from 'ag-grid-angular';
 
 You can apply custom keyboard shortcuts by adding the corresponding directives to your `<ag-grid-angular>` component.
 
-| Key            | Action                     | Directive                         |
-| -------------- | -------------------------- | --------------------------------- |
-| `Tab`          | Move focus to the next row | `kbqAgGridToNextRowByTab`         |
-| `Shift + ↓↑`   | Select multiple rows       | `kbqAgGridSelectRowsByShiftArrow` |
-| `Ctrl + Click` | Select row                 | `kbqAgGridSelectRowsByCtrlClick`  |
-| `Ctrl + C`     | Copy selected rows         | `kbqAgGridCopyByCtrlC`            |
+| Key             | Action                        | Directive                         |
+| --------------- | ----------------------------- | --------------------------------- |
+| `Tab`           | Move focus to the next row    | `kbqAgGridToNextRowByTab`         |
+| `Shift + ↓↑`    | Select multiple rows          | `kbqAgGridSelectRowsByShiftArrow` |
+| `Ctrl + Click`  | Select row                    | `kbqAgGridSelectRowsByCtrlClick`  |
+| `Ctrl + C`      | Copy selected rows            | `kbqAgGridCopyByCtrlC`            |
+| `Shift + Click` | Select/deselect range of rows | `kbqAgGridSelectRowsByShiftClick` |
 
 ---
 
