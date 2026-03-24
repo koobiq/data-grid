@@ -1,3 +1,19 @@
+## 34.2.0 (2026-03-24)
+
+### 🚀 Features
+
+- **ag-grid-angular-theme:** added shadows for pinned columns (#DS-4581) ([#145](https://github.com/koobiq/data-grid/pull/145))
+- **ag-grid-angular-theme:** added `KbqAgGridSelectRowsByShiftClick` directive (#DS-3939) ([#143](https://github.com/koobiq/data-grid/pull/143))
+- **ag-grid-angular-theme:** add transparent background (#DS-4748) ([#139](https://github.com/koobiq/data-grid/pull/139))
+
+### 🩹 Fixes
+
+- **ag-grid-angular-theme:** actions overlay position ([#144](https://github.com/koobiq/data-grid/pull/144))
+
+### ❤️ Thank You
+
+- Artem Belik @artembelik
+
 ## 34.1.2 (2026-03-03)
 
 ### 🩹 Fixes
