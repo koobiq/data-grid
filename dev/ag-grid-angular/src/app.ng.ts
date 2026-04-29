@@ -17,6 +17,8 @@ import { FormsModule } from '@angular/forms';
 import {
     KBQ_AG_GRID_ROW_ACTIONS_PARAMS,
     KBQ_AG_GRID_STATUS_BAR_PARAMS,
+    KbqAgGridColumnStateConfig,
+    KbqAgGridColumnStateLocalStorageStore,
     KbqAgGridCopyEvent,
     KbqAgGridCopyFormatter,
     kbqAgGridCopyFormatterCsv,
@@ -39,7 +41,8 @@ import {
     ITooltipParams,
     ModuleRegistry,
     RowDragEvent,
-    RowSelectionOptions
+    RowSelectionOptions,
+    SelectionChangedEvent
 } from 'ag-grid-community';
 import { catchError, of } from 'rxjs';
 
@@ -291,6 +294,7 @@ export class DevAgGridStatusBarComponent {
         <ag-grid-angular
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
+            [kbqAgGridColumnState]="columnStateConfig"
             [kbqAgGridRowActions]="rowActionsComponent"
             [kbqAgGridToNextRowByTab]="toNextRowByTab()"
             [kbqAgGridSelectRowsByShiftArrow]="selectRowsByShiftArrow()"
@@ -324,6 +328,7 @@ export class DevAgGridStatusBarComponent {
             (rowDragEnd)="onRowDragEnd($event)"
             (cellKeyDown)="onCellKeyDown($event)"
             (cellClicked)="onCellClicked($event)"
+            (selectionChanged)="onSelectionChanged($event)"
         />
     `,
     styles: `
@@ -399,6 +404,12 @@ export class DevApp {
     readonly copyFormat = model<(typeof this.copyFormatOptions)[number]>('tsv');
     readonly enableClickSelection = model(false);
     readonly cellTextSelection = model(true);
+
+    readonly columnStateConfig: KbqAgGridColumnStateConfig = {
+        // store: inject(KbqAgGridColumnStateQueryParamsStore),
+        store: inject(KbqAgGridColumnStateLocalStorageStore),
+        key: 'dev-ag-grid-column-state'
+    };
 
     readonly statusBarComponent = DevAgGridStatusBarComponent;
 
@@ -682,5 +693,9 @@ export class DevApp {
 
     onCopyDone(event: KbqAgGridCopyEvent): void {
         console.debug('onCopyDone:', event);
+    }
+
+    onSelectionChanged(event: SelectionChangedEvent): void {
+        console.debug('onSelectionChanged:', event);
     }
 }

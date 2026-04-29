@@ -9,3 +9,4 @@ export * from './src/shortcuts.ng';
 export * from './src/status-bar.ng';
 export * from './src/theme.ng';
 export * from './src/to-next-row-by-tab.ng';
+export * from './column-state.ng';
