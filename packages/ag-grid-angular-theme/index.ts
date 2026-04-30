@@ -1,3 +1,4 @@
+export * from './column-state.ng';
 export * from './src/copy-by-ctrl-c.ng';
 export * from './src/module.ng';
 export * from './src/row-actions.ng';

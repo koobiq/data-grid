@@ -17,6 +17,8 @@ import { FormsModule } from '@angular/forms';
 import {
     KBQ_AG_GRID_ROW_ACTIONS_PARAMS,
     KBQ_AG_GRID_STATUS_BAR_PARAMS,
+    KbqAgGridColumnStateLocalStorageStore,
+    kbqAgGridColumnStateStoreProvider,
     KbqAgGridCopyEvent,
     KbqAgGridCopyFormatter,
     kbqAgGridCopyFormatterCsv,
@@ -39,7 +41,8 @@ import {
     ITooltipParams,
     ModuleRegistry,
     RowDragEvent,
-    RowSelectionOptions
+    RowSelectionOptions,
+    SelectionChangedEvent
 } from 'ag-grid-community';
 import { catchError, of } from 'rxjs';
 
@@ -143,10 +146,14 @@ export class DevAgGridStatusBarComponent {
         <details class="dev-accordion" data-testid="e2eOptionsAccordion">
             <summary>Options</summary>
             <fieldset class="dev-options">
-                <legend>Global</legend>
+                <legend>Custom</legend>
                 <label data-testid="e2eLightThemeToggle">
                     <input type="checkbox" [(ngModel)]="lightTheme" />
                     Light Theme
+                </label>
+                <label data-testid="e2eShowIndexColumnToggle">
+                    <input type="checkbox" [(ngModel)]="showIndexColumn" />
+                    Show Index Column
                 </label>
             </fieldset>
             <fieldset class="dev-options">
@@ -280,17 +287,16 @@ export class DevAgGridStatusBarComponent {
                 </label>
             </fieldset>
             <fieldset class="dev-options">
-                <legend>Custom</legend>
-                <label data-testid="e2eShowIndexColumnToggle">
-                    <input type="checkbox" [(ngModel)]="showIndexColumn" />
-                    Show Index Column
-                </label>
+                <legend>KbqAgGridColumnState</legend>
+                <button data-testid="e2eResetColumnState" type="button" (click)="columnState.reset()">Reset</button>
             </fieldset>
         </details>
 
         <ag-grid-angular
+            #columnState="kbqAgGridColumnState"
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
+            kbqAgGridColumnState="dev-ag-grid-column-state"
             [kbqAgGridRowActions]="rowActionsComponent"
             [kbqAgGridToNextRowByTab]="toNextRowByTab()"
             [kbqAgGridSelectRowsByShiftArrow]="selectRowsByShiftArrow()"
@@ -324,6 +330,7 @@ export class DevAgGridStatusBarComponent {
             (rowDragEnd)="onRowDragEnd($event)"
             (cellKeyDown)="onCellKeyDown($event)"
             (cellClicked)="onCellClicked($event)"
+            (selectionChanged)="onSelectionChanged($event)"
         />
     `,
     styles: `
@@ -357,7 +364,11 @@ export class DevAgGridStatusBarComponent {
             white-space: nowrap;
         }
     `,
-    changeDetection: ChangeDetectionStrategy.OnPush
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    providers: [
+        kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateLocalStorageStore)
+        // kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateQueryParamsStore)
+    ]
 })
 export class DevApp {
     private readonly renderer = inject(Renderer2);
@@ -682,5 +693,9 @@ export class DevApp {
 
     onCopyDone(event: KbqAgGridCopyEvent): void {
         console.debug('onCopyDone:', event);
+    }
+
+    onSelectionChanged(event: SelectionChangedEvent): void {
+        console.debug('onSelectionChanged:', event);
     }
 }

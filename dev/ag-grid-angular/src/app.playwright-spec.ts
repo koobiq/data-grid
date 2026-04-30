@@ -1,4 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { ColumnState } from 'ag-grid-community';
 
 test.describe('KbqAgGridThemeModule', () => {
     const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
@@ -27,12 +28,14 @@ test.describe('KbqAgGridThemeModule', () => {
     const getPinFirstColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinFirstColumnToggle');
     const getPinLastColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinLastColumnToggle');
 
+    // Screenshot tests are only valid on CI. Do not update snapshots locally.
     test.describe('KbqAgGridAngularTheme', () => {
         const getShowIndexColumnToggle = (page: Page): Locator => page.getByTestId('e2eShowIndexColumnToggle');
         const getLightThemeToggle = (page: Page): Locator => page.getByTestId('e2eLightThemeToggle');
         const getPaginationToggle = (page: Page): Locator => page.getByTestId('e2ePaginationToggle');
 
         test('default state', async ({ page }) => {
+            await page.addInitScript((key: string) => localStorage.removeItem(key), 'dev-ag-grid-column-state');
             await page.setViewportSize({ width: 768, height: 500 });
             await page.goto('/');
             await getShowIndexColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
@@ -43,6 +46,7 @@ test.describe('KbqAgGridThemeModule', () => {
         });
 
         test('with pinned columns', async ({ page }) => {
+            await page.addInitScript((key: string) => localStorage.removeItem(key), 'dev-ag-grid-column-state');
             await page.setViewportSize({ width: 768, height: 500 });
             await page.goto('/');
             await getShowIndexColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
@@ -262,12 +266,210 @@ test.describe('KbqAgGridThemeModule', () => {
 
     test.describe('KbqAgGridRowActions', () => {
         test('shows actions overlay on hover with horizontal scroll', async ({ page }) => {
+            await page.addInitScript((key: string) => localStorage.removeItem(key), 'dev-ag-grid-column-state');
             await page.setViewportSize({ width: 650, height: 500 });
             await page.goto('/');
             await getPinFirstColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
             await getPinLastColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
             await getRow(page, 1).first().hover();
             await expect(getScreenshotTarget(page)).toHaveScreenshot('03-light.png');
+        });
+    });
+
+    test.describe('KbqAgGridColumnState', () => {
+        const storageKey = 'dev-ag-grid-column-state';
+
+        const getColumnState = async (page: Page): Promise<ColumnState[] | null> => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+            return page.evaluate((key) => {
+                const stored = localStorage.getItem(key);
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                return stored ? JSON.parse(stored) : null;
+            }, storageKey);
+        };
+
+        const clearColumnState = async (page: Page): Promise<void> => {
+            await page.evaluate((key: string) => localStorage.removeItem(key), storageKey);
+        };
+
+        test('saves sort state to localStorage when column header is clicked', async ({ page }) => {
+            await page.goto('/');
+            await clearColumnState(page);
+            await page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-label').click();
+
+            const state = await getColumnState(page);
+            const athleteState = state?.find((s) => s.colId === 'athlete');
+
+            expect(athleteState?.sort).toBe('asc');
+            expect(athleteState?.sortIndex).toBe(0);
+        });
+
+        test('restores sort state from localStorage on page reload', async ({ page }) => {
+            await page.goto('/');
+            await clearColumnState(page);
+            await page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-label').click();
+            await page.reload();
+
+            await expect(page.locator('.ag-header-cell[col-id="athlete"][aria-sort="ascending"]')).toBeVisible();
+        });
+
+        test('saves column width to localStorage when column is resized', async ({ page }) => {
+            await page.goto('/');
+            await clearColumnState(page);
+
+            const resizer = page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-resize');
+            const bounds = await resizer.boundingBox();
+
+            if (!bounds) throw new Error('resizer not found');
+
+            await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+            await page.mouse.down();
+            await page.mouse.move(bounds.x + bounds.width / 2 + 60, bounds.y);
+            await page.mouse.up();
+
+            await expect
+                .poll(async () => {
+                    const state = await getColumnState(page);
+                    return state?.find((s) => s.colId === 'athlete')?.width;
+                })
+                .toBeGreaterThan(200);
+        });
+
+        test('restores column width from localStorage on page reload', async ({ page }) => {
+            await page.goto('/');
+            await clearColumnState(page);
+
+            const resizer = page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-resize');
+            const bounds = await resizer.boundingBox();
+
+            if (!bounds) throw new Error('resizer not found');
+
+            await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+            await page.mouse.down();
+            await page.mouse.move(bounds.x + bounds.width / 2 + 60, bounds.y);
+            await page.mouse.up();
+
+            const widthBeforeReload = await page
+                .locator('.ag-header-cell[col-id="athlete"]')
+                .evaluate((el: Element) => Math.round(el.getBoundingClientRect().width));
+
+            await page.reload();
+
+            await expect
+                .poll(async () =>
+                    page
+                        .locator('.ag-header-cell[col-id="athlete"]')
+                        .evaluate((el: Element) => Math.round(el.getBoundingClientRect().width))
+                )
+                .toBe(widthBeforeReload);
+        });
+
+        test('applies pre-existing sort state from localStorage on page load', async ({ page }) => {
+            await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
+                key: storageKey,
+                value: JSON.stringify([
+                    { colId: 'ag-Grid-SelectionColumn', hide: false, width: 36, sort: null, sortIndex: null },
+                    { colId: '0', hide: false, width: 70, sort: null, sortIndex: null },
+                    { colId: 'athlete', hide: false, width: 200, sort: 'desc', sortIndex: 0 },
+                    { colId: 'age', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'country', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'year', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'date', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'sport', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'gold', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'silver', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'bronze', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'total', hide: false, width: 200, sort: null, sortIndex: null }
+                ])
+            });
+            await page.goto('/');
+
+            await expect(page.locator('.ag-header-cell[col-id="athlete"][aria-sort="descending"]')).toBeVisible();
+        });
+
+        test('applies pre-existing column order from localStorage on page load', async ({ page }) => {
+            await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
+                key: storageKey,
+                value: JSON.stringify([
+                    { colId: 'ag-Grid-SelectionColumn', hide: false, width: 36, sort: null, sortIndex: null },
+                    { colId: '0', hide: false, width: 70, sort: null, sortIndex: null },
+                    { colId: 'country', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'athlete', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'age', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'year', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'date', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'sport', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'gold', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'silver', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'bronze', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'total', hide: false, width: 200, sort: null, sortIndex: null }
+                ])
+            });
+            await page.goto('/');
+
+            // AG Grid uses absolute positioning, so visual order is determined by CSS left, not DOM order.
+            // Country should appear to the left of Athlete after the saved order is restored.
+            await expect
+                .poll(async () => {
+                    const [countryLeft, athleteLeft] = await Promise.all([
+                        page
+                            .locator('.ag-header-cell[col-id="country"]')
+                            .evaluate((el: Element) => el.getBoundingClientRect().left),
+                        page
+                            .locator('.ag-header-cell[col-id="athlete"]')
+                            .evaluate((el: Element) => el.getBoundingClientRect().left)
+                    ]);
+
+                    return countryLeft < athleteLeft;
+                })
+                .toBe(true);
+        });
+
+        test('saves column visibility to localStorage when column is hidden', async ({ page }) => {
+            await page.goto('/');
+            await clearColumnState(page);
+
+            await page.evaluate(() => {
+                const el = document.querySelector('ag-grid-angular')!;
+                // AG Grid v34 has no column menu button in Community edition, so there's no UI to hide a column.
+                // `window.ng` is Angular's global debug API (available in dev mode) that exposes the component
+                // instance for a given DOM element. This is the only way to call the GridApi from Playwright.
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+                (window as any).ng.getComponent(el).api.setColumnsVisible(['athlete'], false);
+            });
+
+            await expect
+                .poll(async () => {
+                    const state = await getColumnState(page);
+                    return state?.find((s) => s.colId === 'athlete')?.hide;
+                })
+                .toBe(true);
+        });
+
+        test('restores column visibility from localStorage on page reload', async ({ page }) => {
+            await page.addInitScript(
+                ({ key, value }: { key: string; value: string }) => localStorage.setItem(key, value),
+                {
+                    key: storageKey,
+                    value: JSON.stringify([
+                        { colId: 'ag-Grid-SelectionColumn', hide: false, width: 36, sort: null, sortIndex: null },
+                        { colId: '0', hide: false, width: 70, sort: null, sortIndex: null },
+                        { colId: 'athlete', hide: true, width: 200, sort: null, sortIndex: null },
+                        { colId: 'age', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'country', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'year', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'date', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'sport', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'gold', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'silver', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'bronze', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'total', hide: false, width: 200, sort: null, sortIndex: null }
+                    ])
+                }
+            );
+            await page.goto('/');
+
+            await expect(page.locator('.ag-header-cell[col-id="athlete"]')).not.toBeVisible();
         });
     });
 
