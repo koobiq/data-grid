@@ -17,7 +17,7 @@ import { FormsModule } from '@angular/forms';
 import {
     KBQ_AG_GRID_ROW_ACTIONS_PARAMS,
     KBQ_AG_GRID_STATUS_BAR_PARAMS,
-    KbqAgGridColumnStateQueryParamsStore,
+    KbqAgGridColumnStateLocalStorageStore,
     kbqAgGridColumnStateStoreProvider,
     KbqAgGridCopyEvent,
     KbqAgGridCopyFormatter,
@@ -366,8 +366,8 @@ export class DevAgGridStatusBarComponent {
     `,
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [
-        // kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateLocalStorageStore),
-        kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateQueryParamsStore)
+        kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateLocalStorageStore)
+        // kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateQueryParamsStore)
     ]
 })
 export class DevApp {
