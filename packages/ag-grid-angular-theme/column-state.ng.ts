@@ -1,4 +1,4 @@
-import { DestroyRef, Directive, inject, Injectable, input } from '@angular/core';
+import { DestroyRef, Directive, inject, Injectable, InjectionToken, input, Provider, Type } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { AgGridAngular } from 'ag-grid-angular';
@@ -120,6 +120,46 @@ export type KbqAgGridColumnStateConfig = {
 };
 
 /**
+ * Injection token for {@link KbqAgGridColumnStateStore}.
+ *
+ * Defaults to {@link KbqAgGridColumnStateLocalStorageStore}.
+ * Override it with {@link kbqAgGridColumnStateStoreProvider}.
+ */
+export const KBQ_AG_GRID_COLUMN_STATE_STORE = new InjectionToken<KbqAgGridColumnStateStore>(
+    'KBQ_AG_GRID_COLUMN_STATE_STORE',
+    { factory: (): KbqAgGridColumnStateStore => inject(KbqAgGridColumnStateLocalStorageStore) }
+);
+
+/**
+ * Creates an Angular {@link Provider} that binds {@link KBQ_AG_GRID_COLUMN_STATE_STORE}
+ * to the given store class or instance.
+ *
+ * @example
+ * ```typescript
+ * providers: [kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateQueryParamsStore)]
+ * ```
+ * @example
+ * ```typescript
+ * providers: [kbqAgGridColumnStateStoreProvider(myCustomStoreInstance)]
+ * ```
+ */
+export const kbqAgGridColumnStateStoreProvider = (
+    store: Type<KbqAgGridColumnStateStore> | KbqAgGridColumnStateStore
+): Provider => {
+    if (store instanceof Type) {
+        return {
+            provide: KBQ_AG_GRID_COLUMN_STATE_STORE,
+            useClass: store
+        };
+    }
+
+    return {
+        provide: KBQ_AG_GRID_COLUMN_STATE_STORE,
+        useValue: store
+    };
+};
+
+/**
  * Directive that persists and restores ag-grid column state (sort, order, visibility, width)
  * using a configurable {@link KbqAgGridColumnStateStore}.
  *
@@ -130,21 +170,38 @@ export type KbqAgGridColumnStateConfig = {
  */
 @Directive({
     standalone: true,
-    selector: 'ag-grid-angular[kbqAgGridColumnState]'
+    selector: 'ag-grid-angular[kbqAgGridColumnState]',
+    exportAs: 'kbqAgGridColumnState'
 })
 export class KbqAgGridColumnState {
     private readonly grid = inject(AgGridAngular);
     private readonly destroyRef = inject(DestroyRef);
 
-    /** Column state configuration: store and storage key. */
-    readonly state = input.required<KbqAgGridColumnStateConfig>({ alias: 'kbqAgGridColumnState' });
+    /** Key under which column state is stored. Must be unique per grid. */
+    readonly key = input.required<string>({ alias: 'kbqAgGridColumnState' });
+
+    /** Store used to persist and restore column state. Defaults to {@link KBQ_AG_GRID_COLUMN_STATE_STORE}. */
+    readonly store = input(inject(KBQ_AG_GRID_COLUMN_STATE_STORE), {
+        // eslint-disable-next-line @angular-eslint/no-input-rename
+        alias: 'kbqAgGridColumnStateStore'
+    });
 
     constructor() {
         this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => void this.init(api));
     }
 
+    /** Removes the stored column state for the current key. */
+    reset(): void {
+        const store = this.store();
+        const key = this.key();
+
+        void store.removeItem(key);
+        this.grid.api.applyColumnState({ state: [], applyOrder: true });
+    }
+
     private async init(api: GridApi): Promise<void> {
-        const { store, key } = this.state();
+        const key = this.key();
+        const store = this.store();
 
         const item = await store.getItem(key);
 
