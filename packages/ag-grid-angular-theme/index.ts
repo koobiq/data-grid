@@ -1,3 +1,4 @@
+export * from './column-state.ng';
 export * from './src/copy-by-ctrl-c.ng';
 export * from './src/module.ng';
 export * from './src/row-actions.ng';
@@ -9,4 +10,3 @@ export * from './src/shortcuts.ng';
 export * from './src/status-bar.ng';
 export * from './src/theme.ng';
 export * from './src/to-next-row-by-tab.ng';
-export * from './column-state.ng';
