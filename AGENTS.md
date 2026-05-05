@@ -30,6 +30,10 @@ npm run lint
 # Auto-fix lint errors
 npm run lint:fix
 
+# Unit Testing
+yarn unit:theme                   # Run unit tests for the theme package
+yarn unit                         # Run unit tests for all projects
+
 # E2E Testing
 yarn e2e:setup                    # Install Playwright browsers
 yarn e2e:dev-ag-grid-angular      # Run E2E tests
@@ -42,15 +46,22 @@ yarn clean                        # Reset Nx cache, clear Playwright cache, remo
 
 ```
 packages/
-└── ag-grid-angular-theme/       # Published npm package
-    ├── theme.scss               # AG Grid SCSS customization with @koobiq/design-tokens
-    ├── module.ng.ts             # Angular module, directives, and keyboard shortcuts service
-    └── index.ts                 # Public API exports
+└── ag-grid-angular-theme/                  # Published npm package
+    ├── src/
+    │   ├── theme.scss                      # AG Grid SCSS customization with @koobiq/design-tokens
+    │   ├── theme.ng.ts                     # Theme component/directive
+    │   ├── module.ng.ts                    # Angular module
+    │   ├── status-bar.ng.ts                # Status bar component
+    │   ├── row-actions.ng.ts               # Row actions directive
+    │   └── [keyboard shortcut directives]  # copy-by-ctrl-c, select-all-rows-by-ctrl-a, etc.
+    ├── tests/
+    │   └── *.spec.ts                       # Unit tests
+    └── index.ts                            # Public API exports
 
 dev/
-└── ag-grid-angular/                # Demo app for development and E2E testing
-    ├── src/app.ng.ts               # Standalone component showcasing all features
-    └── src/app.playwright-spec.ts  # Playwright E2E tests
+└── ag-grid-angular/                        # Demo app for development and E2E testing
+    ├── src/app.ng.ts                       # Standalone component showcasing all features
+    └── src/app.playwright-spec.ts          # Playwright E2E tests
 ```
 
 ## Best Practices

@@ -101,6 +101,12 @@ Then open http://localhost:4200/
 yarn run build:theme
 ```
 
+### Unit tests
+
+```bash
+yarn run unit:theme
+```
+
 ### Create GitHub release and publish
 
 ```bash

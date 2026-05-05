@@ -47,3 +47,9 @@ updates:
       ag-grid:
         patterns:
           - 'ag-grid-*'
+      jest:
+        patterns:
+          - 'jest*'
+          - '@types/jest'
+          - 'ts-jest'
+          - '@testing-library/*'
