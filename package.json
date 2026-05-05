@@ -12,7 +12,7 @@
     "packageManager": "yarn@4.1.1",
     "scripts": {
         "prepare": "husky",
-        "clean": "nx reset && playwright clear-cache && rimraf .angular dist tmp playwright-report test-results --verbose",
+        "clean": "yarn cache clean && nx reset && rimraf .angular dist tmp playwright-report test-results .playwright-mcp --verbose",
         "-----SERVE-----": "------------------------------------------------------------------------------------------",
         "dev:theme": "nx run ag-grid-angular:serve",
         "-----BUILD-----": "------------------------------------------------------------------------------------------",
@@ -63,7 +63,6 @@
         "@angular-eslint/eslint-plugin": "^18.2.0",
         "@angular-eslint/eslint-plugin-template": "^18.2.0",
         "@angular-eslint/template-parser": "^18.2.0",
-        "@angular/animations": "18.2.14",
         "@angular/cli": "^18.2.21",
         "@angular/compiler-cli": "^18.2.14",
         "@angular/language-service": "^18.2.14",
@@ -76,7 +75,6 @@
         "@schematics/angular": "^18.2.18",
         "@swc-node/register": "^1.11.1",
         "@swc/core": "^1.15.33",
-        "@swc/helpers": "~0.5.11",
         "@testing-library/angular": "16.0.0",
         "@testing-library/jest-dom": "^6.9.1",
         "@types/eslint": "^8.56.12",
@@ -106,8 +104,6 @@
         "stylelint": "^16.26.1",
         "stylelint-config-standard-scss": "^14.0.0",
         "stylelint-prettier": "^5.0.3",
-        "ts-jest": "^29.1.0",
-        "ts-node": "10.9.1",
         "tslib": "^2.3.0",
         "typescript": "5.5.4"
     }
