@@ -14,10 +14,7 @@
         "strict": true,
         "baseUrl": ".",
         "paths": {
-            "@koobiq/ag-grid-angular-theme": [
-                "packages/ag-grid-angular-theme/index",
-                "packages/ag-grid-angular-theme/_index.scss"
-            ]
+            "@koobiq/ag-grid-angular-theme": ["packages/ag-grid-angular-theme/index"]
         }
     },
     "exclude": ["node_modules", "tmp", "dist"],

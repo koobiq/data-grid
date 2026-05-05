@@ -1,5 +1,13 @@
 {
     "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "paths": {
+            "@koobiq/ag-grid-angular-theme": [
+                "packages/ag-grid-angular-theme/index",
+                "packages/ag-grid-angular-theme/_index.scss"
+            ]
+        }
+    },
     "references": [
         {
             "path": "./tsconfig.editor.json"
