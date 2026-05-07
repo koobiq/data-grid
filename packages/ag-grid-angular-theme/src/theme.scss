@@ -581,11 +581,14 @@
         --ag-theme-koobiq-scrollbar-offset: 3px;
         --ag-theme-koobiq-scrollbar-size: calc(var(--kbq-size-s) + var(--ag-theme-koobiq-scrollbar-offset) * 2);
         --ag-theme-koobiq-scrollbar-track-color: transparent;
-        --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a32);
+        --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-contrast-a3, var(--kbq-palette-grey-50-a32));
         --ag-theme-koobiq-scrollbar-thumb-min-size: var(--kbq-size-3xl);
 
         @include _dark-theme {
-            --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a48);
+            --ag-theme-koobiq-scrollbar-thumb-color: var(
+                --kbq-semantic-dark-contrast-a9,
+                var(--kbq-palette-grey-50-a48)
+            );
         }
 
         &::-webkit-scrollbar {
@@ -622,18 +625,30 @@
             }
 
             &:active {
-                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-20-a55);
+                --ag-theme-koobiq-scrollbar-thumb-color: var(
+                    --kbq-semantic-contrast-a5,
+                    var(--kbq-palette-grey-20-a55)
+                );
 
                 @include _dark-theme {
-                    --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a80);
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(
+                        --kbq-semantic-dark-contrast-a11,
+                        var(--kbq-palette-grey-50-a80)
+                    );
                 }
             }
 
             &:hover {
-                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a48);
+                --ag-theme-koobiq-scrollbar-thumb-color: var(
+                    --kbq-semantic-contrast-a4,
+                    var(--kbq-palette-grey-50-a48)
+                );
 
                 @include _dark-theme {
-                    --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a60);
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(
+                        --kbq-semantic-dark-contrast-a10,
+                        var(--kbq-palette-grey-50-a60)
+                    );
                 }
             }
         }
@@ -645,18 +660,30 @@
             scrollbar-color: var(--ag-theme-koobiq-scrollbar-thumb-color) var(--ag-theme-koobiq-scrollbar-track-color);
 
             &:active {
-                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-20-a55);
+                --ag-theme-koobiq-scrollbar-thumb-color: var(
+                    --kbq-semantic-contrast-a5,
+                    var(--kbq-palette-grey-20-a55)
+                );
 
                 @include _dark-theme {
-                    --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a80);
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(
+                        --kbq-semantic-dark-contrast-a11,
+                        var(--kbq-palette-grey-50-a80)
+                    );
                 }
             }
 
             &:hover {
-                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a48);
+                --ag-theme-koobiq-scrollbar-thumb-color: var(
+                    --kbq-semantic-contrast-a4,
+                    var(--kbq-palette-grey-50-a48)
+                );
 
                 @include _dark-theme {
-                    --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-palette-grey-50-a60);
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(
+                        --kbq-semantic-dark-contrast-a10,
+                        var(--kbq-palette-grey-50-a60)
+                    );
                 }
             }
         }
