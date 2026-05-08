@@ -26,7 +26,7 @@ export type KbqAgGridFilterStateStore = {
  * ```
  * @example
  * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridFilterState]="state" />
+ * <ag-grid-angular kbqAgGridTheme [kbqAgGridFilterState]="state.key" [kbqAgGridFilterStateStore]="state.store" />
  * ```
  */
 @Injectable({ providedIn: 'root' })
@@ -69,7 +69,7 @@ export class KbqAgGridFilterStateLocalStorageStore implements KbqAgGridFilterSta
  * ```
  * @example
  * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridFilterState]="state" />
+ * <ag-grid-angular kbqAgGridTheme [kbqAgGridFilterState]="state.key" [kbqAgGridFilterStateStore]="state.store" />
  * ```
  */
 @Injectable({ providedIn: 'root' })
@@ -107,16 +107,6 @@ export class KbqAgGridFilterStateQueryParamsStore implements KbqAgGridFilterStat
         });
     }
 }
-
-/**
- * Configuration object for {@link KbqAgGridFilterState}.
- */
-export type KbqAgGridFilterStateConfig = {
-    /** Store instance used to read and write filter state. */
-    store: KbqAgGridFilterStateStore;
-    /** Key under which filter state is stored. Must be unique per grid. */
-    key: string;
-};
 
 /**
  * Injection token for {@link KbqAgGridFilterStateStore}.

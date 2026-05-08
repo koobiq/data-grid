@@ -110,16 +110,6 @@ export class KbqAgGridColumnStateQueryParamsStore implements KbqAgGridColumnStat
 }
 
 /**
- * Configuration object for {@link KbqAgGridColumnState}.
- */
-export type KbqAgGridColumnStateConfig = {
-    /** Store instance used to read and write column state. */
-    store: KbqAgGridColumnStateStore;
-    /** Key under which column state is stored. Must be unique per grid. */
-    key: string;
-};
-
-/**
  * Injection token for {@link KbqAgGridColumnStateStore}.
  *
  * Defaults to {@link KbqAgGridColumnStateLocalStorageStore}.

@@ -190,6 +190,12 @@ describe(KbqAgGridQuickFilterState.name, () => {
         });
 
         fixture.componentInstance.grid().emitGridReady(apiMock.api);
+
+        await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(apiMock.api.addEventListener).toHaveBeenCalledWith('filterChanged', expect.any(Function));
+        });
+
         apiMock.dispatchFilterChanged('api');
 
         await waitFor(() => {

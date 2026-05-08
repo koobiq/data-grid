@@ -573,7 +573,7 @@ test.describe('KbqAgGridThemeModule', () => {
             await getResetButton(page).click();
 
             expect(await getStoredQuickFilterState(page)).toBeNull();
-            expect(await getActiveQuickFilter(page)).toBeUndefined();
+            expect(await getActiveQuickFilter(page)).toBe('');
             await expect(getQuickFilterInput(page)).toHaveValue('');
         });
     });

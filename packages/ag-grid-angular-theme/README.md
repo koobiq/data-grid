@@ -115,7 +115,7 @@ Use `qf.reset()` to clear both the stored state and the active filter.
 
 #### Built-in stores
 
-All three directives share the same storage interface and built-in implementations:
+All three directives share the same store method shape (`getItem` / `setItem` / `removeItem`) but have type-specific value types (`ColumnState[]`, `FilterModel`, `string`). Built-in implementations:
 
 | Store                    | Class                                                                                                                            | Description                                                                                                             |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
