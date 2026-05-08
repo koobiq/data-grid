@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { KbqAgGridColumnState } from '../column-state.ng';
 import { KbqAgGridCopyByCtrlC } from './copy-by-ctrl-c.ng';
 import { KbqAgGridRowActions } from './row-actions.ng';
 import { KbqAgGridSelectAllRowsByCtrlA } from './select-all-rows-by-ctrl-a.ng';
@@ -20,7 +21,8 @@ const COMPONENTS = [
     KbqAgGridSelectRowsByCtrlClick,
     KbqAgGridCopyByCtrlC,
     KbqAgGridStatusBar,
-    KbqAgGridRowActions
+    KbqAgGridRowActions,
+    KbqAgGridColumnState
 ];
 
 @NgModule({
