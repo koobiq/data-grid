@@ -76,10 +76,10 @@ export class KbqAgGridColumnStateLocalStorageStore implements KbqAgGridColumnSta
 export class KbqAgGridColumnStateQueryParamsStore implements KbqAgGridColumnStateStore {
     private readonly router = inject(Router);
     // TODO: Should use KBQ_WINDOW token
-    private readonly window = window;
+    private readonly location = window.location;
 
     getItem(key: string): ColumnState[] | null {
-        const item = new URLSearchParams(this.window.location.search).get(key);
+        const item = new URLSearchParams(this.location.search).get(key);
 
         if (!item) return null;
 

@@ -1,7 +1,10 @@
 import { expect, Locator, Page, test } from '@playwright/test';
-import { ColumnState } from 'ag-grid-community';
+import { ColumnState, FilterModel } from 'ag-grid-community';
 
 test.describe('KbqAgGridThemeModule', () => {
+    const columnStateStorageKey = 'dev-ag-grid-column-state';
+    const filterStateStorageKey = 'dev-ag-grid-filter-state';
+
     const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
     const getRow = (page: Page, rowIndex: number): Locator => page.locator(`.ag-row[row-index="${rowIndex}"]`);
     const getCell = (page: Page, rowIndex: number, colField: string): Locator =>
@@ -27,6 +30,9 @@ test.describe('KbqAgGridThemeModule', () => {
         getRow(page, rowIndex).locator('.ag-checkbox-input').click();
     const getPinFirstColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinFirstColumnToggle');
     const getPinLastColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinLastColumnToggle');
+    const clearLocalStorageBeforeLoad = async (page: Page, ...keys: string[]): Promise<void> => {
+        await page.addInitScript((k: string[]) => k.forEach((key) => localStorage.removeItem(key)), keys);
+    };
 
     // Screenshot tests are only valid on CI. Do not update snapshots locally.
     test.describe('KbqAgGridAngularTheme', () => {
@@ -35,7 +41,7 @@ test.describe('KbqAgGridThemeModule', () => {
         const getPaginationToggle = (page: Page): Locator => page.getByTestId('e2ePaginationToggle');
 
         test('default state', async ({ page }) => {
-            await page.addInitScript((key: string) => localStorage.removeItem(key), 'dev-ag-grid-column-state');
+            await clearLocalStorageBeforeLoad(page, columnStateStorageKey, filterStateStorageKey);
             await page.setViewportSize({ width: 768, height: 500 });
             await page.goto('/');
             await getShowIndexColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
@@ -46,7 +52,7 @@ test.describe('KbqAgGridThemeModule', () => {
         });
 
         test('with pinned columns', async ({ page }) => {
-            await page.addInitScript((key: string) => localStorage.removeItem(key), 'dev-ag-grid-column-state');
+            await clearLocalStorageBeforeLoad(page, columnStateStorageKey, filterStateStorageKey);
             await page.setViewportSize({ width: 768, height: 500 });
             await page.goto('/');
             await getShowIndexColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
@@ -266,7 +272,7 @@ test.describe('KbqAgGridThemeModule', () => {
 
     test.describe('KbqAgGridRowActions', () => {
         test('shows actions overlay on hover with horizontal scroll', async ({ page }) => {
-            await page.addInitScript((key: string) => localStorage.removeItem(key), 'dev-ag-grid-column-state');
+            await clearLocalStorageBeforeLoad(page, columnStateStorageKey, filterStateStorageKey);
             await page.setViewportSize({ width: 650, height: 500 });
             await page.goto('/');
             await getPinFirstColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
@@ -277,19 +283,17 @@ test.describe('KbqAgGridThemeModule', () => {
     });
 
     test.describe('KbqAgGridColumnState', () => {
-        const storageKey = 'dev-ag-grid-column-state';
-
         const getColumnState = async (page: Page): Promise<ColumnState[] | null> => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return page.evaluate((key) => {
                 const stored = localStorage.getItem(key);
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
                 return stored ? JSON.parse(stored) : null;
-            }, storageKey);
+            }, columnStateStorageKey);
         };
 
         const clearColumnState = async (page: Page): Promise<void> => {
-            await page.evaluate((key: string) => localStorage.removeItem(key), storageKey);
+            await page.evaluate((key: string) => localStorage.removeItem(key), columnStateStorageKey);
         };
 
         test('saves sort state to localStorage when column header is clicked', async ({ page }) => {
@@ -366,7 +370,7 @@ test.describe('KbqAgGridThemeModule', () => {
 
         test('applies pre-existing sort state from localStorage on page load', async ({ page }) => {
             await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
-                key: storageKey,
+                key: columnStateStorageKey,
                 value: JSON.stringify([
                     { colId: 'ag-Grid-SelectionColumn', hide: false, width: 36, sort: null, sortIndex: null },
                     { colId: '0', hide: false, width: 70, sort: null, sortIndex: null },
@@ -389,7 +393,7 @@ test.describe('KbqAgGridThemeModule', () => {
 
         test('applies pre-existing column order from localStorage on page load', async ({ page }) => {
             await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
-                key: storageKey,
+                key: columnStateStorageKey,
                 value: JSON.stringify([
                     { colId: 'ag-Grid-SelectionColumn', hide: false, width: 36, sort: null, sortIndex: null },
                     { colId: '0', hide: false, width: 70, sort: null, sortIndex: null },
@@ -450,7 +454,7 @@ test.describe('KbqAgGridThemeModule', () => {
             await page.addInitScript(
                 ({ key, value }: { key: string; value: string }) => localStorage.setItem(key, value),
                 {
-                    key: storageKey,
+                    key: columnStateStorageKey,
                     value: JSON.stringify([
                         { colId: 'ag-Grid-SelectionColumn', hide: false, width: 36, sort: null, sortIndex: null },
                         { colId: '0', hide: false, width: 70, sort: null, sortIndex: null },
@@ -470,6 +474,196 @@ test.describe('KbqAgGridThemeModule', () => {
             await page.goto('/');
 
             await expect(page.locator('.ag-header-cell[col-id="athlete"]')).not.toBeVisible();
+        });
+    });
+
+    test.describe('KbqAgGridQuickFilterState', () => {
+        const quickFilterStateStorageKey = 'dev-ag-grid-quick-filter-state';
+
+        const getQuickFilterInput = (page: Page): Locator => page.getByTestId('e2eQuickFilterInput');
+        const getResetButton = (page: Page): Locator => page.getByTestId('e2eResetQuickFilterState');
+
+        const getStoredQuickFilterState = async (page: Page): Promise<string | null> => {
+            return page.evaluate((key) => localStorage.getItem(key), quickFilterStateStorageKey);
+        };
+
+        const clearStoredQuickFilterState = async (page: Page): Promise<void> => {
+            await page.evaluate((key: string) => localStorage.removeItem(key), quickFilterStateStorageKey);
+        };
+
+        const getActiveQuickFilter = async (page: Page): Promise<string | undefined> => {
+            return page.evaluate(() => {
+                const el = document.querySelector('ag-grid-angular')!;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+                return (window as any).ng.getComponent(el).api.getQuickFilter() as string | undefined;
+            });
+        };
+
+        const getDisplayedRowCount = async (page: Page): Promise<number> => {
+            return page.evaluate(() => {
+                const el = document.querySelector('ag-grid-angular')!;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+                return (window as any).ng.getComponent(el).api.getDisplayedRowCount() as number;
+            });
+        };
+
+        test('saves quick filter text to localStorage when text is typed', async ({ page }) => {
+            await page.goto('/');
+            await clearStoredQuickFilterState(page);
+            await displayOptions(page);
+            await getQuickFilterInput(page).fill('Michael');
+
+            await expect.poll(async () => getStoredQuickFilterState(page)).toBe('Michael');
+        });
+
+        test('restores quick filter text from localStorage on page load', async ({ page }) => {
+            await page.addInitScript(
+                ({ key, value }: { key: string; value: string }) => localStorage.setItem(key, value),
+                { key: quickFilterStateStorageKey, value: 'Michael' }
+            );
+            await page.goto('/');
+
+            expect(await getActiveQuickFilter(page)).toBe('Michael');
+        });
+
+        test('syncs input value with restored quick filter on page load', async ({ page }) => {
+            await page.addInitScript(
+                ({ key, value }: { key: string; value: string }) => localStorage.setItem(key, value),
+                { key: quickFilterStateStorageKey, value: 'Michael' }
+            );
+            await page.goto('/');
+            await displayOptions(page);
+
+            await expect(getQuickFilterInput(page)).toHaveValue('Michael');
+        });
+
+        test('filters rows when quick filter is restored from localStorage', async ({ page }) => {
+            await page.addInitScript(
+                ({ key, value }: { key: string; value: string }) => localStorage.setItem(key, value),
+                { key: quickFilterStateStorageKey, value: 'Michael' }
+            );
+            await page.goto('/');
+
+            const rowCount = await getDisplayedRowCount(page);
+
+            expect(rowCount).toBeGreaterThan(0);
+            await expect(page.locator('.ag-row')).not.toHaveCount(0);
+            await expect(page.locator('.ag-overlay-no-rows-center')).not.toBeVisible();
+        });
+
+        test('removes quick filter state from localStorage when text is cleared', async ({ page }) => {
+            await page.goto('/');
+            await clearStoredQuickFilterState(page);
+            await displayOptions(page);
+            await getQuickFilterInput(page).fill('Michael');
+            await expect.poll(async () => getStoredQuickFilterState(page)).toBe('Michael');
+
+            await getQuickFilterInput(page).fill('');
+
+            await expect.poll(async () => getStoredQuickFilterState(page)).toBeNull();
+        });
+
+        test('reset() clears quick filter and removes state from localStorage', async ({ page }) => {
+            await page.goto('/');
+            await clearStoredQuickFilterState(page);
+            await displayOptions(page);
+            await getQuickFilterInput(page).fill('Michael');
+            await expect.poll(async () => getStoredQuickFilterState(page)).toBe('Michael');
+
+            await getResetButton(page).click();
+
+            expect(await getStoredQuickFilterState(page)).toBeNull();
+            expect(await getActiveQuickFilter(page)).toBeUndefined();
+            await expect(getQuickFilterInput(page)).toHaveValue('');
+        });
+    });
+
+    test.describe('KbqAgGridFilterState', () => {
+        const getStoredFilterState = async (page: Page): Promise<FilterModel | null> => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+            return page.evaluate((key) => {
+                const stored = localStorage.getItem(key);
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                return stored ? JSON.parse(stored) : null;
+            }, filterStateStorageKey);
+        };
+
+        const clearStoredFilterState = async (page: Page): Promise<void> => {
+            await page.evaluate((key: string) => localStorage.removeItem(key), filterStateStorageKey);
+        };
+
+        const getActiveFilterModel = async (page: Page): Promise<FilterModel> => {
+            return page.evaluate(() => {
+                const el = document.querySelector('ag-grid-angular')!;
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+                return (window as any).ng.getComponent(el).api.getFilterModel() as FilterModel;
+            });
+        };
+
+        const applyColumnFilter = async (page: Page, colId: string, filterModel: object | null): Promise<void> => {
+            await page.evaluate(
+                async ({ col, model }) => {
+                    const el = document.querySelector('ag-grid-angular')!;
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+                    const { api } = (window as any).ng.getComponent(el);
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+                    await api.setColumnFilterModel(col, model);
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+                    api.onFilterChanged('columnFilter');
+                },
+                { col: colId, model: filterModel }
+            );
+        };
+
+        test('saves filter model to localStorage when filter is applied', async ({ page }) => {
+            await page.goto('/');
+            await clearStoredFilterState(page);
+            await applyColumnFilter(page, 'athlete', { filterType: 'text', type: 'contains', filter: 'Michael' });
+
+            const state = await getStoredFilterState(page);
+
+            expect(state?.athlete).toMatchObject({ filterType: 'text', filter: 'Michael' });
+        });
+
+        test('restores filter model from localStorage on page load', async ({ page }) => {
+            await page.addInitScript(
+                ({ key, value }: { key: string; value: string }) => localStorage.setItem(key, value),
+                {
+                    key: filterStateStorageKey,
+                    value: JSON.stringify({ athlete: { filterType: 'text', type: 'contains', filter: 'Michael' } })
+                }
+            );
+            await page.goto('/');
+
+            const model = await getActiveFilterModel(page);
+
+            expect(model.athlete).toMatchObject({ filterType: 'text', filter: 'Michael' });
+        });
+
+        test('removes filter state from localStorage when all filters are cleared', async ({ page }) => {
+            await page.goto('/');
+            await clearStoredFilterState(page);
+            await applyColumnFilter(page, 'athlete', { filterType: 'text', type: 'contains', filter: 'Michael' });
+
+            expect(await getStoredFilterState(page)).not.toBeNull();
+
+            await applyColumnFilter(page, 'athlete', null);
+
+            await expect.poll(async () => getStoredFilterState(page)).toBeNull();
+        });
+
+        test('reset() clears filter model and removes filter state from localStorage', async ({ page }) => {
+            await page.goto('/');
+            await clearStoredFilterState(page);
+            await applyColumnFilter(page, 'athlete', { filterType: 'text', type: 'contains', filter: 'Michael' });
+
+            expect(await getStoredFilterState(page)).not.toBeNull();
+
+            await displayOptions(page);
+            await page.getByTestId('e2eResetFilterState').click();
+
+            expect(await getStoredFilterState(page)).toBeNull();
+            expect(await getActiveFilterModel(page)).toEqual({});
         });
     });
 
