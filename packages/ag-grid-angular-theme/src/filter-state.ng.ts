@@ -22,7 +22,7 @@ export type KbqAgGridFilterStateStore = {
  *
  * @example
  * ```typescript
- * protected readonly state = { store: inject(KbqAgGridFilterStateLocalStorageStore), key: 'filters' };
+ * protected readonly state = { store: inject(KbqAgGridFilterStateLocalStorageStore), key: 'filters-state' };
  * ```
  * @example
  * ```html
@@ -65,7 +65,7 @@ export class KbqAgGridFilterStateLocalStorageStore implements KbqAgGridFilterSta
  *
  * @example
  * ```typescript
- * protected readonly state = { store: inject(KbqAgGridFilterStateQueryParamsStore), key: 'filters' };
+ * protected readonly state = { store: inject(KbqAgGridFilterStateQueryParamsStore), key: 'filters-state' };
  * ```
  * @example
  * ```html
@@ -154,7 +154,7 @@ export const kbqAgGridFilterStateStoreProvider = (
  *
  * @example
  * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridFilterState]="{ store: kbqAgGridFilterStateLocalStorageStore, key: 'filters' }" />
+ * <ag-grid-angular kbqAgGridTheme [kbqAgGridFilterState]="{ store: kbqAgGridFilterStateLocalStorageStore, key: 'filters-state' }" />
  * ```
  */
 @Directive({

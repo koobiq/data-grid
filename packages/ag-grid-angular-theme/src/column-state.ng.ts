@@ -22,7 +22,7 @@ export type KbqAgGridColumnStateStore = {
  *
  * @example
  * ```typescript
- * protected readonly state = { store: inject(KbqAgGridColumnStateLocalStorageStore), key: 'columns' };
+ * protected readonly state = { store: inject(KbqAgGridColumnStateLocalStorageStore), key: 'columns-state' };
  * ```
  * @example
  * ```html
@@ -65,7 +65,7 @@ export class KbqAgGridColumnStateLocalStorageStore implements KbqAgGridColumnSta
  *
  * @example
  * ```typescript
- * protected readonly state = { store: inject(KbqAgGridColumnStateQueryParamsStore), key: 'columns' };
+ * protected readonly state = { store: inject(KbqAgGridColumnStateQueryParamsStore), key: 'columns-state' };
  * ```
  * @example
  * ```html
@@ -155,7 +155,7 @@ export const kbqAgGridColumnStateStoreProvider = (
  *
  * @example
  * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridColumnState]="{ store: kbqAgGridColumnStateLocalStorageStore, key: 'columns' }" />
+ * <ag-grid-angular kbqAgGridTheme [kbqAgGridColumnState]="{ store: kbqAgGridColumnStateLocalStorageStore, key: 'columns-state' }" />
  * ```
  */
 @Directive({

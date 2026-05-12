@@ -74,88 +74,61 @@ You can apply custom keyboard shortcuts by adding the corresponding directives t
 
 Directives for persisting and restoring grid state across page reloads.
 
-#### Column state
+| Directive                      | Saves                                 | Value type      |
+| ------------------------------ | ------------------------------------- | --------------- |
+| `kbqAgGridColumnState`         | Sort, column order, visibility, width | `ColumnState[]` |
+| `kbqAgGridFilterState`         | Column filter models                  | `FilterModel`   |
+| `kbqAgGridQuickFilterState`    | Quick filter text                     | `string`        |
+| `kbqAgGridExternalFilterState` | External filter value                 | `unknown`       |
 
-`kbqAgGridColumnState` saves sort order, column order, visibility, and width.
+All directives accept a storage key as attribute value and expose `reset()` via template reference:
 
 ```html
 <ag-grid-angular kbqAgGridTheme kbqAgGridColumnState="my-grid" />
+<ag-grid-angular kbqAgGridTheme kbqAgGridFilterState="my-grid" />
 ```
 
-Use `#ref="kbqAgGridColumnState"` and call `ref.reset()` to clear the stored state.
-
-#### Filter state
-
-`kbqAgGridFilterState` saves column filter models (text, number, date filters).
+**Quick filter** — exposes a `value` signal to keep the external input in sync after restore:
 
 ```html
-<ag-grid-angular kbqAgGridTheme kbqAgGridFilterState="my-grid-filters" />
+<input [value]="qf.value()" (input)="api.setGridOption('quickFilterText', $event.target.value)" />
+<ag-grid-angular kbqAgGridTheme #qf="kbqAgGridQuickFilterState" kbqAgGridQuickFilterState="my-grid" />
 ```
 
-Use `#ref="kbqAgGridFilterState"` and call `ref.reset()` to clear the stored state.
+**External filter** — the directive manages only persistence. Wire `isExternalFilterPresent` / `doesExternalFilterPass` yourself based on `state().value()`, and call `state().set(value)` when the filter changes:
 
-#### Quick filter state
-
-`kbqAgGridQuickFilterState` saves the quick filter text input across page reloads.
-
-Because the quick filter input lives outside the grid, the directive exposes a `value` signal
-with the current filter text. Bind it to your search input's `[value]` so the input stays in
-sync after state is restored.
+```typescript
+protected readonly isExternalFilterPresent = () => !!this.state().value();
+protected readonly doesExternalFilterPass = (node: IRowNode) => node.data?.sport === this.state().value();
+```
 
 ```html
-<input
-    placeholder="Search..."
-    [value]="qf.value()"
-    (input)="api.setGridOption('quickFilterText', $event.target.value)"
+<select (change)="state().set($event.target.value || null)">
+    ...
+</select>
+<ag-grid-angular
+    #state="kbqAgGridExternalFilterState"
+    kbqAgGridTheme
+    kbqAgGridExternalFilterState="my-grid"
+    [isExternalFilterPresent]="isExternalFilterPresent"
+    [doesExternalFilterPass]="doesExternalFilterPass"
 />
-<ag-grid-angular kbqAgGridTheme #qf="kbqAgGridQuickFilterState" kbqAgGridQuickFilterState="my-grid-quick-filter" />
 ```
-
-Use `qf.reset()` to clear both the stored state and the active filter.
 
 #### Built-in stores
 
-All three directives share the same store method shape (`getItem` / `setItem` / `removeItem`) but have type-specific value types (`ColumnState[]`, `FilterModel`, `string`). Built-in implementations:
-
-| Store                    | Class                                                                                                                            | Description                                                                                                             |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `localStorage` (default) | `KbqAgGridColumnStateLocalStorageStore` / `KbqAgGridFilterStateLocalStorageStore` / `KbqAgGridQuickFilterStateLocalStorageStore` | Persists state in the browser's `localStorage`. Survives page reloads and browser restarts.                             |
-| URL query params         | `KbqAgGridColumnStateQueryParamsStore` / `KbqAgGridFilterStateQueryParamsStore` / `KbqAgGridQuickFilterStateQueryParamsStore`    | Persists state as a URL query parameter. Shareable via URL. Uses `replaceUrl: true` to avoid polluting browser history. |
-
-Override the default store using the provider helper:
+Each directive defaults to `localStorage`. To switch to URL query params, use the provider helper:
 
 ```ts
-// Column state
-providers: [kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateQueryParamsStore)];
-
-// Filter state
-providers: [kbqAgGridFilterStateStoreProvider(KbqAgGridFilterStateQueryParamsStore)];
-
-// Quick filter state
-providers: [kbqAgGridQuickFilterStateStoreProvider(KbqAgGridQuickFilterStateQueryParamsStore)];
+providers: [
+    kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateQueryParamsStore),
+    kbqAgGridFilterStateStoreProvider(KbqAgGridFilterStateQueryParamsStore),
+    kbqAgGridQuickFilterStateStoreProvider(KbqAgGridQuickFilterStateQueryParamsStore),
+    kbqAgGridExternalFilterStateStoreProvider(KbqAgGridExternalFilterStateQueryParamsStore)
+];
 ```
 
-Pass a custom store instance by implementing the corresponding store interface:
-
-```ts
-class MyStore implements KbqAgGridFilterStateStore {
-    getItem(key: string) { ... }
-    setItem(key: string, value: FilterModel) { ... }
-    removeItem(key: string) { ... }
-}
-
-providers: [kbqAgGridFilterStateStoreProvider(new MyStore())]
-```
-
-```ts
-class MyQuickFilterStore implements KbqAgGridQuickFilterStateStore {
-    getItem(key: string) { ... }
-    setItem(key: string, value: string) { ... }
-    removeItem(key: string) { ... }
-}
-
-providers: [kbqAgGridQuickFilterStateStoreProvider(new MyQuickFilterStore())]
-```
+Pass a custom store by implementing the corresponding interface (`KbqAgGridColumnStateStore` / `KbqAgGridFilterStateStore` / `KbqAgGridQuickFilterStateStore` / `KbqAgGridExternalFilterStateStore`) and passing the instance to the provider helper.
 
 ---
 

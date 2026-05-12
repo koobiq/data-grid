@@ -20,7 +20,7 @@ const appConfig: ApplicationConfig = {
                     {
                         path: 'column-state-query-params',
                         loadComponent: async () =>
-                            import('./tests/column-state-query-params.ng').then((m) => m.DevColumnStateQueryParams)
+                            import('./tests/column-state.ng').then((m) => m.DevColumnStateQueryParams)
                     },
                     {
                         path: 'filter-state',
@@ -29,7 +29,7 @@ const appConfig: ApplicationConfig = {
                     {
                         path: 'filter-state-query-params',
                         loadComponent: async () =>
-                            import('./tests/filter-state-query-params.ng').then((m) => m.DevFilterStateQueryParams)
+                            import('./tests/filter-state.ng').then((m) => m.DevFilterStateQueryParams)
                     },
                     {
                         path: 'quick-filter-state',
@@ -39,9 +39,17 @@ const appConfig: ApplicationConfig = {
                     {
                         path: 'quick-filter-state-query-params',
                         loadComponent: async () =>
-                            import('./tests/quick-filter-state-query-params.ng').then(
-                                (m) => m.DevQuickFilterStateQueryParams
-                            )
+                            import('./tests/quick-filter-state.ng').then((m) => m.DevQuickFilterStateQueryParams)
+                    },
+                    {
+                        path: 'external-filter-state',
+                        loadComponent: async () =>
+                            import('./tests/external-filter-state.ng').then((m) => m.DevExternalFilterState)
+                    },
+                    {
+                        path: 'external-filter-state-query-params',
+                        loadComponent: async () =>
+                            import('./tests/external-filter-state.ng').then((m) => m.DevExternalFilterStateQueryParams)
                     }
                 ]
             }

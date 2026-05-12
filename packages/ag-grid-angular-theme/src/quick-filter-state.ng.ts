@@ -32,7 +32,7 @@ export type KbqAgGridQuickFilterStateStore = {
  *
  * @example
  * ```typescript
- * protected readonly state = { store: inject(KbqAgGridQuickFilterStateLocalStorageStore), key: 'quick-filter' };
+ * protected readonly state = { store: inject(KbqAgGridQuickFilterStateLocalStorageStore), key: 'quick-filter-state' };
  * ```
  * @example
  * ```html
@@ -66,7 +66,7 @@ export class KbqAgGridQuickFilterStateLocalStorageStore implements KbqAgGridQuic
  *
  * @example
  * ```typescript
- * protected readonly state = { store: inject(KbqAgGridQuickFilterStateQueryParamsStore), key: 'quick-filter' };
+ * protected readonly state = { store: inject(KbqAgGridQuickFilterStateQueryParamsStore), key: 'quick-filter-state' };
  * ```
  * @example
  * ```html
@@ -150,7 +150,7 @@ export const kbqAgGridQuickFilterStateStoreProvider = (
  * @example
  * ```html
  * <input [value]="qf.value()" (input)="api.setGridOption('quickFilterText', $event.target.value)" />
- * <ag-grid-angular kbqAgGridTheme #qf="kbqAgGridQuickFilterState" [kbqAgGridQuickFilterState]="'quick-filter'" />
+ * <ag-grid-angular kbqAgGridTheme #qf="kbqAgGridQuickFilterState" [kbqAgGridQuickFilterState]="'quick-filter-state'" />
  * ```
  */
 @Directive({
