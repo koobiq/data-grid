@@ -74,61 +74,12 @@ You can apply custom keyboard shortcuts by adding the corresponding directives t
 
 Directives for persisting and restoring grid state across page reloads.
 
-| Directive                      | Saves                                 | Value type      |
-| ------------------------------ | ------------------------------------- | --------------- |
-| `kbqAgGridColumnState`         | Sort, column order, visibility, width | `ColumnState[]` |
-| `kbqAgGridFilterState`         | Column filter models                  | `FilterModel`   |
-| `kbqAgGridQuickFilterState`    | Quick filter text                     | `string`        |
-| `kbqAgGridExternalFilterState` | External filter value                 | `unknown`       |
-
-All directives accept a storage key as attribute value and expose `reset()` via template reference:
-
-```html
-<ag-grid-angular kbqAgGridTheme kbqAgGridColumnState="my-grid" />
-<ag-grid-angular kbqAgGridTheme kbqAgGridFilterState="my-grid" />
-```
-
-**Quick filter** — exposes a `value` signal to keep the external input in sync after restore:
-
-```html
-<input [value]="qf.value()" (input)="api.setGridOption('quickFilterText', $event.target.value)" />
-<ag-grid-angular kbqAgGridTheme #qf="kbqAgGridQuickFilterState" kbqAgGridQuickFilterState="my-grid" />
-```
-
-**External filter** — the directive manages only persistence. Wire `isExternalFilterPresent` / `doesExternalFilterPass` yourself based on `state().value()`, and call `state().set(value)` when the filter changes:
-
-```typescript
-protected readonly isExternalFilterPresent = () => !!this.state().value();
-protected readonly doesExternalFilterPass = (node: IRowNode) => node.data?.sport === this.state().value();
-```
-
-```html
-<select (change)="state().set($event.target.value || null)">
-    ...
-</select>
-<ag-grid-angular
-    #state="kbqAgGridExternalFilterState"
-    kbqAgGridTheme
-    kbqAgGridExternalFilterState="my-grid"
-    [isExternalFilterPresent]="isExternalFilterPresent"
-    [doesExternalFilterPass]="doesExternalFilterPass"
-/>
-```
-
-#### Built-in stores
-
-Each directive defaults to `localStorage`. To switch to URL query params, use the provider helper:
-
-```ts
-providers: [
-    kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateQueryParamsStore),
-    kbqAgGridFilterStateStoreProvider(KbqAgGridFilterStateQueryParamsStore),
-    kbqAgGridQuickFilterStateStoreProvider(KbqAgGridQuickFilterStateQueryParamsStore),
-    kbqAgGridExternalFilterStateStoreProvider(KbqAgGridExternalFilterStateQueryParamsStore)
-];
-```
-
-Pass a custom store by implementing the corresponding interface (`KbqAgGridColumnStateStore` / `KbqAgGridFilterStateStore` / `KbqAgGridQuickFilterStateStore` / `KbqAgGridExternalFilterStateStore`) and passing the instance to the provider helper.
+| Directive                      | Saves                                 | Built-in stores                                                                                           |
+| ------------------------------ | ------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `kbqAgGridColumnState`         | Sort, column order, visibility, width | `KbqAgGridColumnStateLocalStorageStore` (default), `KbqAgGridColumnStateQueryParamsStore`                 |
+| `kbqAgGridFilterState`         | Column filter models                  | `KbqAgGridFilterStateLocalStorageStore` (default), `KbqAgGridFilterStateQueryParamsStore`                 |
+| `kbqAgGridQuickFilterState`    | Quick filter text                     | `KbqAgGridQuickFilterStateLocalStorageStore` (default), `KbqAgGridQuickFilterStateQueryParamsStore`       |
+| `kbqAgGridExternalFilterState` | External filter value                 | `KbqAgGridExternalFilterStateLocalStorageStore` (default), `KbqAgGridExternalFilterStateQueryParamsStore` |
 
 ---
 
