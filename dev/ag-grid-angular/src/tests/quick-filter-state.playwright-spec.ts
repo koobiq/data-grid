@@ -2,7 +2,6 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { getAgGridApi } from './utils/api';
 
 const quickFilterStateStorageKey = 'dev-ag-grid-quick-filter-state';
-const quickFilterStateQueryParamKey = 'dev-ag-grid-quick-filter-state';
 
 const getQuickFilterInput = (page: Page): Locator => page.getByTestId('e2eQuickFilterInput');
 const getResetButton = (page: Page): Locator => page.getByTestId('e2eResetQuickFilterState');
@@ -21,11 +20,11 @@ const getDisplayedRowCount = async (page: Page): Promise<number> =>
     (await getAgGridApi(page)).evaluate((api) => api.getDisplayedRowCount());
 
 const getQuickFilterStateFromUrl = async (page: Page): Promise<string | null> =>
-    page.evaluate((key) => new URLSearchParams(window.location.search).get(key), quickFilterStateQueryParamKey);
+    page.evaluate((key) => new URLSearchParams(window.location.search).get(key), quickFilterStateStorageKey);
 
 const buildQuickFilterUrl = (value: string): string => {
     const encoded = encodeURIComponent(value);
-    return `/e2e/quick-filter-state-query-params?${quickFilterStateQueryParamKey}=${encoded}`;
+    return `/e2e/quick-filter-state-query-params?${quickFilterStateStorageKey}=${encoded}`;
 };
 
 test.describe('KbqAgGridQuickFilterState', () => {

@@ -75,6 +75,29 @@ class TestQuickFilterStateGrid {
     readonly directive = viewChild.required(KbqAgGridQuickFilterState);
 }
 
+@Component({
+    selector: 'test-quick-filter-state-grid-restored',
+    standalone: true,
+    template: `
+        <ag-grid-angular
+            [kbqAgGridQuickFilterState]="key"
+            [kbqAgGridQuickFilterStateStore]="store"
+            (kbqAgGridQuickFilterStateRestored)="onRestored($event)"
+        />
+    `,
+    imports: [TestAgGridAngularStub, KbqAgGridQuickFilterState]
+})
+class TestQuickFilterStateGridWithRestoredOutput {
+    key = 'quick-filter';
+    store: KbqAgGridQuickFilterStateStore = {
+        getItem: () => null,
+        setItem: () => undefined,
+        removeItem: () => undefined
+    };
+    onRestored = jest.fn();
+    readonly grid = viewChild.required(TestAgGridAngularStub);
+}
+
 describe(KbqAgGridQuickFilterState.name, () => {
     it('restores saved text from store on init', async () => {
         const store: KbqAgGridQuickFilterStateStore = {
@@ -87,18 +110,20 @@ describe(KbqAgGridQuickFilterState.name, () => {
             componentProperties: { key: 'qf-1', store }
         });
 
-        const grid = fixture.componentInstance.grid();
-        grid.emitGridReady();
+        fixture.componentInstance.grid().emitGridReady();
 
         await waitFor(() => {
             expect(store.getItem).toHaveBeenCalledWith('qf-1');
             // eslint-disable-next-line @typescript-eslint/unbound-method
-            expect(grid.api.setGridOption).toHaveBeenCalledWith('quickFilterText', 'Michael');
+            expect(fixture.componentInstance.grid().api.setGridOption).toHaveBeenCalledWith(
+                'quickFilterText',
+                'Michael'
+            );
             expect(fixture.componentInstance.directive().value()).toBe('Michael');
         });
     });
 
-    it('does not apply text when store returns null', async () => {
+    it('does not apply non-empty text to grid when store returns null', async () => {
         const store: KbqAgGridQuickFilterStateStore = {
             getItem: jest.fn(() => null),
             setItem: jest.fn(),
@@ -109,102 +134,111 @@ describe(KbqAgGridQuickFilterState.name, () => {
             componentProperties: { key: 'qf-2', store }
         });
 
-        const grid = fixture.componentInstance.grid();
-        grid.emitGridReady();
+        fixture.componentInstance.grid().emitGridReady();
 
-        await waitFor(() => {
-            expect(store.getItem).toHaveBeenCalledWith('qf-2');
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            expect(grid.api.setGridOption).not.toHaveBeenCalled();
-        });
+        await waitFor(() => expect(store.getItem).toHaveBeenCalledWith('qf-2'));
+
+        // The effect fires with value='' on api init, but must never set a non-empty value
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(fixture.componentInstance.grid().api.setGridOption).not.toHaveBeenCalledWith(
+            'quickFilterText',
+            expect.stringMatching(/.+/)
+        );
+        expect(fixture.componentInstance.directive().value()).toBe('');
     });
 
-    it('saves text on non-api filterChanged events', async () => {
+    it('emits restored output with the stored value on init', async () => {
         const store: KbqAgGridQuickFilterStateStore = {
-            getItem: jest.fn(() => null),
+            getItem: jest.fn(() => 'Michael'),
             setItem: jest.fn(),
             removeItem: jest.fn()
         };
-        const apiMock = createApiMock();
 
-        jest.spyOn(apiMock.api, 'getQuickFilter').mockReturnValue('test query');
-
-        const { fixture } = await render(TestQuickFilterStateGrid, {
+        const { fixture } = await render(TestQuickFilterStateGridWithRestoredOutput, {
             componentProperties: { key: 'qf-3', store }
         });
 
-        fixture.componentInstance.grid().emitGridReady(apiMock.api);
+        fixture.componentInstance.grid().emitGridReady();
 
         await waitFor(() => {
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            expect(apiMock.api.addEventListener).toHaveBeenCalledWith('filterChanged', expect.any(Function));
-        });
-
-        apiMock.dispatchFilterChanged('columnFilter');
-
-        await waitFor(() => {
-            expect(store.setItem).toHaveBeenCalledWith('qf-3', 'test query');
-            expect(store.removeItem).not.toHaveBeenCalled();
+            expect(fixture.componentInstance.onRestored).toHaveBeenCalledWith('Michael');
         });
     });
 
-    it('removes item when filterChanged produces empty text', async () => {
+    it('does not emit restored output when store returns null', async () => {
         const store: KbqAgGridQuickFilterStateStore = {
             getItem: jest.fn(() => null),
             setItem: jest.fn(),
             removeItem: jest.fn()
         };
-        const apiMock = createApiMock();
 
-        jest.spyOn(apiMock.api, 'getQuickFilter').mockReturnValue(undefined);
-
-        const { fixture } = await render(TestQuickFilterStateGrid, {
+        const { fixture } = await render(TestQuickFilterStateGridWithRestoredOutput, {
             componentProperties: { key: 'qf-4', store }
         });
 
-        fixture.componentInstance.grid().emitGridReady(apiMock.api);
+        fixture.componentInstance.grid().emitGridReady();
 
-        await waitFor(() => {
-            // eslint-disable-next-line @typescript-eslint/unbound-method
-            expect(apiMock.api.addEventListener).toHaveBeenCalledWith('filterChanged', expect.any(Function));
-        });
+        await waitFor(() => expect(store.getItem).toHaveBeenCalled());
 
-        apiMock.dispatchFilterChanged('columnFilter');
-
-        await waitFor(() => {
-            expect(store.removeItem).toHaveBeenCalledWith('qf-4');
-            expect(store.setItem).not.toHaveBeenCalled();
-        });
+        expect(fixture.componentInstance.onRestored).not.toHaveBeenCalled();
     });
 
-    it('ignores filterChanged events triggered by api source', async () => {
+    it('saves text to store when value changes', async () => {
         const store: KbqAgGridQuickFilterStateStore = {
             getItem: jest.fn(() => null),
             setItem: jest.fn(),
             removeItem: jest.fn()
         };
-        const apiMock = createApiMock();
 
         const { fixture } = await render(TestQuickFilterStateGrid, {
             componentProperties: { key: 'qf-5', store }
         });
 
-        fixture.componentInstance.grid().emitGridReady(apiMock.api);
+        const grid = fixture.componentInstance.grid();
+        grid.emitGridReady();
+
+        await waitFor(() => expect(store.getItem).toHaveBeenCalled());
+
+        fixture.componentInstance.directive().value.set('test query');
 
         await waitFor(() => {
+            expect(store.setItem).toHaveBeenCalledWith('qf-5', 'test query');
             // eslint-disable-next-line @typescript-eslint/unbound-method
-            expect(apiMock.api.addEventListener).toHaveBeenCalledWith('filterChanged', expect.any(Function));
-        });
-
-        apiMock.dispatchFilterChanged('api');
-
-        await waitFor(() => {
-            expect(store.setItem).not.toHaveBeenCalled();
-            expect(store.removeItem).not.toHaveBeenCalled();
+            expect(grid.api.setGridOption).toHaveBeenCalledWith('quickFilterText', 'test query');
         });
     });
 
-    it('updates value signal on filterChanged', async () => {
+    it('removes item from store when value is cleared', async () => {
+        const store: KbqAgGridQuickFilterStateStore = {
+            getItem: jest.fn(() => null),
+            setItem: jest.fn(),
+            removeItem: jest.fn()
+        };
+
+        const { fixture } = await render(TestQuickFilterStateGrid, {
+            componentProperties: { key: 'qf-6', store }
+        });
+
+        const grid = fixture.componentInstance.grid();
+        grid.emitGridReady();
+
+        await waitFor(() => expect(store.getItem).toHaveBeenCalled());
+
+        fixture.componentInstance.directive().value.set('test');
+        await waitFor(() => expect(store.setItem).toHaveBeenCalled());
+
+        jest.clearAllMocks();
+
+        fixture.componentInstance.directive().value.set('');
+
+        await waitFor(() => {
+            expect(store.removeItem).toHaveBeenCalledWith('qf-6');
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(grid.api.setGridOption).toHaveBeenCalledWith('quickFilterText', '');
+        });
+    });
+
+    it('updates value when filterChanged fires with quickFilter source', async () => {
         const store: KbqAgGridQuickFilterStateStore = {
             getItem: jest.fn(() => null),
             setItem: jest.fn(),
@@ -215,7 +249,7 @@ describe(KbqAgGridQuickFilterState.name, () => {
         jest.spyOn(apiMock.api, 'getQuickFilter').mockReturnValue('hello');
 
         const { fixture } = await render(TestQuickFilterStateGrid, {
-            componentProperties: { key: 'qf-6', store }
+            componentProperties: { key: 'qf-7', store }
         });
 
         fixture.componentInstance.grid().emitGridReady(apiMock.api);
@@ -225,14 +259,39 @@ describe(KbqAgGridQuickFilterState.name, () => {
             expect(apiMock.api.addEventListener).toHaveBeenCalledWith('filterChanged', expect.any(Function));
         });
 
-        apiMock.dispatchFilterChanged('columnFilter');
+        apiMock.dispatchFilterChanged('quickFilter');
 
         await waitFor(() => {
             expect(fixture.componentInstance.directive().value()).toBe('hello');
         });
     });
 
-    it('reset removes stored state, clears grid filter, and resets value signal', async () => {
+    it('does not update value when filterChanged fires with non-quickFilter source', async () => {
+        const store: KbqAgGridQuickFilterStateStore = {
+            getItem: jest.fn(() => null),
+            setItem: jest.fn(),
+            removeItem: jest.fn()
+        };
+        const apiMock = createApiMock();
+
+        const { fixture } = await render(TestQuickFilterStateGrid, {
+            componentProperties: { key: 'qf-8', store }
+        });
+
+        fixture.componentInstance.grid().emitGridReady(apiMock.api);
+
+        await waitFor(() => {
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(apiMock.api.addEventListener).toHaveBeenCalledWith('filterChanged', expect.any(Function));
+        });
+
+        apiMock.dispatchFilterChanged('api');
+        apiMock.dispatchFilterChanged('columnFilter');
+
+        expect(fixture.componentInstance.directive().value()).toBe('');
+    });
+
+    it('reset clears grid filter and removes stored state', async () => {
         const store: KbqAgGridQuickFilterStateStore = {
             getItem: jest.fn(() => null),
             setItem: jest.fn(),
@@ -240,15 +299,27 @@ describe(KbqAgGridQuickFilterState.name, () => {
         };
 
         const { fixture } = await render(TestQuickFilterStateGrid, {
-            componentProperties: { key: 'qf-7', store }
+            componentProperties: { key: 'qf-9', store }
         });
+
+        const grid = fixture.componentInstance.grid();
+        grid.emitGridReady();
+
+        await waitFor(() => expect(store.getItem).toHaveBeenCalled());
+
+        fixture.componentInstance.directive().value.set('some text');
+        await waitFor(() => expect(store.setItem).toHaveBeenCalled());
+
+        jest.clearAllMocks();
 
         fixture.componentInstance.directive().reset();
 
-        expect(store.removeItem).toHaveBeenCalledWith('qf-7');
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(fixture.componentInstance.grid().api.setGridOption).toHaveBeenCalledWith('quickFilterText', '');
-        expect(fixture.componentInstance.directive().value()).toBe('');
+        await waitFor(() => {
+            expect(store.removeItem).toHaveBeenCalledWith('qf-9');
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(grid.api.setGridOption).toHaveBeenCalledWith('quickFilterText', '');
+            expect(fixture.componentInstance.directive().value()).toBe('');
+        });
     });
 
     it('supports async store methods', async () => {
@@ -262,10 +333,8 @@ describe(KbqAgGridQuickFilterState.name, () => {
         };
         const apiMock = createApiMock();
 
-        jest.spyOn(apiMock.api, 'getQuickFilter').mockReturnValue('Phelps updated');
-
         const { fixture } = await render(TestQuickFilterStateGrid, {
-            componentProperties: { key: 'qf-8', store }
+            componentProperties: { key: 'qf-10', store }
         });
 
         fixture.componentInstance.grid().emitGridReady(apiMock.api);
@@ -275,10 +344,10 @@ describe(KbqAgGridQuickFilterState.name, () => {
             expect(apiMock.api.setGridOption).toHaveBeenCalledWith('quickFilterText', 'Phelps');
         });
 
-        apiMock.dispatchFilterChanged('columnFilter');
+        fixture.componentInstance.directive().value.set('Phelps updated');
 
         await waitFor(() => {
-            expect(store.setItem).toHaveBeenCalledWith('qf-8', 'Phelps updated');
+            expect(store.setItem).toHaveBeenCalledWith('qf-10', 'Phelps updated');
         });
     });
 
@@ -291,7 +360,7 @@ describe(KbqAgGridQuickFilterState.name, () => {
         const apiMock = createApiMock();
 
         const { fixture } = await render(TestQuickFilterStateGrid, {
-            componentProperties: { key: 'qf-9', store }
+            componentProperties: { key: 'qf-11', store }
         });
 
         fixture.componentInstance.grid().emitGridReady(apiMock.api);

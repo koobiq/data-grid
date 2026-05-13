@@ -1,13 +1,17 @@
 import {
     DestroyRef,
     Directive,
+    effect,
     inject,
     Injectable,
     InjectionToken,
     input,
+    model,
+    output,
     Provider,
     signal,
-    Type
+    Type,
+    untracked
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
@@ -144,13 +148,21 @@ export const kbqAgGridQuickFilterStateStoreProvider = (
  * Directive that persists and restores ag-grid quick filter state
  * using a configurable {@link KbqAgGridQuickFilterStateStore}.
  *
- * Exposes a {@link value} signal with the current filter value so the host
- * component can keep its search input in sync with the restored state.
+ * Exposes a two-way bindable {@link value} model so the host component
+ * can keep its search input in sync without accessing the grid API directly.
  *
- * @example
+ * @example Signals / ngModel
  * ```html
- * <input [value]="qf.value()" (input)="api.setGridOption('quickFilterText', $event.target.value)" />
- * <ag-grid-angular kbqAgGridTheme #qf="kbqAgGridQuickFilterState" [kbqAgGridQuickFilterState]="'quick-filter-state'" />
+ * <input [(ngModel)]="filterText" />
+ * <ag-grid-angular kbqAgGridTheme [kbqAgGridQuickFilterState]="'quick-filter-state'" [(kbqAgGridQuickFilterStateValue)]="filterText" />
+ * ```
+ * @example Reactive forms
+ * ```html
+ * <input [formControl]="control" />
+ * <ag-grid-angular kbqAgGridTheme [kbqAgGridQuickFilterState]="'quick-filter-state'"
+ *     [kbqAgGridQuickFilterStateValue]="filterText()"
+ *     (kbqAgGridQuickFilterStateValueChange)="control.setValue($event)"
+ *     (kbqAgGridQuickFilterStateRestored)="control.setValue($event)" />
  * ```
  */
 @Directive({
@@ -161,6 +173,7 @@ export const kbqAgGridQuickFilterStateStoreProvider = (
 export class KbqAgGridQuickFilterState {
     private readonly grid = inject(AgGridAngular);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly api = signal<GridApi | null>(null);
 
     /** Key under which quick filter state is stored. Must be unique per grid. */
     readonly key = input.required<string>({ alias: 'kbqAgGridQuickFilterState' });
@@ -171,58 +184,53 @@ export class KbqAgGridQuickFilterState {
         alias: 'kbqAgGridQuickFilterStateStore'
     });
 
-    private readonly _value = signal('');
-
     /**
-     * Current quick filter text. Updated on restore and on every user change.
+     * Current quick filter text — two-way bindable.
      * Bind to the search input's `[value]` to keep it in sync after state restore.
      */
-    readonly value = this._value.asReadonly();
+    readonly value = model('', { alias: 'kbqAgGridQuickFilterStateValue' });
+
+    /** Emitted once after state is restored from the store. Useful for bridging with reactive forms. */
+    // eslint-disable-next-line @angular-eslint/no-output-rename
+    readonly restored = output<string>({ alias: 'kbqAgGridQuickFilterStateRestored' });
 
     constructor() {
+        effect(() => {
+            const api = this.api();
+            if (!api) return;
+
+            const value = this.value();
+            api.setGridOption('quickFilterText', value);
+
+            const key = untracked(this.key);
+            const store = untracked(this.store);
+
+            if (value) void store.setItem(key, value);
+            else void store.removeItem(key);
+        });
+
         this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => void this.init(api));
     }
 
     /** Removes the stored quick filter state and clears the grid filter. */
     reset(): void {
-        const store = this.store();
-        const key = this.key();
-
-        void store.removeItem(key);
-        this.grid.api.setGridOption('quickFilterText', '');
-        this._value.set('');
+        this.value.set('');
     }
 
     private async init(api: GridApi): Promise<void> {
-        const key = this.key();
-        const store = this.store();
-
-        const item = await store.getItem(key);
-
+        this.api.set(api);
+        const item = await this.store().getItem(this.key());
         if (item) {
-            api.setGridOption('quickFilterText', item);
-            this._value.set(item);
+            this.value.set(item);
+            this.restored.emit(item);
         }
 
-        const save: AgEventListener<unknown, unknown, 'filterChanged'> = (event) => {
-            // Skips saves triggered by api.setGridOption('quickFilterText') during init to avoid redundant writes.
-            if (event.source === 'api') return;
-
-            const text = api.getQuickFilter() ?? '';
-
-            if (!text) {
-                void store.removeItem(key);
-            } else {
-                void store.setItem(key, text);
-            }
-
-            this._value.set(text);
+        const filterChanged: AgEventListener<unknown, unknown, 'filterChanged'> = ({ source }) => {
+            if (source !== 'quickFilter') return;
+            this.value.set(api.getQuickFilter() ?? '');
         };
 
-        api.addEventListener('filterChanged', save);
-
-        this.destroyRef.onDestroy(() => {
-            api.removeEventListener('filterChanged', save);
-        });
+        api.addEventListener('filterChanged', filterChanged);
+        this.destroyRef.onDestroy(() => api.removeEventListener('filterChanged', filterChanged));
     }
 }

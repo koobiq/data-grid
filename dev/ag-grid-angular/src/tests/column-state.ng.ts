@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import {
     KbqAgGridColumnStateLocalStorageStore,
     KbqAgGridColumnStateQueryParamsStore,
@@ -9,6 +9,32 @@ import { AllCommunityModule, ColDef, ModuleRegistry } from 'ag-grid-community';
 import { devInjectRowData } from '../data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
+
+const COLUMN_DEFS: ColDef[] = [
+    { field: 'athlete', headerName: 'Athlete' },
+    { field: 'age', headerName: 'Age' },
+    { field: 'country', headerName: 'Country' },
+    { field: 'year', headerName: 'Year' },
+    { field: 'date', headerName: 'Date' },
+    { field: 'sport', headerName: 'Sport' },
+    { field: 'gold', headerName: 'Gold' },
+    { field: 'silver', headerName: 'Silver' },
+    { field: 'bronze', headerName: 'Bronze' },
+    { field: 'total', headerName: 'Total' }
+];
+
+const DEFAULT_COL_DEF: ColDef = {
+    editable: true,
+    filter: true,
+    sortable: true,
+    resizable: true,
+    floatingFilter: false,
+    suppressMovable: false,
+    lockPinned: false,
+    lockPosition: false
+};
+
+const STATE_KEY = 'dev-ag-grid-column-state';
 
 @Component({
     standalone: true,
@@ -24,8 +50,8 @@ ModuleRegistry.registerModules([AllCommunityModule]);
             [kbqAgGridColumnState]="stateKey"
             [kbqAgGridColumnStateStore]="store"
             [rowData]="rowData()"
-            [columnDefs]="columnDefs()"
-            [defaultColDef]="defaultColDef()"
+            [columnDefs]="columnDefs"
+            [defaultColDef]="defaultColDef"
         />
     `,
     styles: `
@@ -39,33 +65,9 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 export class DevColumnState {
     readonly rowData = devInjectRowData();
     readonly store = inject(KbqAgGridColumnStateLocalStorageStore);
-    readonly stateKey = 'dev-ag-grid-column-state';
-    readonly columnDefs = computed<ColDef[]>(() => {
-        return [
-            { field: 'athlete', headerName: 'Athlete' },
-            { field: 'age', headerName: 'Age' },
-            { field: 'country', headerName: 'Country' },
-            { field: 'year', headerName: 'Year' },
-            { field: 'date', headerName: 'Date' },
-            { field: 'sport', headerName: 'Sport' },
-            { field: 'gold', headerName: 'Gold' },
-            { field: 'silver', headerName: 'Silver' },
-            { field: 'bronze', headerName: 'Bronze' },
-            { field: 'total', headerName: 'Total' }
-        ];
-    });
-    readonly defaultColDef = computed<ColDef>(() => {
-        return {
-            editable: true,
-            filter: true,
-            sortable: true,
-            resizable: true,
-            floatingFilter: false,
-            suppressMovable: false,
-            lockPinned: false,
-            lockPosition: false
-        };
-    });
+    readonly stateKey = STATE_KEY;
+    readonly columnDefs = COLUMN_DEFS;
+    readonly defaultColDef = DEFAULT_COL_DEF;
 }
 
 @Component({
@@ -82,8 +84,8 @@ export class DevColumnState {
             [kbqAgGridColumnState]="stateKey"
             [kbqAgGridColumnStateStore]="store"
             [rowData]="rowData()"
-            [columnDefs]="columnDefs()"
-            [defaultColDef]="defaultColDef()"
+            [columnDefs]="columnDefs"
+            [defaultColDef]="defaultColDef"
         />
     `,
     styles: `
@@ -97,31 +99,7 @@ export class DevColumnState {
 export class DevColumnStateQueryParams {
     readonly rowData = devInjectRowData();
     readonly store = inject(KbqAgGridColumnStateQueryParamsStore);
-    readonly stateKey = 'dev-ag-grid-column-state';
-    readonly columnDefs = computed<ColDef[]>(() => {
-        return [
-            { field: 'athlete', headerName: 'Athlete' },
-            { field: 'age', headerName: 'Age' },
-            { field: 'country', headerName: 'Country' },
-            { field: 'year', headerName: 'Year' },
-            { field: 'date', headerName: 'Date' },
-            { field: 'sport', headerName: 'Sport' },
-            { field: 'gold', headerName: 'Gold' },
-            { field: 'silver', headerName: 'Silver' },
-            { field: 'bronze', headerName: 'Bronze' },
-            { field: 'total', headerName: 'Total' }
-        ];
-    });
-    readonly defaultColDef = computed<ColDef>(() => {
-        return {
-            editable: true,
-            filter: true,
-            sortable: true,
-            resizable: true,
-            floatingFilter: false,
-            suppressMovable: false,
-            lockPinned: false,
-            lockPosition: false
-        };
-    });
+    readonly stateKey = STATE_KEY;
+    readonly columnDefs = COLUMN_DEFS;
+    readonly defaultColDef = DEFAULT_COL_DEF;
 }
