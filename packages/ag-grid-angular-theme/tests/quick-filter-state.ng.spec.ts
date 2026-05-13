@@ -1,4 +1,6 @@
-import { Component, Directive, forwardRef, viewChild } from '@angular/core';
+import { Component, Directive, forwardRef, signal, viewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { FormControl } from '@angular/forms';
 import { render, waitFor } from '@testing-library/angular';
 import { AgGridAngular } from 'ag-grid-angular';
 import { AgEventType, GridApi } from 'ag-grid-community';
@@ -96,6 +98,59 @@ class TestQuickFilterStateGridWithRestoredOutput {
     };
     onRestored = jest.fn();
     readonly grid = viewChild.required(TestAgGridAngularStub);
+}
+
+@Component({
+    selector: 'test-quick-filter-state-grid-model-binding',
+    standalone: true,
+    template: `
+        <ag-grid-angular
+            [kbqAgGridQuickFilterState]="key"
+            [kbqAgGridQuickFilterStateStore]="store"
+            [(kbqAgGridQuickFilterStateValue)]="filterText"
+        />
+    `,
+    imports: [TestAgGridAngularStub, KbqAgGridQuickFilterState]
+})
+class TestQuickFilterStateGridModelBinding {
+    key = 'quick-filter';
+    store: KbqAgGridQuickFilterStateStore = {
+        getItem: () => null,
+        setItem: () => undefined,
+        removeItem: () => undefined
+    };
+    filterText = signal('');
+
+    readonly grid = viewChild.required(TestAgGridAngularStub);
+    readonly directive = viewChild.required(KbqAgGridQuickFilterState);
+}
+
+@Component({
+    selector: 'test-quick-filter-state-grid-reactive-forms',
+    standalone: true,
+    template: `
+        <ag-grid-angular
+            [kbqAgGridQuickFilterState]="key"
+            [kbqAgGridQuickFilterStateStore]="store"
+            [kbqAgGridQuickFilterStateValue]="filterValue()"
+            (kbqAgGridQuickFilterStateValueChange)="control.setValue($event)"
+            (kbqAgGridQuickFilterStateRestored)="control.setValue($event)"
+        />
+    `,
+    imports: [TestAgGridAngularStub, KbqAgGridQuickFilterState]
+})
+class TestQuickFilterStateGridReactiveForms {
+    key = 'quick-filter';
+    store: KbqAgGridQuickFilterStateStore = {
+        getItem: () => null,
+        setItem: () => undefined,
+        removeItem: () => undefined
+    };
+    readonly control = new FormControl('', { nonNullable: true });
+    readonly filterValue = toSignal(this.control.valueChanges, { initialValue: '' });
+
+    readonly grid = viewChild.required(TestAgGridAngularStub);
+    readonly directive = viewChild.required(KbqAgGridQuickFilterState);
 }
 
 describe(KbqAgGridQuickFilterState.name, () => {
@@ -380,5 +435,136 @@ describe(KbqAgGridQuickFilterState.name, () => {
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(apiMock.api.removeEventListener).toHaveBeenCalledWith('filterChanged', handler);
+    });
+
+    describe('two-way model binding', () => {
+        it('external signal change updates grid filter', async () => {
+            const store: KbqAgGridQuickFilterStateStore = {
+                getItem: jest.fn(() => null),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+            const apiMock = createApiMock();
+
+            const { fixture } = await render(TestQuickFilterStateGridModelBinding, {
+                componentProperties: { key: 'qf-model-1', store }
+            });
+
+            fixture.componentInstance.grid().emitGridReady(apiMock.api);
+
+            await waitFor(() => expect(store.getItem).toHaveBeenCalled());
+
+            jest.clearAllMocks();
+
+            fixture.componentInstance.filterText.set('Phelps');
+
+            await waitFor(() => {
+                expect(fixture.componentInstance.directive().value()).toBe('Phelps');
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(apiMock.api.setGridOption).toHaveBeenCalledWith('quickFilterText', 'Phelps');
+            });
+        });
+
+        it('filterChanged with quickFilter source updates external signal', async () => {
+            const store: KbqAgGridQuickFilterStateStore = {
+                getItem: jest.fn(() => null),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+            const apiMock = createApiMock();
+
+            jest.spyOn(apiMock.api, 'getQuickFilter').mockReturnValue('Bolt');
+
+            const { fixture } = await render(TestQuickFilterStateGridModelBinding, {
+                componentProperties: { key: 'qf-model-2', store }
+            });
+
+            fixture.componentInstance.grid().emitGridReady(apiMock.api);
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(apiMock.api.addEventListener).toHaveBeenCalledWith('filterChanged', expect.any(Function));
+            });
+
+            apiMock.dispatchFilterChanged('quickFilter');
+
+            await waitFor(() => {
+                expect(fixture.componentInstance.filterText()).toBe('Bolt');
+            });
+        });
+    });
+
+    describe('reactive forms', () => {
+        it('FormControl value change updates grid filter', async () => {
+            const store: KbqAgGridQuickFilterStateStore = {
+                getItem: jest.fn(() => null),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+            const apiMock = createApiMock();
+
+            const { fixture } = await render(TestQuickFilterStateGridReactiveForms, {
+                componentProperties: { key: 'qf-rf-1', store }
+            });
+
+            fixture.componentInstance.grid().emitGridReady(apiMock.api);
+
+            await waitFor(() => expect(store.getItem).toHaveBeenCalled());
+
+            jest.clearAllMocks();
+
+            fixture.componentInstance.control.setValue('Phelps');
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(apiMock.api.setGridOption).toHaveBeenCalledWith('quickFilterText', 'Phelps');
+            });
+        });
+
+        it('restored output syncs FormControl on init', async () => {
+            const store: KbqAgGridQuickFilterStateStore = {
+                getItem: jest.fn(() => 'Michael'),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+
+            const { fixture } = await render(TestQuickFilterStateGridReactiveForms, {
+                componentProperties: { key: 'qf-rf-2', store }
+            });
+
+            fixture.componentInstance.grid().emitGridReady();
+
+            await waitFor(() => {
+                expect(fixture.componentInstance.control.value).toBe('Michael');
+            });
+        });
+
+        it('kbqAgGridQuickFilterStateValueChange syncs FormControl when directive value changes', async () => {
+            const store: KbqAgGridQuickFilterStateStore = {
+                getItem: jest.fn(() => null),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+            const apiMock = createApiMock();
+
+            jest.spyOn(apiMock.api, 'getQuickFilter').mockReturnValue('Bolt');
+
+            const { fixture } = await render(TestQuickFilterStateGridReactiveForms, {
+                componentProperties: { key: 'qf-rf-3', store }
+            });
+
+            fixture.componentInstance.grid().emitGridReady(apiMock.api);
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(apiMock.api.addEventListener).toHaveBeenCalledWith('filterChanged', expect.any(Function));
+            });
+
+            apiMock.dispatchFilterChanged('quickFilter');
+
+            await waitFor(() => {
+                expect(fixture.componentInstance.control.value).toBe('Bolt');
+            });
+        });
     });
 });

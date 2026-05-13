@@ -2,9 +2,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { getAgGridApi } from './utils/api';
 
 const externalFilterStateStorageKey = 'dev-ag-grid-external-filter-state';
-const externalFilterStateQueryParamKey = 'dev-ag-grid-external-filter-state';
-
-const SPORT = 'Swimming';
+const OPTION = 'Swimming';
 
 const getSportSelect = (page: Page): Locator => page.getByTestId('e2eSportSelect');
 const getResetButton = (page: Page): Locator => page.getByTestId('e2eResetExternalFilterState');
@@ -31,11 +29,11 @@ const getExternalFilterStateFromUrl = async (page: Page): Promise<string | null>
         } catch {
             return null;
         }
-    }, externalFilterStateQueryParamKey);
+    }, externalFilterStateStorageKey);
 
 const buildExternalFilterUrl = (value: string): string => {
     const encoded = encodeURIComponent(JSON.stringify(value));
-    return `/e2e/external-filter-state-query-params?${externalFilterStateQueryParamKey}=${encoded}`;
+    return `/e2e/external-filter-state-query-params?${externalFilterStateStorageKey}=${encoded}`;
 };
 
 test.describe('KbqAgGridExternalFilterState', () => {
@@ -44,7 +42,7 @@ test.describe('KbqAgGridExternalFilterState', () => {
             await page.goto('/e2e/external-filter-state');
             await clearStoredExternalFilterState(page);
 
-            await getSportSelect(page).selectOption(SPORT);
+            await getSportSelect(page).selectOption(OPTION);
 
             await expect
                 .poll(async () => {
@@ -53,23 +51,23 @@ test.describe('KbqAgGridExternalFilterState', () => {
                     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                     return raw ? (JSON.parse(raw) as string) : null;
                 })
-                .toBe(SPORT);
+                .toBe(OPTION);
         });
 
         test('restores external filter from localStorage on page load', async ({ page }) => {
             await page.addInitScript(
                 ({ key, value }: { key: string; value: string }) => localStorage.setItem(key, value),
-                { key: externalFilterStateStorageKey, value: JSON.stringify(SPORT) }
+                { key: externalFilterStateStorageKey, value: JSON.stringify(OPTION) }
             );
             await page.goto('/e2e/external-filter-state');
 
-            await expect(getSportSelect(page)).toHaveValue(SPORT);
+            await expect(getSportSelect(page)).toHaveValue(OPTION);
         });
 
         test('filters rows when external filter is restored from localStorage', async ({ page }) => {
             await page.addInitScript(
                 ({ key, value }: { key: string; value: string }) => localStorage.setItem(key, value),
-                { key: externalFilterStateStorageKey, value: JSON.stringify(SPORT) }
+                { key: externalFilterStateStorageKey, value: JSON.stringify(OPTION) }
             );
             await page.goto('/e2e/external-filter-state');
 
@@ -81,7 +79,7 @@ test.describe('KbqAgGridExternalFilterState', () => {
             await page.goto('/e2e/external-filter-state');
             await clearStoredExternalFilterState(page);
 
-            await getSportSelect(page).selectOption(SPORT);
+            await getSportSelect(page).selectOption(OPTION);
             await expect.poll(async () => getStoredExternalFilterState(page)).not.toBeNull();
 
             await getSportSelect(page).selectOption('');
@@ -93,7 +91,7 @@ test.describe('KbqAgGridExternalFilterState', () => {
             await page.goto('/e2e/external-filter-state');
             await clearStoredExternalFilterState(page);
 
-            await getSportSelect(page).selectOption(SPORT);
+            await getSportSelect(page).selectOption(OPTION);
             await expect.poll(async () => getStoredExternalFilterState(page)).not.toBeNull();
 
             await getResetButton(page).click();
@@ -107,19 +105,19 @@ test.describe('KbqAgGridExternalFilterState', () => {
         test('saves external filter value to URL when filter is set', async ({ page }) => {
             await page.goto('/e2e/external-filter-state-query-params');
 
-            await getSportSelect(page).selectOption(SPORT);
+            await getSportSelect(page).selectOption(OPTION);
 
-            await expect.poll(async () => getExternalFilterStateFromUrl(page)).toBe(SPORT);
+            await expect.poll(async () => getExternalFilterStateFromUrl(page)).toBe(OPTION);
         });
 
         test('restores external filter from URL on page load', async ({ page }) => {
-            await page.goto(buildExternalFilterUrl(SPORT));
+            await page.goto(buildExternalFilterUrl(OPTION));
 
-            await expect(getSportSelect(page)).toHaveValue(SPORT);
+            await expect(getSportSelect(page)).toHaveValue(OPTION);
         });
 
         test('filters rows when external filter is restored from URL', async ({ page }) => {
-            await page.goto(buildExternalFilterUrl(SPORT));
+            await page.goto(buildExternalFilterUrl(OPTION));
 
             await expect.poll(async () => getDisplayedRowCount(page)).toBeGreaterThan(0);
             await expect(page.locator('.ag-overlay-no-rows-center')).not.toBeVisible();
@@ -128,8 +126,8 @@ test.describe('KbqAgGridExternalFilterState', () => {
         test('removes external filter state from URL when filter is cleared', async ({ page }) => {
             await page.goto('/e2e/external-filter-state-query-params');
 
-            await getSportSelect(page).selectOption(SPORT);
-            await expect.poll(async () => getExternalFilterStateFromUrl(page)).toBe(SPORT);
+            await getSportSelect(page).selectOption(OPTION);
+            await expect.poll(async () => getExternalFilterStateFromUrl(page)).toBe(OPTION);
 
             await getSportSelect(page).selectOption('');
 
@@ -139,8 +137,8 @@ test.describe('KbqAgGridExternalFilterState', () => {
         test('reset() clears external filter and removes state from URL', async ({ page }) => {
             await page.goto('/e2e/external-filter-state-query-params');
 
-            await getSportSelect(page).selectOption(SPORT);
-            await expect.poll(async () => getExternalFilterStateFromUrl(page)).toBe(SPORT);
+            await getSportSelect(page).selectOption(OPTION);
+            await expect.poll(async () => getExternalFilterStateFromUrl(page)).toBe(OPTION);
 
             await getResetButton(page).click();
 

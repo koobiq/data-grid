@@ -1,18 +1,22 @@
 import {
     DestroyRef,
     Directive,
+    effect,
     inject,
     Injectable,
     InjectionToken,
     input,
+    model,
+    output,
     Provider,
     signal,
-    Type
+    Type,
+    untracked
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { AgGridAngular } from 'ag-grid-angular';
-import { GridApi } from 'ag-grid-community';
+import { GridApi, IRowNode } from 'ag-grid-community';
 
 type AsyncLike<T> = T | Promise<T>;
 
@@ -33,10 +37,11 @@ export type KbqAgGridExternalFilterStateStore<T = unknown> = {
  * @example
  * ```typescript
  * protected readonly state = { store: inject(KbqAgGridExternalFilterStateLocalStorageStore), key: 'external-filter-state' };
+ * readonly filterPass = (node: IRowNode) => node.data?.value === this.filterValue();
  * ```
  * @example
  * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridExternalFilterState]="state.key" [kbqAgGridExternalFilterStateStore]="state.store" />
+ * <ag-grid-angular kbqAgGridTheme [kbqAgGridExternalFilterState]="state.key" [kbqAgGridExternalFilterStateStore]="state.store" [kbqAgGridExternalFilterStatePass]="filterPass" />
  * ```
  */
 @Injectable({ providedIn: 'root' })
@@ -78,10 +83,11 @@ export class KbqAgGridExternalFilterStateLocalStorageStore<
  * @example
  * ```typescript
  * protected readonly state = { store: inject(KbqAgGridExternalFilterStateQueryParamsStore), key: 'external-filter-state' };
+ * readonly filterPass = (node: IRowNode) => node.data?.value === this.filterValue();
  * ```
  * @example
  * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridExternalFilterState]="state.key" [kbqAgGridExternalFilterStateStore]="state.store" />
+ * <ag-grid-angular kbqAgGridTheme [kbqAgGridExternalFilterState]="state.key" [kbqAgGridExternalFilterStateStore]="state.store" [kbqAgGridExternalFilterStatePass]="filterPass" />
  * ```
  */
 @Injectable({ providedIn: 'root' })
@@ -164,27 +170,39 @@ export const kbqAgGridExternalFilterStateStoreProvider = (
  * Directive that persists and restores ag-grid external filter state
  * using a configurable {@link KbqAgGridExternalFilterStateStore}.
  *
- * The directive manages only the persistence layer. The host component is
- * responsible for wiring `[isExternalFilterPresent]` and `[doesExternalFilterPass]`
- * based on the exposed {@link value} signal, and must call {@link set} whenever
- * the filter value changes so the directive can persist the new value and
- * notify ag-grid via `api.onFilterChanged()`.
+ * The directive manages the persistence layer and wires `isExternalFilterPresent`
+ * and `doesExternalFilterPass` into ag-grid automatically. The host component provides
+ * the row predicate via `[kbqAgGridExternalFilterStatePass]` and two-way binds the
+ * filter value via `[(kbqAgGridExternalFilterStateValue)]`.
  *
- * @example
+ * @example Signals / ngModel
  * ```typescript
- * protected readonly state = viewChild.required(KbqAgGridExternalFilterState);
- * protected readonly isExternalFilterPresent = () => !!this.state().value();
- * protected readonly doesExternalFilterPass = (node: IRowNode) => node.data?.sport === this.state().value();
+ * readonly filterValue = model<string | null>(null);
+ * readonly filterPass = (node: IRowNode) => node.data?.sport === this.filterValue();
  * ```
- * @example
  * ```html
- * <select (change)="state().set($event.target.value || null)">...</select>
+ * <select [(ngModel)]="filterValue">...</select>
  * <ag-grid-angular
- *   #state="kbqAgGridExternalFilterState"
  *   kbqAgGridTheme
  *   [kbqAgGridExternalFilterState]="'external-filter-state'"
- *   [isExternalFilterPresent]="isExternalFilterPresent"
- *   [doesExternalFilterPass]="doesExternalFilterPass"
+ *   [kbqAgGridExternalFilterStatePass]="filterPass"
+ *   [(kbqAgGridExternalFilterStateValue)]="filterValue"
+ * />
+ * ```
+ * @example Reactive forms
+ * ```typescript
+ * readonly control = new FormControl<string | null>(null);
+ * readonly filterValue = toSignal(this.control.valueChanges, { initialValue: null });
+ * readonly filterPass = (node: IRowNode) => node.data?.sport === this.control.value;
+ * ```
+ * ```html
+ * <select [formControl]="control">...</select>
+ * <ag-grid-angular
+ *   kbqAgGridTheme
+ *   [kbqAgGridExternalFilterState]="'external-filter-state'"
+ *   [kbqAgGridExternalFilterStatePass]="filterPass"
+ *   [kbqAgGridExternalFilterStateValue]="filterValue()"
+ *   (kbqAgGridExternalFilterStateRestored)="control.setValue($event)"
  * />
  * ```
  */
@@ -196,8 +214,7 @@ export const kbqAgGridExternalFilterStateStoreProvider = (
 export class KbqAgGridExternalFilterState {
     private readonly grid = inject(AgGridAngular);
     private readonly destroyRef = inject(DestroyRef);
-
-    private api: GridApi | null = null;
+    private readonly api = signal<GridApi | null>(null);
 
     /** Key under which external filter state is stored. Must be unique per grid. */
     readonly key = input.required<string>({ alias: 'kbqAgGridExternalFilterState' });
@@ -208,58 +225,53 @@ export class KbqAgGridExternalFilterState {
         alias: 'kbqAgGridExternalFilterStateStore'
     });
 
-    private readonly _value = signal<unknown>(null);
+    /** Predicate called by ag-grid to decide whether a row passes the external filter. */
+    readonly doesExternalFilterPass = input.required<(node: IRowNode) => boolean>({
+        // eslint-disable-next-line @angular-eslint/no-input-rename
+        alias: 'kbqAgGridExternalFilterStatePass'
+    });
 
-    /**
-     * Current external filter value. Updated on restore and on every {@link set} call.
-     * Use it in `isExternalFilterPresent` and `doesExternalFilterPass` callbacks.
-     */
-    readonly value = this._value.asReadonly();
+    /** Current external filter value — two-way bindable. */
+    readonly value = model<unknown>(null, { alias: 'kbqAgGridExternalFilterStateValue' });
+
+    /** Emitted once after state is restored from the store. Useful for bridging with reactive forms. */
+    // eslint-disable-next-line @angular-eslint/no-output-rename
+    readonly restored = output<unknown>({ alias: 'kbqAgGridExternalFilterStateRestored' });
 
     constructor() {
-        this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => {
-            this.api = api;
-            void this.init(api);
+        effect(() => {
+            const api = this.api();
+            if (!api) return;
+
+            const value = this.value();
+            const key = untracked(this.key);
+            const store = untracked(this.store);
+
+            if (value !== null && value !== undefined) void store.setItem(key, value);
+            else void store.removeItem(key);
+
+            api.onFilterChanged();
         });
-    }
 
-    /**
-     * Updates the external filter value, persists it to the store,
-     * and notifies ag-grid to re-evaluate the filter.
-     *
-     * Pass `null` to clear the filter (equivalent to calling {@link reset}).
-     */
-    set(value: unknown): void {
-        const store = this.store();
-        const key = this.key();
-
-        if (value === null || value === undefined) {
-            void store.removeItem(key);
-            this._value.set(null);
-        } else {
-            void store.setItem(key, value);
-            this._value.set(value);
-        }
-
-        this.api?.onFilterChanged();
+        this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => void this.init(api));
     }
 
     /** Removes the stored external filter state and clears the filter. */
     reset(): void {
-        void this.store().removeItem(this.key());
-        this._value.set(null);
-        this.api?.onFilterChanged();
+        this.value.set(null);
     }
 
     private async init(api: GridApi): Promise<void> {
-        const key = this.key();
-        const store = this.store();
-
-        const item = await store.getItem(key);
+        const item = await this.store().getItem(this.key());
 
         if (item !== null && item !== undefined) {
-            this._value.set(item);
-            api.onFilterChanged();
+            this.value.set(item);
+            this.restored.emit(item);
         }
+
+        api.setGridOption('isExternalFilterPresent', () => this.value() !== null && this.value() !== undefined);
+        api.setGridOption('doesExternalFilterPass', (node: IRowNode) => this.doesExternalFilterPass()(node));
+
+        this.api.set(api);
     }
 }

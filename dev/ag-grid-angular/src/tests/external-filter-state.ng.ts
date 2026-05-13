@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, model } from '@angular/core';
 import {
-    KbqAgGridExternalFilterState,
     KbqAgGridExternalFilterStateLocalStorageStore,
     KbqAgGridExternalFilterStateQueryParamsStore,
     KbqAgGridThemeModule
@@ -11,31 +10,41 @@ import { devInjectRowData, DevRowData } from '../data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
+const COLUMN_DEFS: ColDef[] = [
+    { field: 'athlete', headerName: 'Athlete' },
+    { field: 'sport', headerName: 'Sport' },
+    { field: 'age', headerName: 'Age' },
+    { field: 'country', headerName: 'Country' },
+    { field: 'year', headerName: 'Year' }
+];
+
+const STATE_KEY = 'dev-ag-grid-external-filter-state';
+
 @Component({
     standalone: true,
     imports: [AgGridModule, KbqAgGridThemeModule],
     selector: 'dev-external-filter-state',
     template: `
         <select data-testid="e2eSportSelect" (change)="onSportChange($event)">
-            <option value="" [selected]="!externalFilter.value()">All Sports</option>
+            <option value="" [selected]="!filterValue()">All Sports</option>
             @for (sport of sports(); track sport) {
-                <option [value]="sport" [selected]="externalFilter.value() === sport">{{ sport }}</option>
+                <option [value]="sport" [selected]="filterValue() === sport">{{ sport }}</option>
             }
         </select>
-        <button type="button" data-testid="e2eResetExternalFilterState" (click)="externalFilter.reset()">
+        <button type="button" data-testid="e2eResetExternalFilterState" (click)="filterState.reset()">
             Reset state
         </button>
         <ag-grid-angular
-            #externalFilter="kbqAgGridExternalFilterState"
+            #filterState="kbqAgGridExternalFilterState"
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
             animateRows="false"
             [kbqAgGridExternalFilterState]="stateKey"
             [kbqAgGridExternalFilterStateStore]="store"
+            [kbqAgGridExternalFilterStatePass]="filterPass"
             [rowData]="rowData()"
-            [columnDefs]="columnDefs()"
-            [isExternalFilterPresent]="isExternalFilterPresent"
-            [doesExternalFilterPass]="doesExternalFilterPass"
+            [columnDefs]="columnDefs"
+            [(kbqAgGridExternalFilterStateValue)]="filterValue"
         />
     `,
     styles: `
@@ -49,24 +58,16 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 export class DevExternalFilterState {
     readonly rowData = devInjectRowData();
     readonly store = inject(KbqAgGridExternalFilterStateLocalStorageStore);
-    readonly stateKey = 'dev-ag-grid-external-filter-state';
+    readonly stateKey = STATE_KEY;
     readonly sports = computed(() => [...new Set(this.rowData().map((row) => row.sport))].sort());
-    readonly state = viewChild.required(KbqAgGridExternalFilterState);
-    readonly isExternalFilterPresent = (): boolean => !!this.state().value();
-    readonly doesExternalFilterPass = (node: IRowNode<DevRowData>): boolean =>
-        node.data?.sport === this.state().value();
-    readonly columnDefs = computed<ColDef[]>(() => [
-        { field: 'athlete', headerName: 'Athlete' },
-        { field: 'sport', headerName: 'Sport' },
-        { field: 'age', headerName: 'Age' },
-        { field: 'country', headerName: 'Country' },
-        { field: 'year', headerName: 'Year' }
-    ]);
+    readonly filterValue = model<string | null>(null);
+    readonly filterPass = (node: IRowNode<DevRowData>): boolean => node.data?.sport === this.filterValue();
+    readonly columnDefs = COLUMN_DEFS;
 
     onSportChange(event: Event): void {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const { value } = event.target as HTMLSelectElement;
-        this.state().set(value || null);
+        this.filterValue.set(value || null);
     }
 }
 
@@ -76,25 +77,25 @@ export class DevExternalFilterState {
     selector: 'dev-external-filter-state-query-params',
     template: `
         <select data-testid="e2eSportSelect" (change)="onSportChange($event)">
-            <option value="" [selected]="!externalFilter.value()">All Sports</option>
+            <option value="" [selected]="!filterValue()">All Sports</option>
             @for (sport of sports(); track sport) {
-                <option [value]="sport" [selected]="externalFilter.value() === sport">{{ sport }}</option>
+                <option [value]="sport" [selected]="filterValue() === sport">{{ sport }}</option>
             }
         </select>
-        <button type="button" data-testid="e2eResetExternalFilterState" (click)="externalFilter.reset()">
+        <button type="button" data-testid="e2eResetExternalFilterState" (click)="filterState.reset()">
             Reset state
         </button>
         <ag-grid-angular
-            #externalFilter="kbqAgGridExternalFilterState"
+            #filterState="kbqAgGridExternalFilterState"
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
             animateRows="false"
             [kbqAgGridExternalFilterState]="stateKey"
             [kbqAgGridExternalFilterStateStore]="store"
+            [kbqAgGridExternalFilterStatePass]="filterPass"
             [rowData]="rowData()"
-            [columnDefs]="columnDefs()"
-            [isExternalFilterPresent]="isExternalFilterPresent"
-            [doesExternalFilterPass]="doesExternalFilterPass"
+            [columnDefs]="columnDefs"
+            [(kbqAgGridExternalFilterStateValue)]="filterValue"
         />
     `,
     styles: `
@@ -108,23 +109,15 @@ export class DevExternalFilterState {
 export class DevExternalFilterStateQueryParams {
     readonly rowData = devInjectRowData();
     readonly store = inject(KbqAgGridExternalFilterStateQueryParamsStore);
-    readonly stateKey = 'dev-ag-grid-external-filter-state';
+    readonly stateKey = STATE_KEY;
     readonly sports = computed(() => [...new Set(this.rowData().map((row) => row.sport))].sort());
-    readonly state = viewChild.required(KbqAgGridExternalFilterState);
-    readonly isExternalFilterPresent = (): boolean => !!this.state().value();
-    readonly doesExternalFilterPass = (node: IRowNode<DevRowData>): boolean =>
-        node.data?.sport === this.state().value();
-    readonly columnDefs = computed<ColDef[]>(() => [
-        { field: 'athlete', headerName: 'Athlete' },
-        { field: 'age', headerName: 'Age' },
-        { field: 'country', headerName: 'Country' },
-        { field: 'year', headerName: 'Year' },
-        { field: 'sport', headerName: 'Sport' }
-    ]);
+    readonly filterValue = model<string | null>(null);
+    readonly filterPass = (node: IRowNode<DevRowData>): boolean => node.data?.sport === this.filterValue();
+    readonly columnDefs = COLUMN_DEFS;
 
     onSportChange(event: Event): void {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const { value } = event.target as HTMLSelectElement;
-        this.state().set(value || null);
+        this.filterValue.set(value || null);
     }
 }

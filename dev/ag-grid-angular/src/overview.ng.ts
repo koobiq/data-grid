@@ -15,17 +15,15 @@ import { FormsModule } from '@angular/forms';
 import {
     KBQ_AG_GRID_ROW_ACTIONS_PARAMS,
     KBQ_AG_GRID_STATUS_BAR_PARAMS,
-    KbqAgGridColumnStateLocalStorageStore,
+    KbqAgGridColumnStateQueryParamsStore,
     kbqAgGridColumnStateStoreProvider,
     KbqAgGridCopyEvent,
     KbqAgGridCopyFormatter,
     kbqAgGridCopyFormatterCsv,
     kbqAgGridCopyFormatterJson,
     kbqAgGridCopyFormatterTsv,
-    KbqAgGridFilterStateLocalStorageStore,
+    KbqAgGridFilterStateQueryParamsStore,
     kbqAgGridFilterStateStoreProvider,
-    KbqAgGridQuickFilterStateLocalStorageStore,
-    kbqAgGridQuickFilterStateStoreProvider,
     KbqAgGridThemeModule
 } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
@@ -283,30 +281,15 @@ export class DevAgGridStatusBarComponent {
                 <legend>KbqAgGridFilterState</legend>
                 <button data-testid="e2eResetFilterState" type="button" (click)="filterState.reset()">Reset</button>
             </fieldset>
-            <fieldset class="dev-options">
-                <legend>KbqAgGridQuickFilterState</legend>
-                <input
-                    #quickFilterInput
-                    data-testid="e2eQuickFilterInput"
-                    placeholder="Quick filter..."
-                    [value]="quickFilterState.value()"
-                    (input)="onQuickFilterInput(quickFilterInput.value)"
-                />
-                <button data-testid="e2eResetQuickFilterState" type="button" (click)="quickFilterState.reset()">
-                    Reset
-                </button>
-            </fieldset>
         </details>
 
         <ag-grid-angular
             #columnState="kbqAgGridColumnState"
             #filterState="kbqAgGridFilterState"
-            #quickFilterState="kbqAgGridQuickFilterState"
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
             kbqAgGridColumnState="dev-ag-grid-column-state"
             kbqAgGridFilterState="dev-ag-grid-filter-state"
-            kbqAgGridQuickFilterState="dev-ag-grid-quick-filter-state"
             [kbqAgGridRowActions]="rowActionsComponent"
             [kbqAgGridToNextRowByTab]="toNextRowByTab()"
             [kbqAgGridSelectRowsByShiftArrow]="selectRowsByShiftArrow()"
@@ -376,9 +359,8 @@ export class DevAgGridStatusBarComponent {
     `,
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [
-        kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateLocalStorageStore),
-        kbqAgGridFilterStateStoreProvider(KbqAgGridFilterStateLocalStorageStore),
-        kbqAgGridQuickFilterStateStoreProvider(KbqAgGridQuickFilterStateLocalStorageStore)
+        kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateQueryParamsStore),
+        kbqAgGridFilterStateStoreProvider(KbqAgGridFilterStateQueryParamsStore)
     ]
 })
 export class DevOverview {
@@ -641,10 +623,6 @@ export class DevOverview {
                     defaultState: { pinned: null }
                 });
             });
-    }
-
-    onQuickFilterInput(value: string): void {
-        this.gridApi?.setGridOption('quickFilterText', value);
     }
 
     onGridReady(event: GridReadyEvent): void {

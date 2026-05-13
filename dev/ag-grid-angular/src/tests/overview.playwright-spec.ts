@@ -1,9 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 test.describe('KbqAgGridThemeModule', () => {
-    const columnStateStorageKey = 'dev-ag-grid-column-state';
-    const filterStateStorageKey = 'dev-ag-grid-filter-state';
-
     const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
     const getRow = (page: Page, rowIndex: number): Locator => page.locator(`.ag-row[row-index="${rowIndex}"]`);
     const getCell = (page: Page, rowIndex: number, colField: string): Locator =>
@@ -29,9 +26,6 @@ test.describe('KbqAgGridThemeModule', () => {
         getRow(page, rowIndex).locator('.ag-checkbox-input').click();
     const getPinFirstColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinFirstColumnToggle');
     const getPinLastColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinLastColumnToggle');
-    const clearLocalStorageBeforeLoad = async (page: Page, ...keys: string[]): Promise<void> => {
-        await page.addInitScript((k: string[]) => k.forEach((key) => localStorage.removeItem(key)), keys);
-    };
 
     // Screenshot tests are only valid on CI. Do not update snapshots locally.
     test.describe('KbqAgGridAngularTheme', () => {
@@ -40,7 +34,6 @@ test.describe('KbqAgGridThemeModule', () => {
         const getPaginationToggle = (page: Page): Locator => page.getByTestId('e2ePaginationToggle');
 
         test('default state', async ({ page }) => {
-            await clearLocalStorageBeforeLoad(page, columnStateStorageKey, filterStateStorageKey);
             await page.setViewportSize({ width: 768, height: 500 });
             await page.goto('/');
             await getShowIndexColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
@@ -51,7 +44,6 @@ test.describe('KbqAgGridThemeModule', () => {
         });
 
         test('with pinned columns', async ({ page }) => {
-            await clearLocalStorageBeforeLoad(page, columnStateStorageKey, filterStateStorageKey);
             await page.setViewportSize({ width: 768, height: 500 });
             await page.goto('/');
             await getShowIndexColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
@@ -271,7 +263,6 @@ test.describe('KbqAgGridThemeModule', () => {
 
     test.describe('KbqAgGridRowActions', () => {
         test('shows actions overlay on hover with horizontal scroll', async ({ page }) => {
-            await clearLocalStorageBeforeLoad(page, columnStateStorageKey, filterStateStorageKey);
             await page.setViewportSize({ width: 650, height: 500 });
             await page.goto('/');
             await getPinFirstColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
