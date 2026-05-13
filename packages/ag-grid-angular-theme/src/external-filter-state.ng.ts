@@ -37,7 +37,7 @@ export type KbqAgGridExternalFilterStateStore<T = unknown> = {
  * @example
  * ```typescript
  * protected readonly state = { store: inject(KbqAgGridExternalFilterStateLocalStorageStore), key: 'external-filter-state' };
- * readonly filterPass = (node: IRowNode) => node.data?.value === this.filterValue();
+ * protected readonly filterPass = (node: IRowNode) => node.data?.value === this.filterValue();
  * ```
  * @example
  * ```html
@@ -83,7 +83,7 @@ export class KbqAgGridExternalFilterStateLocalStorageStore<
  * @example
  * ```typescript
  * protected readonly state = { store: inject(KbqAgGridExternalFilterStateQueryParamsStore), key: 'external-filter-state' };
- * readonly filterPass = (node: IRowNode) => node.data?.value === this.filterValue();
+ * protected readonly filterPass = (node: IRowNode) => node.data?.value === this.filterValue();
  * ```
  * @example
  * ```html

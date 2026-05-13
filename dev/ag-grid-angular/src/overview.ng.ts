@@ -44,7 +44,7 @@ import {
     RowSelectionOptions,
     SelectionChangedEvent
 } from 'ag-grid-community';
-import { devInjectRowData, DevRowData } from './data';
+import { devInjectRowData, DevRowData } from './row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 

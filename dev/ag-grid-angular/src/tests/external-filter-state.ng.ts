@@ -7,7 +7,7 @@ import {
 } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, IRowNode, ModuleRegistry } from 'ag-grid-community';
-import { devInjectRowData, DevRowData } from '../data';
+import { devInjectRowData, DevRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
