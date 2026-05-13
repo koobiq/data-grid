@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, model } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import {
     KbqAgGridExternalFilterStateLocalStorageStore,
     KbqAgGridExternalFilterStateQueryParamsStore,
@@ -22,10 +23,10 @@ const STATE_KEY = 'dev-ag-grid-external-filter-state';
 
 @Component({
     standalone: true,
-    imports: [AgGridModule, KbqAgGridThemeModule],
+    imports: [AgGridModule, KbqAgGridThemeModule, FormsModule],
     selector: 'dev-external-filter-state',
     template: `
-        <select data-testid="e2eSportSelect" (change)="onSportChange($event)">
+        <select data-testid="e2eSportSelect" [(ngModel)]="filterValue">
             <option value="" [selected]="!filterValue()">All Sports</option>
             @for (sport of sports(); track sport) {
                 <option [value]="sport" [selected]="filterValue() === sport">{{ sport }}</option>
@@ -63,20 +64,14 @@ export class DevExternalFilterState {
     readonly filterValue = model<string | null>(null);
     readonly filterPass = (node: IRowNode<DevRowData>): boolean => node.data?.sport === this.filterValue();
     readonly columnDefs = COLUMN_DEFS;
-
-    onSportChange(event: Event): void {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const { value } = event.target as HTMLSelectElement;
-        this.filterValue.set(value || null);
-    }
 }
 
 @Component({
     standalone: true,
-    imports: [AgGridModule, KbqAgGridThemeModule],
+    imports: [AgGridModule, KbqAgGridThemeModule, FormsModule],
     selector: 'dev-external-filter-state-query-params',
     template: `
-        <select data-testid="e2eSportSelect" (change)="onSportChange($event)">
+        <select data-testid="e2eSportSelect" [(ngModel)]="filterValue">
             <option value="" [selected]="!filterValue()">All Sports</option>
             @for (sport of sports(); track sport) {
                 <option [value]="sport" [selected]="filterValue() === sport">{{ sport }}</option>
@@ -114,10 +109,4 @@ export class DevExternalFilterStateQueryParams {
     readonly filterValue = model<string | null>(null);
     readonly filterPass = (node: IRowNode<DevRowData>): boolean => node.data?.sport === this.filterValue();
     readonly columnDefs = COLUMN_DEFS;
-
-    onSportChange(event: Event): void {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const { value } = event.target as HTMLSelectElement;
-        this.filterValue.set(value || null);
-    }
 }

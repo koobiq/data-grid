@@ -247,7 +247,7 @@ export class KbqAgGridExternalFilterState {
             const key = untracked(this.key);
             const store = untracked(this.store);
 
-            if (value !== null && value !== undefined) void store.setItem(key, value);
+            if (this.hasValue(value)) void store.setItem(key, value);
             else void store.removeItem(key);
 
             api.onFilterChanged();
@@ -261,6 +261,10 @@ export class KbqAgGridExternalFilterState {
         this.value.set(null);
     }
 
+    private hasValue(value: unknown): boolean {
+        return value !== null && value !== undefined && value !== '';
+    }
+
     private async init(api: GridApi): Promise<void> {
         const item = await this.store().getItem(this.key());
 
@@ -269,7 +273,7 @@ export class KbqAgGridExternalFilterState {
             this.restored.emit(item);
         }
 
-        api.setGridOption('isExternalFilterPresent', () => this.value() !== null && this.value() !== undefined);
+        api.setGridOption('isExternalFilterPresent', () => this.hasValue(this.value()));
         api.setGridOption('doesExternalFilterPass', (node: IRowNode) => this.doesExternalFilterPass()(node));
 
         this.api.set(api);
