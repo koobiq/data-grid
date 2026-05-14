@@ -215,8 +215,11 @@ export class KbqAgGridExternalFilterState {
             const key = untracked(this.key);
             const store = untracked(this.store);
 
-            if (this.hasValue(value)) void store.setItem(key, value);
-            else void store.removeItem(key);
+            if (this.hasValue(value)) {
+                void store.setItem(key, value);
+            } else {
+                void store.removeItem(key);
+            }
 
             api.onFilterChanged();
         });
