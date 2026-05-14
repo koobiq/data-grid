@@ -38,8 +38,8 @@ body {
     color: var(--kbq-foreground-contrast);
 }
 
-.dev-github-link {
-    position: absolute;
-    top: var(--kbq-size-s);
-    right: var(--kbq-size-s);
+header {
+    display: flex;
+    justify-content: flex-end;
+    padding: var(--kbq-size-xs);
 }
