@@ -78,6 +78,10 @@ if (isDevMode()) {
                 loadComponent: async () => import('./tests/row-actions.ng').then((m) => m.DevRowActions)
             },
             {
+                path: 'status-bar',
+                loadComponent: async () => import('./tests/status-bar.ng').then((m) => m.DevStatusBar)
+            },
+            {
                 path: 'theme',
                 loadComponent: async () => import('./tests/theme.ng').then((m) => m.DevTheme)
             }

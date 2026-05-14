@@ -11,7 +11,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
     standalone: true,
     selector: 'dev-row-actions-cell',
     template: `
-        <button type="button" (click)="onDelete()">Delete</button>
+        <button type="button" data-testid="e2eDeleteRowButton" (click)="onDelete()">Delete</button>
     `,
     styles: `
         :host {

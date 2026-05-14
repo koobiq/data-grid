@@ -4,9 +4,10 @@ import { getRow } from './utils/helpers';
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
 const getPinFirstColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinFirstColumnToggle');
 const getPinLastColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinLastColumnToggle');
+const getGridRows = (page: Page): Locator => page.locator('.ag-row');
 
-// Screenshot tests are only valid on CI. Do not update snapshots locally.
 test.describe('KbqAgGridRowActions', () => {
+    // Screenshot tests are only valid on CI. Do not update snapshots locally.
     test('shows actions overlay on hover with horizontal scroll', async ({ page }) => {
         await page.setViewportSize({ width: 650, height: 500 });
         await page.goto('/e2e/row-actions');
@@ -14,5 +15,13 @@ test.describe('KbqAgGridRowActions', () => {
         await getPinLastColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
         await getRow(page, 1).first().hover();
         await expect(getScreenshotTarget(page)).toHaveScreenshot('03-light.png');
+    });
+
+    test('removes row when Delete button is clicked', async ({ page }) => {
+        await page.goto('/e2e/row-actions');
+        const rowsBefore = await getGridRows(page).count();
+        await getRow(page, 0).hover();
+        await page.getByTestId('e2eDeleteRowButton').click();
+        await expect(getGridRows(page)).toHaveCount(rowsBefore - 1);
     });
 });

@@ -51,6 +51,7 @@ const DEFAULT_COL_DEF: ColDef = {
             animateRows="false"
             [rowData]="rowData()"
             [columnDefs]="columnDefs()"
+            [rowDragManaged]="true"
             [rowSelection]="rowSelection"
             [defaultColDef]="defaultColDef"
             [pagination]="pagination()"
