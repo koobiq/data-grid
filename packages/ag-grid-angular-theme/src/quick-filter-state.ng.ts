@@ -17,19 +17,14 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { AgGridAngular } from 'ag-grid-angular';
 import { AgEventListener, GridApi } from 'ag-grid-community';
-
-type AsyncLike<T> = T | Promise<T>;
+import { KbqAgGridStateStore } from './state-store';
 
 /**
  * Storage interface for persisting and retrieving ag-grid quick filter state.
  *
  * Supports both synchronous and Promise-based implementations.
  */
-export type KbqAgGridQuickFilterStateStore = {
-    getItem: (key: string) => AsyncLike<string | null>;
-    setItem: (key: string, value: string) => AsyncLike<void>;
-    removeItem: (key: string) => AsyncLike<void>;
-};
+export type KbqAgGridQuickFilterStateStore = KbqAgGridStateStore<string>;
 
 /**
  * {@link KbqAgGridQuickFilterStateStore} implementation backed by `localStorage`.
