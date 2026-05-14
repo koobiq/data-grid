@@ -9,6 +9,7 @@ Navigation:
 - [Installation](#installation)
 - [Usage](#usage)
 - [Custom Keyboard Shortcuts](#custom-keyboard-shortcuts)
+- [State Persistence](#state-persistence)
 - [Development](#development)
 
 ## Installation
@@ -68,6 +69,17 @@ You can apply custom keyboard shortcuts by adding the corresponding directives t
 | `Ctrl + Click`  | Select row                    | `kbqAgGridSelectRowsByCtrlClick`  |
 | `Ctrl + C`      | Copy selected rows            | `kbqAgGridCopyByCtrlC`            |
 | `Shift + Click` | Select/deselect range of rows | `kbqAgGridSelectRowsByShiftClick` |
+
+### State persistence
+
+Directives for persisting and restoring grid state across page reloads.
+
+| Directive                      | Saves                                 | Built-in stores                                                                                           |
+| ------------------------------ | ------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `kbqAgGridColumnState`         | Sort, column order, visibility, width | `KbqAgGridColumnStateLocalStorageStore` (default), `KbqAgGridColumnStateQueryParamsStore`                 |
+| `kbqAgGridFilterState`         | Column filter models                  | `KbqAgGridFilterStateLocalStorageStore` (default), `KbqAgGridFilterStateQueryParamsStore`                 |
+| `kbqAgGridQuickFilterState`    | Quick filter text                     | `KbqAgGridQuickFilterStateLocalStorageStore` (default), `KbqAgGridQuickFilterStateQueryParamsStore`       |
+| `kbqAgGridExternalFilterState` | External filter value                 | `KbqAgGridExternalFilterStateLocalStorageStore` (default), `KbqAgGridExternalFilterStateQueryParamsStore` |
 
 ---
 

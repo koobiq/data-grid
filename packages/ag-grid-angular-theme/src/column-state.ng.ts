@@ -19,15 +19,6 @@ export type KbqAgGridColumnStateStore = {
 
 /**
  * {@link KbqAgGridColumnStateStore} implementation backed by `localStorage`.
- *
- * @example
- * ```typescript
- * protected readonly state = { store: inject(KbqAgGridColumnStateLocalStorageStore), key: 'columns' };
- * ```
- * @example
- * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridColumnState]="state" />
- * ```
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridColumnStateLocalStorageStore implements KbqAgGridColumnStateStore {
@@ -59,27 +50,19 @@ export class KbqAgGridColumnStateLocalStorageStore implements KbqAgGridColumnSta
 /**
  * {@link KbqAgGridColumnStateStore} implementation backed by URL query parameters.
  *
- * Uses Angular's {@link Router} to read and write query params.
- * Calls `router.navigate` with `replaceUrl: true` so column changes
- * do not push entries into the browser history.
- *
  * @example
  * ```typescript
- * protected readonly state = { store: inject(KbqAgGridColumnStateQueryParamsStore), key: 'columns' };
- * ```
- * @example
- * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridColumnState]="state" />
+ * providers: [kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateQueryParamsStore)]
  * ```
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridColumnStateQueryParamsStore implements KbqAgGridColumnStateStore {
     private readonly router = inject(Router);
     // TODO: Should use KBQ_WINDOW token
-    private readonly window = window;
+    private readonly location = window.location;
 
     getItem(key: string): ColumnState[] | null {
-        const item = new URLSearchParams(this.window.location.search).get(key);
+        const item = new URLSearchParams(this.location.search).get(key);
 
         if (!item) return null;
 
@@ -110,16 +93,6 @@ export class KbqAgGridColumnStateQueryParamsStore implements KbqAgGridColumnStat
 }
 
 /**
- * Configuration object for {@link KbqAgGridColumnState}.
- */
-export type KbqAgGridColumnStateConfig = {
-    /** Store instance used to read and write column state. */
-    store: KbqAgGridColumnStateStore;
-    /** Key under which column state is stored. Must be unique per grid. */
-    key: string;
-};
-
-/**
  * Injection token for {@link KbqAgGridColumnStateStore}.
  *
  * Defaults to {@link KbqAgGridColumnStateLocalStorageStore}.
@@ -146,17 +119,9 @@ export const KBQ_AG_GRID_COLUMN_STATE_STORE = new InjectionToken<KbqAgGridColumn
 export const kbqAgGridColumnStateStoreProvider = (
     store: Type<KbqAgGridColumnStateStore> | KbqAgGridColumnStateStore
 ): Provider => {
-    if (store instanceof Type) {
-        return {
-            provide: KBQ_AG_GRID_COLUMN_STATE_STORE,
-            useClass: store
-        };
-    }
-
-    return {
-        provide: KBQ_AG_GRID_COLUMN_STATE_STORE,
-        useValue: store
-    };
+    return store instanceof Type
+        ? { provide: KBQ_AG_GRID_COLUMN_STATE_STORE, useClass: store }
+        : { provide: KBQ_AG_GRID_COLUMN_STATE_STORE, useValue: store };
 };
 
 /**
@@ -165,7 +130,7 @@ export const kbqAgGridColumnStateStoreProvider = (
  *
  * @example
  * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridColumnState]="{ store: kbqAgGridColumnStateLocalStorageStore, key: 'columns' }" />
+ * <ag-grid-angular kbqAgGridTheme [kbqAgGridColumnState]="'columns-state'" [kbqAgGridColumnStateStore]="myColumnStore" />
  * ```
  */
 @Directive({
@@ -181,10 +146,7 @@ export class KbqAgGridColumnState {
     readonly key = input.required<string>({ alias: 'kbqAgGridColumnState' });
 
     /** Store used to persist and restore column state. Defaults to {@link KBQ_AG_GRID_COLUMN_STATE_STORE}. */
-    readonly store = input(inject(KBQ_AG_GRID_COLUMN_STATE_STORE), {
-        // eslint-disable-next-line @angular-eslint/no-input-rename
-        alias: 'kbqAgGridColumnStateStore'
-    });
+    readonly store = input(inject(KBQ_AG_GRID_COLUMN_STATE_STORE), { alias: 'kbqAgGridColumnStateStore' });
 
     constructor() {
         this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => void this.init(api));

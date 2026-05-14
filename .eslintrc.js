@@ -113,7 +113,9 @@ const ngTsRules = {
         '@angular-eslint/component-class-suffix': 0,
         '@angular-eslint/directive-class-suffix': 0,
         '@angular-eslint/component-max-inline-declarations': 0,
-        '@angular-eslint/no-host-metadata-property': 0
+        '@angular-eslint/no-host-metadata-property': 0,
+        '@angular-eslint/no-input-rename': 0,
+        '@angular-eslint/no-output-rename': 0
     }
 };
 

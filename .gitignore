@@ -44,3 +44,5 @@ typings/
 /playwright/.cache/
 /playwright/.auth/
 /.playwright-mcp/
+
+.vscode/settings.json
