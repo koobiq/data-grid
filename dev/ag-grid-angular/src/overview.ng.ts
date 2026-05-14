@@ -186,11 +186,6 @@ export class DevAgGridStatusBarComponent {
                     Pagination
                 </label>
                 <label>
-                    <!-- TODO: grid does not support dynamic RTL change -->
-                    <input type="checkbox" disabled="" [(ngModel)]="enableRtl" />
-                    RTL
-                </label>
-                <label>
                     <input type="checkbox" [(ngModel)]="columnHoverHighlight" />
                     Column Hover Highlight
                 </label>
@@ -307,7 +302,6 @@ export class DevAgGridStatusBarComponent {
             [rowDragMultiRow]="rowDrag()"
             [suppressMoveWhenRowDragging]="suppressMoveWhenRowDragging()"
             [pagination]="pagination()"
-            [enableRtl]="enableRtl()"
             [columnHoverHighlight]="columnHoverHighlight()"
             [suppressCellFocus]="suppressCellFocus()"
             [tooltipShowDelay]="500"
@@ -382,7 +376,6 @@ export class DevOverview {
     readonly filter = model(true);
     readonly pagination = model(false);
     readonly suppressMovable = model(false);
-    readonly enableRtl = model(false);
     readonly columnHoverHighlight = model(false);
     readonly tooltip = model(false);
     readonly animateRows = model(false);

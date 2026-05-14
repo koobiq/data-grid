@@ -12,9 +12,9 @@ test.describe('KbqAgGridAngularTheme', () => {
         await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/e2e/theme');
         await getPaginationToggle(page).evaluate((label: HTMLLabelElement) => label.click());
-        await expect(getScreenshotTarget(page)).toHaveScreenshot('01-light.png');
+        await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-default-light.png');
         await enableDarkTheme(page);
-        await expect(getScreenshotTarget(page)).toHaveScreenshot('01-dark.png');
+        await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-default-dark.png');
     });
 
     test('with pinned columns', async ({ page }) => {
@@ -25,6 +25,6 @@ test.describe('KbqAgGridAngularTheme', () => {
         await page
             .locator('.ag-center-cols-viewport')
             .evaluate((element: HTMLElement) => element.scrollTo({ left: 10 }));
-        await expect(getScreenshotTarget(page)).toHaveScreenshot('02-light.png');
+        await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-pinned-columns-light.png');
     });
 });

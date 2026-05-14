@@ -9,7 +9,7 @@ test.describe('KbqAgGridStatusBar', () => {
     test('renders status bar', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/e2e/status-bar');
-        await expect(getScreenshotTarget(page)).toHaveScreenshot('04-light.png');
+        await expect(getScreenshotTarget(page)).toHaveScreenshot('status-bar-light.png');
     });
 
     test('updates Selected count when rows are selected', async ({ page }) => {

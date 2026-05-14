@@ -14,7 +14,7 @@ test.describe('KbqAgGridRowActions', () => {
         await getPinFirstColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
         await getPinLastColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
         await getRow(page, 1).first().hover();
-        await expect(getScreenshotTarget(page)).toHaveScreenshot('03-light.png');
+        await expect(getScreenshotTarget(page)).toHaveScreenshot('row-actions-hover-light.png');
     });
 
     test('removes row when Delete button is clicked', async ({ page }) => {

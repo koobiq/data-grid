@@ -35,7 +35,7 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
         await toggleRowSelection(page, 7);
         await getCell(page, 4, 'athlete').focus();
         await pressCtrlC(page);
-        expect(await getClipboardText(page)).toMatchSnapshot('01.txt');
+        expect(await getClipboardText(page)).toMatchSnapshot('selected-rows-tsv.txt');
     });
 
     test('copies selected rows in CSV', async ({ page }) => {
@@ -48,7 +48,7 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
         await toggleRowSelection(page, 7);
         await getCell(page, 4, 'athlete').focus();
         await pressCtrlC(page);
-        expect(await getClipboardText(page)).toMatchSnapshot('02.txt');
+        expect(await getClipboardText(page)).toMatchSnapshot('selected-rows-csv.txt');
     });
 
     test('copies selected rows in JSON', async ({ page }) => {
@@ -61,7 +61,7 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
         await toggleRowSelection(page, 7);
         await getCell(page, 4, 'athlete').focus();
         await pressCtrlC(page);
-        expect(await getClipboardText(page)).toMatchSnapshot('03.txt');
+        expect(await getClipboardText(page)).toMatchSnapshot('selected-rows-json.txt');
     });
 
     test('copies selected rows in custom format', async ({ page }) => {
