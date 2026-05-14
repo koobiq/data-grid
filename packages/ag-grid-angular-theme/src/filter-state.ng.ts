@@ -19,15 +19,6 @@ export type KbqAgGridFilterStateStore = {
 
 /**
  * {@link KbqAgGridFilterStateStore} implementation backed by `localStorage`.
- *
- * @example
- * ```typescript
- * protected readonly state = { store: inject(KbqAgGridFilterStateLocalStorageStore), key: 'filters-state' };
- * ```
- * @example
- * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridFilterState]="state.key" [kbqAgGridFilterStateStore]="state.store" />
- * ```
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridFilterStateLocalStorageStore implements KbqAgGridFilterStateStore {
@@ -58,19 +49,6 @@ export class KbqAgGridFilterStateLocalStorageStore implements KbqAgGridFilterSta
 
 /**
  * {@link KbqAgGridFilterStateStore} implementation backed by URL query parameters.
- *
- * Uses Angular's {@link Router} to read and write query params.
- * Calls `router.navigate` with `replaceUrl: true` so filter changes
- * do not push entries into the browser history.
- *
- * @example
- * ```typescript
- * protected readonly state = { store: inject(KbqAgGridFilterStateQueryParamsStore), key: 'filters-state' };
- * ```
- * @example
- * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridFilterState]="state.key" [kbqAgGridFilterStateStore]="state.store" />
- * ```
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridFilterStateQueryParamsStore implements KbqAgGridFilterStateStore {

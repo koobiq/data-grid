@@ -19,15 +19,6 @@ export type KbqAgGridColumnStateStore = {
 
 /**
  * {@link KbqAgGridColumnStateStore} implementation backed by `localStorage`.
- *
- * @example
- * ```typescript
- * protected readonly state = { store: inject(KbqAgGridColumnStateLocalStorageStore), key: 'columns-state' };
- * ```
- * @example
- * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridColumnState]="state" />
- * ```
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridColumnStateLocalStorageStore implements KbqAgGridColumnStateStore {
@@ -58,19 +49,6 @@ export class KbqAgGridColumnStateLocalStorageStore implements KbqAgGridColumnSta
 
 /**
  * {@link KbqAgGridColumnStateStore} implementation backed by URL query parameters.
- *
- * Uses Angular's {@link Router} to read and write query params.
- * Calls `router.navigate` with `replaceUrl: true` so column changes
- * do not push entries into the browser history.
- *
- * @example
- * ```typescript
- * protected readonly state = { store: inject(KbqAgGridColumnStateQueryParamsStore), key: 'columns-state' };
- * ```
- * @example
- * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridColumnState]="state" />
- * ```
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridColumnStateQueryParamsStore implements KbqAgGridColumnStateStore {

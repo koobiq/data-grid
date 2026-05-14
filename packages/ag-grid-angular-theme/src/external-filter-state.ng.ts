@@ -33,16 +33,6 @@ export type KbqAgGridExternalFilterStateStore<T = unknown> = {
 
 /**
  * {@link KbqAgGridExternalFilterStateStore} implementation backed by `localStorage`.
- *
- * @example
- * ```typescript
- * protected readonly state = { store: inject(KbqAgGridExternalFilterStateLocalStorageStore), key: 'external-filter-state' };
- * protected readonly filterPass = (node: IRowNode) => node.data?.value === this.filterValue();
- * ```
- * @example
- * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridExternalFilterState]="state.key" [kbqAgGridExternalFilterStateStore]="state.store" [kbqAgGridExternalFilterStatePass]="filterPass" />
- * ```
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridExternalFilterStateLocalStorageStore<
@@ -75,20 +65,6 @@ export class KbqAgGridExternalFilterStateLocalStorageStore<
 
 /**
  * {@link KbqAgGridExternalFilterStateStore} implementation backed by URL query parameters.
- *
- * Uses Angular's {@link Router} to read and write query params.
- * Calls `router.navigate` with `replaceUrl: true` so filter changes
- * do not push entries into the browser history.
- *
- * @example
- * ```typescript
- * protected readonly state = { store: inject(KbqAgGridExternalFilterStateQueryParamsStore), key: 'external-filter-state' };
- * protected readonly filterPass = (node: IRowNode) => node.data?.value === this.filterValue();
- * ```
- * @example
- * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridExternalFilterState]="state.key" [kbqAgGridExternalFilterStateStore]="state.store" [kbqAgGridExternalFilterStatePass]="filterPass" />
- * ```
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridExternalFilterStateQueryParamsStore<T = unknown> implements KbqAgGridExternalFilterStateStore<T> {
