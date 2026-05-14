@@ -48,6 +48,7 @@ const DEFAULT_COL_DEF: ColDef = {
         <ag-grid-angular
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
+            disableCellFocusStyles
             animateRows="false"
             [rowData]="rowData()"
             [columnDefs]="columnDefs()"
