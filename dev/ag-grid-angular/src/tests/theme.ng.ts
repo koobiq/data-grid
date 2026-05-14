@@ -2,7 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, model } from '@angular/co
 import { FormsModule } from '@angular/forms';
 import { KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
-import { AllCommunityModule, ColDef, ModuleRegistry, RowSelectionOptions } from 'ag-grid-community';
+import {
+    AllCommunityModule,
+    ColDef,
+    FirstDataRenderedEvent,
+    GridReadyEvent,
+    ModuleRegistry,
+    RowSelectionOptions
+} from 'ag-grid-community';
 import { devInjectRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -11,6 +18,12 @@ const ROW_SELECTION: RowSelectionOptions = {
     mode: 'multiRow',
     checkboxes: true,
     headerCheckbox: true
+};
+
+const DEFAULT_COL_DEF: ColDef = {
+    filter: true,
+    sortable: true,
+    resizable: true
 };
 
 @Component({
@@ -39,7 +52,10 @@ const ROW_SELECTION: RowSelectionOptions = {
             [rowData]="rowData()"
             [columnDefs]="columnDefs()"
             [rowSelection]="rowSelection"
+            [defaultColDef]="defaultColDef"
             [pagination]="pagination()"
+            (gridReady)="onGridReady($event)"
+            (firstDataRendered)="onFirstDataRendered($event)"
         />
     `,
     styles: `
@@ -60,6 +76,7 @@ const ROW_SELECTION: RowSelectionOptions = {
 export class DevTheme {
     readonly rowData = devInjectRowData();
     readonly rowSelection = ROW_SELECTION;
+    readonly defaultColDef = DEFAULT_COL_DEF;
     readonly pagination = model(false);
     readonly pinFirstColumn = model(false);
     readonly pinLastColumn = model(false);
@@ -75,4 +92,18 @@ export class DevTheme {
         { field: 'bronze', headerName: 'Bronze' },
         { field: 'total', headerName: 'Total', pinned: this.pinLastColumn() ? 'right' : false }
     ]);
+
+    onGridReady({ api }: GridReadyEvent): void {
+        api.setColumnWidths([{ key: 'ag-Grid-SelectionColumn', newWidth: 36 }]);
+    }
+
+    onFirstDataRendered({ api }: FirstDataRenderedEvent): void {
+        api.setFocusedCell(0, 'athlete');
+
+        api.forEachNode((node) => {
+            if (node.rowIndex === 4 || node.rowIndex === 5) {
+                node.setSelected(true);
+            }
+        });
+    }
 }
