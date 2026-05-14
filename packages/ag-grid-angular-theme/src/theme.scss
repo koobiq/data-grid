@@ -24,7 +24,6 @@
         --ag-card-shadow: var(--kbq-shadow-card),
         --ag-popup-shadow: var(--kbq-shadow-popup),
         --ag-side-bar-panel-width: 250px,
-        --kbq-background-card: var(--kbq-background-card),
         --ag-data-color: var(--kbq-foreground-contrast),
         // Cell
         --ag-cell-horizontal-padding: var(--ag-grid-size),
@@ -494,6 +493,8 @@
     }
 
     .ag-select-list {
+        --ag-background-color: var(--kbq-background-card);
+
         .ag-select-list-item {
             padding: 0 10px;
         }
@@ -568,9 +569,13 @@
     }
 }
 
-@mixin _ag-popup-editor() {
-    .ag-popup-editor {
-        border-radius: var(--ag-border-radius);
+@mixin _ag-popup() {
+    .ag-popup {
+        --ag-background-color: var(--kbq-background-card);
+
+        .ag-popup-editor {
+            border-radius: var(--ag-border-radius);
+        }
     }
 }
 
@@ -759,6 +764,7 @@
 .ag-theme-koobiq {
     --ag-theme-koobiq-active-color: var(--kbq-background-theme);
     --ag-theme-koobiq-border: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
+    --ag-menu-background-color: var(--kbq-background-card);
 
     @include _ag-theme-typography();
     @include _ag-row-highlight();
@@ -778,7 +784,7 @@
     @include _ag-text-field();
     @include _ag-row-border();
     @include _ag-cell-inline-editing();
-    @include _ag-popup-editor();
+    @include _ag-popup();
     @include _ag-body-scrollbar();
     @include _ag-pinned-column-border();
     @include _ag-cell-with-selection-checkbox();
