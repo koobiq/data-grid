@@ -148,10 +148,7 @@ export class KbqAgGridFilterState {
     readonly key = input.required<string>({ alias: 'kbqAgGridFilterState' });
 
     /** Store used to persist and restore filter state. Defaults to {@link KBQ_AG_GRID_FILTER_STATE_STORE}. */
-    readonly store = input(inject(KBQ_AG_GRID_FILTER_STATE_STORE), {
-        // eslint-disable-next-line @angular-eslint/no-input-rename
-        alias: 'kbqAgGridFilterStateStore'
-    });
+    readonly store = input(inject(KBQ_AG_GRID_FILTER_STATE_STORE), { alias: 'kbqAgGridFilterStateStore' });
 
     constructor() {
         this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => void this.init(api));

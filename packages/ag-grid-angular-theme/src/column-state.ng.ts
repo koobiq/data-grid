@@ -149,10 +149,7 @@ export class KbqAgGridColumnState {
     readonly key = input.required<string>({ alias: 'kbqAgGridColumnState' });
 
     /** Store used to persist and restore column state. Defaults to {@link KBQ_AG_GRID_COLUMN_STATE_STORE}. */
-    readonly store = input(inject(KBQ_AG_GRID_COLUMN_STATE_STORE), {
-        // eslint-disable-next-line @angular-eslint/no-input-rename
-        alias: 'kbqAgGridColumnStateStore'
-    });
+    readonly store = input(inject(KBQ_AG_GRID_COLUMN_STATE_STORE), { alias: 'kbqAgGridColumnStateStore' });
 
     constructor() {
         this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => void this.init(api));

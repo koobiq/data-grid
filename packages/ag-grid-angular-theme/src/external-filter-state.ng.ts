@@ -197,13 +197,11 @@ export class KbqAgGridExternalFilterState {
 
     /** Store used to persist and restore external filter state. Defaults to {@link KBQ_AG_GRID_EXTERNAL_FILTER_STATE_STORE}. */
     readonly store = input(inject(KBQ_AG_GRID_EXTERNAL_FILTER_STATE_STORE), {
-        // eslint-disable-next-line @angular-eslint/no-input-rename
         alias: 'kbqAgGridExternalFilterStateStore'
     });
 
     /** Predicate called by ag-grid to decide whether a row passes the external filter. */
     readonly doesExternalFilterPass = input.required<(node: IRowNode) => boolean>({
-        // eslint-disable-next-line @angular-eslint/no-input-rename
         alias: 'kbqAgGridExternalFilterStatePass'
     });
 
@@ -211,7 +209,7 @@ export class KbqAgGridExternalFilterState {
     readonly value = model<unknown>(null, { alias: 'kbqAgGridExternalFilterStateValue' });
 
     /** Emitted once after state is restored from the store. Useful for bridging with reactive forms. */
-    // eslint-disable-next-line @angular-eslint/no-output-rename
+
     readonly restored = output<unknown>({ alias: 'kbqAgGridExternalFilterStateRestored' });
 
     constructor() {

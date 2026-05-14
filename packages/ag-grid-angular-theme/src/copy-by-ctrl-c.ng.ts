@@ -29,16 +29,10 @@ export class KbqAgGridCopyByCtrlC {
     readonly enabled = input(true, { transform: booleanAttribute, alias: 'kbqAgGridCopyByCtrlC' });
 
     /** Custom formatter for clipboard content. When not provided, the default TSV format is used. */
-    readonly formatter = input<KbqAgGridCopyFormatter | undefined>(undefined, {
-        // eslint-disable-next-line @angular-eslint/no-input-rename
-        alias: 'kbqAgGridCopyFormatter'
-    });
+    readonly formatter = input<KbqAgGridCopyFormatter | undefined>(undefined, { alias: 'kbqAgGridCopyFormatter' });
 
     /** Emits the result of the clipboard copy operation. */
-    readonly copied = output<KbqAgGridCopyEvent>({
-        // eslint-disable-next-line @angular-eslint/no-output-rename
-        alias: 'kbqAgGridCopyDone'
-    });
+    readonly copied = output<KbqAgGridCopyEvent>({ alias: 'kbqAgGridCopyDone' });
 
     constructor() {
         this.grid.cellKeyDown.pipe(takeUntilDestroyed()).subscribe((event) => {

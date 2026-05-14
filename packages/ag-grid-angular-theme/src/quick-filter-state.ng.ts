@@ -158,7 +158,6 @@ export class KbqAgGridQuickFilterState {
 
     /** Store used to persist and restore quick filter state. Defaults to {@link KBQ_AG_GRID_QUICK_FILTER_STATE_STORE}. */
     readonly store = input(inject(KBQ_AG_GRID_QUICK_FILTER_STATE_STORE), {
-        // eslint-disable-next-line @angular-eslint/no-input-rename
         alias: 'kbqAgGridQuickFilterStateStore'
     });
 
@@ -169,7 +168,7 @@ export class KbqAgGridQuickFilterState {
     readonly value = model('', { alias: 'kbqAgGridQuickFilterStateValue' });
 
     /** Emitted once after state is restored from the store. Useful for bridging with reactive forms. */
-    // eslint-disable-next-line @angular-eslint/no-output-rename
+
     readonly restored = output<string>({ alias: 'kbqAgGridQuickFilterStateRestored' });
 
     constructor() {
