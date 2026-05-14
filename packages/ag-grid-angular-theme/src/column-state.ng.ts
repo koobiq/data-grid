@@ -49,6 +49,11 @@ export class KbqAgGridColumnStateLocalStorageStore implements KbqAgGridColumnSta
 
 /**
  * {@link KbqAgGridColumnStateStore} implementation backed by URL query parameters.
+ *
+ * @example
+ * ```typescript
+ * providers: [kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateQueryParamsStore)]
+ * ```
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridColumnStateQueryParamsStore implements KbqAgGridColumnStateStore {
@@ -114,17 +119,9 @@ export const KBQ_AG_GRID_COLUMN_STATE_STORE = new InjectionToken<KbqAgGridColumn
 export const kbqAgGridColumnStateStoreProvider = (
     store: Type<KbqAgGridColumnStateStore> | KbqAgGridColumnStateStore
 ): Provider => {
-    if (store instanceof Type) {
-        return {
-            provide: KBQ_AG_GRID_COLUMN_STATE_STORE,
-            useClass: store
-        };
-    }
-
-    return {
-        provide: KBQ_AG_GRID_COLUMN_STATE_STORE,
-        useValue: store
-    };
+    return store instanceof Type
+        ? { provide: KBQ_AG_GRID_COLUMN_STATE_STORE, useClass: store }
+        : { provide: KBQ_AG_GRID_COLUMN_STATE_STORE, useValue: store };
 };
 
 /**
@@ -133,7 +130,7 @@ export const kbqAgGridColumnStateStoreProvider = (
  *
  * @example
  * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridColumnState]="{ store: kbqAgGridColumnStateLocalStorageStore, key: 'columns-state' }" />
+ * <ag-grid-angular kbqAgGridTheme [kbqAgGridColumnState]="'columns-state'" [kbqAgGridColumnStateStore]="myColumnStore" />
  * ```
  */
 @Directive({

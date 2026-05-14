@@ -65,6 +65,11 @@ export class KbqAgGridExternalFilterStateLocalStorageStore<
 
 /**
  * {@link KbqAgGridExternalFilterStateStore} implementation backed by URL query parameters.
+ *
+ * @example
+ * ```typescript
+ * providers: [kbqAgGridExternalFilterStateStoreProvider(KbqAgGridExternalFilterStateQueryParamsStore)]
+ * ```
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridExternalFilterStateQueryParamsStore<T = unknown> implements KbqAgGridExternalFilterStateStore<T> {
@@ -129,17 +134,9 @@ export const KBQ_AG_GRID_EXTERNAL_FILTER_STATE_STORE = new InjectionToken<KbqAgG
 export const kbqAgGridExternalFilterStateStoreProvider = (
     store: Type<KbqAgGridExternalFilterStateStore> | KbqAgGridExternalFilterStateStore
 ): Provider => {
-    if (store instanceof Type) {
-        return {
-            provide: KBQ_AG_GRID_EXTERNAL_FILTER_STATE_STORE,
-            useClass: store
-        };
-    }
-
-    return {
-        provide: KBQ_AG_GRID_EXTERNAL_FILTER_STATE_STORE,
-        useValue: store
-    };
+    return store instanceof Type
+        ? { provide: KBQ_AG_GRID_EXTERNAL_FILTER_STATE_STORE, useClass: store }
+        : { provide: KBQ_AG_GRID_EXTERNAL_FILTER_STATE_STORE, useValue: store };
 };
 
 /**
@@ -158,12 +155,11 @@ export const kbqAgGridExternalFilterStateStoreProvider = (
  * ```
  * ```html
  * <select [(ngModel)]="filterValue">...</select>
- * <ag-grid-angular
- *   kbqAgGridTheme
- *   [kbqAgGridExternalFilterState]="'external-filter-state'"
- *   [kbqAgGridExternalFilterStatePass]="filterPass"
- *   [(kbqAgGridExternalFilterStateValue)]="filterValue"
- * />
+ * <ag-grid-angular kbqAgGridTheme
+ *                  [kbqAgGridExternalFilterState]="'external-filter-state'"
+ *                  [kbqAgGridExternalFilterStateStore]="myExternalFilterStore"
+ *                  [kbqAgGridExternalFilterStatePass]="filterPass"
+ *                  [(kbqAgGridExternalFilterStateValue)]="filterValue" />
  * ```
  * @example Reactive forms
  * ```typescript
@@ -173,13 +169,12 @@ export const kbqAgGridExternalFilterStateStoreProvider = (
  * ```
  * ```html
  * <select [formControl]="control">...</select>
- * <ag-grid-angular
- *   kbqAgGridTheme
- *   [kbqAgGridExternalFilterState]="'external-filter-state'"
- *   [kbqAgGridExternalFilterStatePass]="filterPass"
- *   [kbqAgGridExternalFilterStateValue]="filterValue()"
- *   (kbqAgGridExternalFilterStateRestored)="control.setValue($event)"
- * />
+ * <ag-grid-angular kbqAgGridTheme
+ *                  [kbqAgGridExternalFilterState]="'external-filter-state'"
+ *                  [kbqAgGridExternalFilterStateStore]="myExternalFilterStore"
+ *                  [kbqAgGridExternalFilterStatePass]="filterPass"
+ *                  [kbqAgGridExternalFilterStateValue]="filterValue()"
+ *                  (kbqAgGridExternalFilterStateRestored)="control.setValue($event)" />
  * ```
  */
 @Directive({
@@ -209,7 +204,6 @@ export class KbqAgGridExternalFilterState {
     readonly value = model<unknown>(null, { alias: 'kbqAgGridExternalFilterStateValue' });
 
     /** Emitted once after state is restored from the store. Useful for bridging with reactive forms. */
-
     readonly restored = output<unknown>({ alias: 'kbqAgGridExternalFilterStateRestored' });
 
     constructor() {

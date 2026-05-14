@@ -49,6 +49,11 @@ export class KbqAgGridFilterStateLocalStorageStore implements KbqAgGridFilterSta
 
 /**
  * {@link KbqAgGridFilterStateStore} implementation backed by URL query parameters.
+ *
+ * @example
+ * ```typescript
+ * providers: [kbqAgGridFilterStateStoreProvider(KbqAgGridFilterStateQueryParamsStore)]
+ * ```
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridFilterStateQueryParamsStore implements KbqAgGridFilterStateStore {
@@ -113,17 +118,9 @@ export const KBQ_AG_GRID_FILTER_STATE_STORE = new InjectionToken<KbqAgGridFilter
 export const kbqAgGridFilterStateStoreProvider = (
     store: Type<KbqAgGridFilterStateStore> | KbqAgGridFilterStateStore
 ): Provider => {
-    if (store instanceof Type) {
-        return {
-            provide: KBQ_AG_GRID_FILTER_STATE_STORE,
-            useClass: store
-        };
-    }
-
-    return {
-        provide: KBQ_AG_GRID_FILTER_STATE_STORE,
-        useValue: store
-    };
+    return store instanceof Type
+        ? { provide: KBQ_AG_GRID_FILTER_STATE_STORE, useClass: store }
+        : { provide: KBQ_AG_GRID_FILTER_STATE_STORE, useValue: store };
 };
 
 /**
@@ -132,7 +129,7 @@ export const kbqAgGridFilterStateStoreProvider = (
  *
  * @example
  * ```html
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridFilterState]="{ store: kbqAgGridFilterStateLocalStorageStore, key: 'filters-state' }" />
+ * <ag-grid-angular kbqAgGridTheme [kbqAgGridFilterState]="'filters-state'" [kbqAgGridFilterStateStore]="myFilterStore" />
  * ```
  */
 @Directive({

@@ -54,6 +54,11 @@ export class KbqAgGridQuickFilterStateLocalStorageStore implements KbqAgGridQuic
 
 /**
  * {@link KbqAgGridQuickFilterStateStore} implementation backed by URL query parameters.
+ *
+ * @example
+ * ```typescript
+ * providers: [kbqAgGridQuickFilterStateStoreProvider(KbqAgGridQuickFilterStateQueryParamsStore)]
+ * ```
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridQuickFilterStateQueryParamsStore implements KbqAgGridQuickFilterStateStore {
@@ -109,17 +114,9 @@ export const KBQ_AG_GRID_QUICK_FILTER_STATE_STORE = new InjectionToken<KbqAgGrid
 export const kbqAgGridQuickFilterStateStoreProvider = (
     store: Type<KbqAgGridQuickFilterStateStore> | KbqAgGridQuickFilterStateStore
 ): Provider => {
-    if (store instanceof Type) {
-        return {
-            provide: KBQ_AG_GRID_QUICK_FILTER_STATE_STORE,
-            useClass: store
-        };
-    }
-
-    return {
-        provide: KBQ_AG_GRID_QUICK_FILTER_STATE_STORE,
-        useValue: store
-    };
+    return store instanceof Type
+        ? { provide: KBQ_AG_GRID_QUICK_FILTER_STATE_STORE, useClass: store }
+        : { provide: KBQ_AG_GRID_QUICK_FILTER_STATE_STORE, useValue: store };
 };
 
 /**
@@ -132,15 +129,19 @@ export const kbqAgGridQuickFilterStateStoreProvider = (
  * @example Signals / ngModel
  * ```html
  * <input [(ngModel)]="filterText" />
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridQuickFilterState]="'quick-filter-state'" [(kbqAgGridQuickFilterStateValue)]="filterText" />
+ * <ag-grid-angular kbqAgGridTheme
+ *                  [kbqAgGridQuickFilterState]="'quick-filter-state'"
+ *                  [kbqAgGridQuickFilterStateStore]="myQuickFilterStore"
+ *                  [(kbqAgGridQuickFilterStateValue)]="filterText" />
  * ```
  * @example Reactive forms
  * ```html
  * <input [formControl]="control" />
- * <ag-grid-angular kbqAgGridTheme [kbqAgGridQuickFilterState]="'quick-filter-state'"
- *     [kbqAgGridQuickFilterStateValue]="filterText()"
- *     (kbqAgGridQuickFilterStateValueChange)="control.setValue($event)"
- *     (kbqAgGridQuickFilterStateRestored)="control.setValue($event)" />
+ * <ag-grid-angular kbqAgGridTheme
+ *                  [kbqAgGridQuickFilterState]="'quick-filter-state'"
+ *                  [kbqAgGridQuickFilterStateStore]="myQuickFilterStore"
+ *                  (kbqAgGridQuickFilterStateValueChange)="control.setValue($event)"
+ *                  (kbqAgGridQuickFilterStateRestored)="control.setValue($event)" />
  * ```
  */
 @Directive({
@@ -168,7 +169,6 @@ export class KbqAgGridQuickFilterState {
     readonly value = model('', { alias: 'kbqAgGridQuickFilterStateValue' });
 
     /** Emitted once after state is restored from the store. Useful for bridging with reactive forms. */
-
     readonly restored = output<string>({ alias: 'kbqAgGridQuickFilterStateRestored' });
 
     constructor() {
