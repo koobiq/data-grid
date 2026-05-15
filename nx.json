@@ -46,17 +46,6 @@
         },
         "version": {
             "conventionalCommits": true
-        },
-        "conventionalCommits": {
-            "types": {
-                "chore": {
-                    "semverBump": "patch",
-                    "changelog": {
-                        "hidden": false,
-                        "title": "🔧 Chores"
-                    }
-                }
-            }
         }
     },
     "plugins": [
