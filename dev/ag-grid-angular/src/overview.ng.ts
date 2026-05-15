@@ -325,7 +325,7 @@ export class DevAgGridStatusBarComponent {
             display: flex;
             flex-direction: column;
             padding: var(--kbq-size-m);
-            height: calc(100vh - calc(var(--kbq-size-l) * 2));
+            height: calc(100vh - 100px);
         }
 
         ag-grid-angular {
