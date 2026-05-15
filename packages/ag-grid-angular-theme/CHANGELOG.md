@@ -1,3 +1,19 @@
+## 34.3.0 (2026-05-15)
+
+### 🚀 Features
+
+- **ag-grid-angular-theme:** added `KbqAgGridFilterState`, `KbqAgGridQuickFilterState`, `KbqAgGridExternalFilterState` directives (#DS-4943) ([#161](https://github.com/koobiq/data-grid/pull/161))
+- **ag-grid-angular-theme:** added `KbqAgGridColumnState` directive (#DS-4936) ([#152](https://github.com/koobiq/data-grid/pull/152))
+
+### 🩹 Fixes
+
+- **ag-grid-angular-theme:** dropdown background (#DS-5077) ([#163](https://github.com/koobiq/data-grid/pull/163))
+- **ag-grid-angular-theme:** scrollbar tokens (#DS-5039) ([#160](https://github.com/koobiq/data-grid/pull/160))
+
+### ❤️ Thank You
+
+- Artem Belik
+
 ## 34.2.0 (2026-03-24)
 
 ### 🚀 Features
