@@ -16,7 +16,7 @@ import { debounceTime, delay, filter, startWith } from 'rxjs';
     selector: 'ag-grid-angular[kbqAgGridTheme]',
     host: {
         class: 'ag-theme-koobiq',
-        '[class.ag-theme-koobiq_disable-cell-focus-styles]': 'disableCellFocusStyles()',
+        '[class.ag-theme-koobiq_disable-cell-focus-styles]': 'disableCellFocusStyles() || _disableCellFocusStyles()',
         '[class.ag-theme-koobiq_pinned-left-cols-overflow]': 'columnsOverflowLeft()',
         '[class.ag-theme-koobiq_pinned-right-cols-overflow]': 'columnsOverflowRight()'
     }
@@ -30,8 +30,20 @@ export class KbqAgGridTheme {
      * Disables ag-grid cell focus styles (e.g. border-color).
      *
      * @default false
+     *
+     * @deprecated Will be removed in next major release. Use the `kbqAgGridThemeDisableCellFocusStyles` input instead.
      */
     readonly disableCellFocusStyles = input(false, { transform: booleanAttribute });
+
+    /**
+     * Disables ag-grid cell focus styles (e.g. border-color).
+     *
+     * @default false
+     */
+    readonly _disableCellFocusStyles = input(false, {
+        transform: booleanAttribute,
+        alias: 'kbqAgGridThemeDisableCellFocusStyles'
+    });
 
     protected readonly columnsOverflowLeft = signal(false);
     protected readonly columnsOverflowRight = signal(false);

@@ -292,7 +292,7 @@ export class DevAgGridStatusBarComponent {
             [kbqAgGridSelectRowsByShiftClick]="selectRowsByShiftClick()"
             [kbqAgGridCopyByCtrlC]="copyByCtrlC()"
             [kbqAgGridCopyFormatter]="copyFormatter()"
-            [disableCellFocusStyles]="disableCellFocusStyles()"
+            [kbqAgGridThemeDisableCellFocusStyles]="disableCellFocusStyles()"
             [kbqAgGridStatusBar]="statusBarComponent"
             [columnDefs]="columnDefs()"
             [rowSelection]="rowSelection()"
