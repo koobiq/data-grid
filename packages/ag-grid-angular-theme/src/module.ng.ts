@@ -34,6 +34,7 @@ const COMPONENTS = [
 @NgModule({
     imports: COMPONENTS,
     exports: COMPONENTS,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     providers: [KbqAgGridShortcuts]
 })
 export class KbqAgGridThemeModule {}

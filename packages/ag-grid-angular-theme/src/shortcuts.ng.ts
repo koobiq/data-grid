@@ -7,61 +7,16 @@ import {
     CellKeyDownEvent,
     CellPosition,
     FullWidthCellKeyDownEvent,
-    GridApi,
     TabToNextCellParams
 } from 'ag-grid-community';
-
-const isKeyboardEvent = (event: unknown): event is KeyboardEvent => event instanceof KeyboardEvent;
-const isMouseEvent = (event: unknown): event is MouseEvent => event instanceof MouseEvent;
-
-/**
- * Custom formatter function for {@link KbqAgGridCopyByCtrlC}.
- *
- * Receives selected nodes and the grid API.
- * Returns a string that will be written to the clipboard.
- */
-export type KbqAgGridCopyFormatter = (api: GridApi) => string;
-
-/** Result of a clipboard copy operation performed by {@link KbqAgGridCopyByCtrlC}. */
-export type KbqAgGridCopyEvent = {
-    /** Whether the text was successfully written to the clipboard. */
-    success: boolean;
-    /** The text that was attempted to be copied. */
-    text: string;
-};
-
-/** Formats selected rows as tab-separated values (TSV). */
-export const kbqAgGridCopyFormatterTsv: KbqAgGridCopyFormatter = (api) =>
-    api
-        .getSelectedNodes()
-        .sort((r1, r2) => (r1.rowIndex ?? 0) - (r2.rowIndex ?? 0))
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        .map((row) => Object.values(row.data).join('\t'))
-        .join('\n');
-
-/** Formats selected rows as comma-separated values (CSV). */
-export const kbqAgGridCopyFormatterCsv: KbqAgGridCopyFormatter = (api) =>
-    api
-        .getSelectedNodes()
-        .sort((r1, r2) => (r1.rowIndex ?? 0) - (r2.rowIndex ?? 0))
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        .map((row) => Object.values(row.data).join(','))
-        .join('\n');
-
-/** Formats selected rows as a JSON array. */
-export const kbqAgGridCopyFormatterJson: KbqAgGridCopyFormatter = (api) =>
-    JSON.stringify(
-        api
-            .getSelectedNodes()
-            .sort((r1, r2) => (r1.rowIndex ?? 0) - (r2.rowIndex ?? 0))
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-            .map((row) => row.data),
-        null,
-        2
-    );
+import { KbqAgGridCopyEvent, KbqAgGridCopyFormatter, kbqAgGridCopyFormatterTsv } from './copy-by-ctrl-c.ng';
 
 /**
  * Service that provides keyboard interaction functionalities for ag-grid-angular.
+ *
+ * @deprecated Use the dedicated directives instead: `kbqAgGridSelectRowsByShiftArrow`, `kbqAgGridSelectAllRowsByCtrlA`,
+ * `kbqAgGridToNextRowByTab`, `kbqAgGridSelectRowsByCtrlClick`, `kbqAgGridCopyByCtrlC`.
+ * Will be removed in the next major release.
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridShortcuts {
@@ -76,9 +31,11 @@ export class KbqAgGridShortcuts {
      * ```html
      * <ag-grid-angular kbqAgGridTheme (cellKeyDown)="keyboard.selectRowsByShiftArrow($event)" />
      * ```
+     *
+     * @deprecated Use the `kbqAgGridSelectRowsByShiftArrow` directive instead. Will be removed in the next major release.
      */
     selectRowsByShiftArrow({ event, node, api }: CellKeyDownEvent | FullWidthCellKeyDownEvent): void {
-        if (!isKeyboardEvent(event)) return;
+        if (!(event instanceof KeyboardEvent)) return;
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const { shiftKey, keyCode } = event;
@@ -189,10 +146,11 @@ export class KbqAgGridShortcuts {
      * <ag-grid-angular kbqAgGridTheme (cellKeyDown)="keyboard.selectAllRowsByCtrlA($event)" />
      * ```
      *
-     * @deprecated AG Grid provides built-in Ctrl+A support for multi-row selection. Use `rowSelection: { mode: 'multiRow', selectAll: 'all' }` instead. Will be removed in the next major release.
+     * @deprecated AG Grid provides built-in Ctrl+A support for multi-row selection. Use `rowSelection: { mode: 'multiRow', selectAll: 'all' }` instead.
+     * Alternatively use the `kbqAgGridSelectAllRowsByCtrlA` directive. Will be removed in the next major release.
      */
     selectAllRowsByCtrlA({ event, api }: CellKeyDownEvent | FullWidthCellKeyDownEvent): void {
-        if (!isKeyboardEvent(event)) return;
+        if (!(event instanceof KeyboardEvent)) return;
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const { keyCode, metaKey, ctrlKey } = event;
@@ -212,6 +170,8 @@ export class KbqAgGridShortcuts {
      * ```html
      * <ag-grid-angular kbqAgGridTheme [tabToNextCell]="keyboard.toNextRowByTab.bind(this)" />
      * ```
+     *
+     * @deprecated Use the `kbqAgGridToNextRowByTab` directive instead. Will be removed in the next major release.
      */
     toNextRowByTab({ previousCellPosition, api, backwards }: TabToNextCellParams): CellPosition | boolean {
         const { rowIndex, column, rowPinned } = previousCellPosition;
@@ -233,9 +193,11 @@ export class KbqAgGridShortcuts {
      * ```html
      * <ag-grid-angular kbqAgGridTheme (cellClicked)="keyboard.selectRowsByCtrlClick($event)" />
      * ```
+     *
+     * @deprecated Use the `kbqAgGridSelectRowsByCtrlClick` directive instead. Will be removed in the next major release.
      */
     selectRowsByCtrlClick({ event, node }: CellClickedEvent): void {
-        if (!isMouseEvent(event) || !node.selectable) return;
+        if (!(event instanceof MouseEvent) || !node.selectable) return;
 
         const { metaKey, ctrlKey } = event;
 
@@ -260,12 +222,14 @@ export class KbqAgGridShortcuts {
      * ```html
      * <ag-grid-angular kbqAgGridTheme (cellKeyDown)="keyboard.copySelectedByCtrlC($event)" />
      * ```
+     *
+     * @deprecated Use the `kbqAgGridCopyByCtrlC` directive instead. Will be removed in the next major release.
      */
     async copySelectedByCtrlC(
         { event, api }: CellKeyDownEvent | FullWidthCellKeyDownEvent,
         formatter: KbqAgGridCopyFormatter = kbqAgGridCopyFormatterTsv
     ): Promise<KbqAgGridCopyEvent | null> {
-        if (!isKeyboardEvent(event)) return null;
+        if (!(event instanceof KeyboardEvent)) return null;
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         const { keyCode, metaKey, ctrlKey } = event;

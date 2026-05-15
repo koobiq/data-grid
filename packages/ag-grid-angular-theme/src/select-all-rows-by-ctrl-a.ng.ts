@@ -1,7 +1,8 @@
+import { A } from '@angular/cdk/keycodes';
 import { booleanAttribute, Directive, inject, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgGridAngular } from 'ag-grid-angular';
-import { KbqAgGridShortcuts } from './shortcuts.ng';
+import { CellKeyDownEvent, FullWidthCellKeyDownEvent } from 'ag-grid-community';
 
 /**
  * Directive that enables selecting all rows using Ctrl+A (or Cmd+A on Mac) keyboard shortcut.
@@ -19,15 +20,25 @@ import { KbqAgGridShortcuts } from './shortcuts.ng';
 })
 export class KbqAgGridSelectAllRowsByCtrlA {
     private readonly grid = inject(AgGridAngular);
-    private readonly shortcuts = inject(KbqAgGridShortcuts);
 
     /** Indicates whether the directive is enabled. */
     readonly enabled = input(true, { transform: booleanAttribute, alias: 'kbqAgGridSelectAllRowsByCtrlA' });
 
     constructor() {
         this.grid.cellKeyDown.pipe(takeUntilDestroyed()).subscribe((event) => {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            if (this.enabled()) this.shortcuts.selectAllRowsByCtrlA(event);
+            if (this.enabled()) this.selectAllRowsByCtrlA(event);
         });
+    }
+
+    private selectAllRowsByCtrlA({ event, api }: CellKeyDownEvent | FullWidthCellKeyDownEvent): void {
+        if (!(event instanceof KeyboardEvent)) return;
+
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const { keyCode, metaKey, ctrlKey } = event;
+
+        if (!(ctrlKey || metaKey) || keyCode !== A) return;
+
+        event.preventDefault();
+        api.selectAll();
     }
 }
