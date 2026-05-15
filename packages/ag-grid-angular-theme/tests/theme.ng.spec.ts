@@ -22,7 +22,7 @@ class TestGrid {
     selector: 'test-grid-focus-disabled',
     standalone: true,
     template: `
-        <ag-grid-angular kbqAgGridTheme [disableCellFocusStyles]="true" />
+        <ag-grid-angular kbqAgGridTheme kbqAgGridThemeDisableCellFocusStyles />
     `,
     imports: [AgGridModule, KbqAgGridTheme]
 })
