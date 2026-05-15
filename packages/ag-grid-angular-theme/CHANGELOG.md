@@ -1,3 +1,13 @@
+## 34.3.1 (2026-05-15)
+
+### 🩹 Fixes
+
+- **ag-grid-angular-theme:** path to theme.scss ([#166](https://github.com/koobiq/data-grid/pull/166))
+
+### ❤️ Thank You
+
+- Artem Belik
+
 ## 34.3.0 (2026-05-15)
 
 ### 🚀 Features
