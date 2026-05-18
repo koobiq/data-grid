@@ -1,7 +1,11 @@
 name: PR notification
 
 on:
-  pull_request:
+  # WARNING: `pull_request_target` runs with write permissions and access to secrets
+  # even for PRs from forks. Never checkout untrusted PR code or run it in this workflow,
+  # as that would allow a malicious contributor to exfiltrate secrets or modify the repo.
+  # Safe here only because no code is checked out — only GitHub context metadata is used.
+  pull_request_target:
     types:
       - opened
 
