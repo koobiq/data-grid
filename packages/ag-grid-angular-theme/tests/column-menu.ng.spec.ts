@@ -119,7 +119,7 @@ class TestColumnMenuGridWithLabels {
 const waitForTrigger = async (container: Element): Promise<HTMLButtonElement> => {
     await waitFor(() => expect(container.querySelector('.kbq-column-menu-trigger')).toBeTruthy());
 
-    return container.querySelector('.kbq-column-menu-trigger')!;
+    return container.querySelector<HTMLButtonElement>('.kbq-column-menu-trigger')!;
 };
 
 const openPanel = async (container: Element): Promise<void> => {
