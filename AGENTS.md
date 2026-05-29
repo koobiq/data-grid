@@ -1,5 +1,7 @@
 # AGENTS.md
 
+> Context file for AI agents working in this repository.
+
 ## Project Overview
 
 Nx monorepo for `@koobiq/ag-grid-angular-theme` - an Angular theme package for AG Grid Community 34.x that integrates `@koobiq/design-tokens` and provides enhanced keyboard shortcuts.
@@ -12,6 +14,12 @@ Use yarn as the package manager. Install dependencies with:
 
 ```bash
 yarn install
+```
+
+Setup git hooks:
+
+```bash
+yarn husky
 ```
 
 ## Common Commands
@@ -30,38 +38,43 @@ npm run lint
 # Auto-fix lint errors
 npm run lint:fix
 
-# Unit Testing
+# Unit Testing (Jest)
 yarn unit:theme                   # Run unit tests for the theme package
 yarn unit                         # Run unit tests for all projects
+yarn jest <TEST_PATH_PATTERN>     # Run specific unit tests (e.g., yarn jest packages/ag-grid-angular-theme/tests/theme.ng.spec.ts)
 
-# E2E Testing
-yarn e2e:setup                    # Install Playwright browsers
-yarn e2e:dev-ag-grid-angular      # Run E2E tests
+
+# E2E Testing (Playwright)
+yarn e2e:setup                              # Install Playwright browsers
+yarn e2e:dev-ag-grid-angular                # Run E2E tests
+yarn playwright test <TEST_PATH_PATTERN>    # Run specific E2E tests (e.g., yarn playwright test dev/ag-grid-angular/src/tests/theme.playwright-spec.ts)
 
 # Clean
 yarn clean                        # Reset Nx cache, clear Playwright cache, remove dist/tmp
 ```
 
-## Architecture
+## Repository Structure
+
+This is a yarn monorepo managed with Nx.
 
 ```
 packages/
 └── ag-grid-angular-theme/                  # Published npm package
     ├── src/
     │   ├── theme.scss                      # AG Grid SCSS customization with @koobiq/design-tokens
-    │   ├── theme.ng.ts                     # Theme component/directive
-    │   ├── module.ng.ts                    # Angular module
-    │   ├── status-bar.ng.ts                # Status bar component
-    │   ├── row-actions.ng.ts               # Row actions directive
-    │   └── [keyboard shortcut directives]  # copy-by-ctrl-c, select-all-rows-by-ctrl-a, etc.
+    │   ├── *.ng.ts                         # Theme component/directive
+    │   └── module.ng.ts                    # Angular module
     ├── tests/
-    │   └── *.spec.ts                       # Unit tests
+    │   └── *.spec.ts                       # Unit tests (jest)
     └── index.ts                            # Public API exports
 
 dev/
 └── ag-grid-angular/                        # Demo app for development and E2E testing
-    ├── src/app.ng.ts                       # Standalone component showcasing all features
-    └── src/app.playwright-spec.ts          # Playwright E2E tests
+    ├── src/main.ts                         # Application entry point
+    └── src/tests/                          # Playwright E2E tests
+        ├── utils/*.ts                      # Utility functions for E2E tests
+        ├── *.ng.ts                         # E2e test components
+        └── *.playwright-spec.ts            # E2e test specs (playwright)
 ```
 
 ## Best Practices

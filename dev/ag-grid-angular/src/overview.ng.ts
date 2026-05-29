@@ -5,7 +5,6 @@ import {
     computed,
     DestroyRef,
     inject,
-    isDevMode,
     model,
     Renderer2,
     signal
@@ -13,8 +12,10 @@ import {
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
+    KBQ_AG_GRID_COLUMN_MENU_LABELS_EN,
     KBQ_AG_GRID_ROW_ACTIONS_PARAMS,
     KBQ_AG_GRID_STATUS_BAR_PARAMS,
+    kbqAgGridColumnMenuLabelsProvider,
     KbqAgGridColumnStateQueryParamsStore,
     kbqAgGridColumnStateStoreProvider,
     KbqAgGridCopyEvent,
@@ -49,6 +50,11 @@ import { devInjectRowData, DevRowData } from './row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
+enum DevThemeSelector {
+    Light = 'kbq-light',
+    Dark = 'kbq-dark'
+}
+
 @Component({
     standalone: true,
     selector: 'dev-row-actions',
@@ -79,11 +85,6 @@ export class DevRowActionsComponent {
     }
 }
 
-enum DevThemeSelector {
-    Light = 'kbq-light',
-    Dark = 'kbq-dark'
-}
-
 @Component({
     standalone: true,
     selector: 'dev-ag-grid-status-bar',
@@ -104,24 +105,22 @@ enum DevThemeSelector {
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DevAgGridStatusBarComponent {
-    private readonly params = inject(KBQ_AG_GRID_STATUS_BAR_PARAMS);
+    private readonly api = inject(KBQ_AG_GRID_STATUS_BAR_PARAMS).api;
     private readonly destroyRef = inject(DestroyRef);
 
     readonly totalRows = signal(0);
     readonly selectedRows = signal(0);
 
     constructor() {
-        const { api } = this.params;
+        const updateTotal = (): void => this.totalRows.set(this.api.getDisplayedRowCount());
+        const updateSelected = (): void => this.selectedRows.set(this.api.getSelectedNodes().length);
 
-        const updateTotal = (): void => this.totalRows.set(api.getDisplayedRowCount());
-        const updateSelected = (): void => this.selectedRows.set(api.getSelectedNodes().length);
-
-        api.addEventListener('modelUpdated', updateTotal);
-        api.addEventListener('selectionChanged', updateSelected);
+        this.api.addEventListener('modelUpdated', updateTotal);
+        this.api.addEventListener('selectionChanged', updateSelected);
 
         this.destroyRef.onDestroy(() => {
-            api.removeEventListener('modelUpdated', updateTotal);
-            api.removeEventListener('selectionChanged', updateSelected);
+            this.api.removeEventListener('modelUpdated', updateTotal);
+            this.api.removeEventListener('selectionChanged', updateSelected);
         });
     }
 }
@@ -138,10 +137,6 @@ export class DevAgGridStatusBarComponent {
                 <label data-testid="e2eLightThemeToggle">
                     <input type="checkbox" [(ngModel)]="lightTheme" />
                     Light Theme
-                </label>
-                <label data-testid="e2eShowIndexColumnToggle">
-                    <input type="checkbox" [(ngModel)]="showIndexColumn" />
-                    Show Index Column
                 </label>
             </fieldset>
             <fieldset class="dev-options">
@@ -291,6 +286,7 @@ export class DevAgGridStatusBarComponent {
             #filterState="kbqAgGridFilterState"
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
+            kbqAgGridColumnMenu
             kbqAgGridColumnState="dev-ag-grid-column-state"
             kbqAgGridFilterState="dev-ag-grid-filter-state"
             [kbqAgGridLoadingOverlay]="loading()"
@@ -364,18 +360,17 @@ export class DevAgGridStatusBarComponent {
     changeDetection: ChangeDetectionStrategy.OnPush,
     providers: [
         kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateQueryParamsStore),
-        kbqAgGridFilterStateStoreProvider(KbqAgGridFilterStateQueryParamsStore)
+        kbqAgGridFilterStateStoreProvider(KbqAgGridFilterStateQueryParamsStore),
+        kbqAgGridColumnMenuLabelsProvider(KBQ_AG_GRID_COLUMN_MENU_LABELS_EN)
     ]
 })
 export class DevOverview {
     private readonly renderer = inject(Renderer2);
     private readonly document = inject(DOCUMENT);
-
-    readonly rowActionsComponent = DevRowActionsComponent;
-    readonly copyFormatOptions = ['tsv', 'csv', 'json', 'custom'] as const;
-
     private gridApi!: GridApi | null;
-
+    readonly rowActionsComponent = DevRowActionsComponent;
+    readonly statusBarComponent = DevAgGridStatusBarComponent;
+    readonly copyFormatOptions = ['tsv', 'csv', 'json', 'custom'] as const;
     readonly lightTheme = model(true);
     readonly checkboxes = model(true);
     readonly multipleRowSelection = model(true);
@@ -397,7 +392,6 @@ export class DevOverview {
     readonly pinFirstColumn = model(false);
     readonly pinLastColumn = model(false);
     readonly suppressCellFocus = model(false);
-    readonly showIndexColumn = model(isDevMode());
     readonly selectRowsByShiftArrow = model(true);
     readonly selectRowsByCtrlClick = model(true);
     readonly selectRowsByShiftClick = model(true);
@@ -407,9 +401,6 @@ export class DevOverview {
     readonly enableClickSelection = model(false);
     readonly cellTextSelection = model(true);
     readonly loading = model(false);
-
-    readonly statusBarComponent = DevAgGridStatusBarComponent;
-
     readonly copyFormatter = computed<KbqAgGridCopyFormatter | undefined>(() => {
         const format = this.copyFormat();
 
@@ -433,7 +424,6 @@ export class DevOverview {
             }
         }
     });
-
     readonly rowSelection = computed((): RowSelectionOptions => {
         const enableClickSelection = this.enableClickSelection();
         const hideDisabledCheckboxes = false;
@@ -454,27 +444,13 @@ export class DevOverview {
                   checkboxes
               };
     });
-
     readonly columnDefs = computed<ColDef[]>(() => {
         const tooltip = this.tooltip();
         const rowDrag = this.rowDrag();
         const pinFirstColumn = this.pinFirstColumn();
         const pinLastColumn = this.pinLastColumn();
-        const showIndexColumn = this.showIndexColumn();
 
         return [
-            {
-                hide: !showIndexColumn,
-                headerName: 'index',
-                valueGetter: 'node.rowIndex',
-                width: 70,
-                sortable: false,
-                filter: false,
-                resizable: false,
-                suppressMovable: true,
-                editable: false,
-                lockPosition: true
-            },
             {
                 field: 'athlete',
                 headerName: 'Athlete',
@@ -565,7 +541,6 @@ export class DevOverview {
             }
         ];
     });
-
     readonly defaultColDef = computed<ColDef>(() => {
         return {
             editable: this.editable(),
@@ -578,7 +553,6 @@ export class DevOverview {
             lockPosition: this.lockPosition()
         };
     });
-
     readonly rowData = devInjectRowData();
 
     constructor() {

@@ -165,7 +165,9 @@ const ngTemplateRules = {
     rules: {
         '@angular-eslint/template/i18n': 0,
         '@angular-eslint/template/no-call-expression': 0,
-        '@angular-eslint/template/prefer-ngsrc': 0
+        '@angular-eslint/template/prefer-ngsrc': 0,
+        '@angular-eslint/template/click-events-have-key-events': 0,
+        '@angular-eslint/template/interactive-supports-focus': 0
     }
 };
 

@@ -12,7 +12,9 @@ const makeSelectorClassPatternOptions = (prefixes = []) => {
         // default
         'kbq-',
         // for ag-grid
-        'ag-'
+        'ag-',
+        // for @angular/cdk
+        'cdk-'
     ];
 
     return [
