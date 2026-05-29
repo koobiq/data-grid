@@ -1000,7 +1000,6 @@
             padding: 0;
             cursor: pointer;
             color: var(--kbq-foreground-contrast-secondary);
-            transition: color 0.12s;
 
             &:hover {
                 color: var(--kbq-foreground-contrast);
@@ -1174,7 +1173,6 @@
             color: var(--kbq-foreground-contrast-secondary);
             padding: 0;
             flex-shrink: 0;
-            transition: color 0.12s;
 
             &:hover {
                 color: var(--kbq-foreground-contrast);

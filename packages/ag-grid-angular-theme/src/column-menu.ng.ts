@@ -1,3 +1,4 @@
+import { CdkTrapFocus, FocusableOption, FocusKeyManager } from '@angular/cdk/a11y';
 import {
     CdkDrag,
     CdkDragDrop,
@@ -16,6 +17,7 @@ import {
     createComponent,
     DestroyRef,
     Directive,
+    effect,
     ElementRef,
     EnvironmentInjector,
     inject,
@@ -24,7 +26,8 @@ import {
     input,
     OnDestroy,
     Provider,
-    signal
+    signal,
+    viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgGridAngular } from 'ag-grid-angular';
@@ -102,20 +105,62 @@ export const kbqAgGridColumnMenuLabelsProvider = (labels: KbqAgGridColumnMenuLab
 
 const KBQ_AG_GRID_COLUMN_MENU_API = new InjectionToken<GridApi>('KBQ_AG_GRID_COLUMN_MENU_API');
 
+let columnMenuInstanceCount = 0;
+
+@Directive({
+    selector: '[kbqColumnMenuRow]',
+    standalone: true,
+    host: {
+        class: 'kbq-column-menu-row',
+        '[attr.tabindex]': '-1'
+    }
+})
+class KbqAgGridColumnMenuRow implements FocusableOption {
+    private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+    readonly disabled = false;
+
+    focus(): void {
+        this.elementRef.nativeElement.focus();
+    }
+}
+
 @Component({
     selector: 'kbq-ag-grid-column-menu-panel',
-    imports: [CdkDrag, CdkDragHandle, CdkDragPlaceholder, CdkDropList, CdkDropListGroup],
+    imports: [
+        CdkDrag,
+        CdkDragHandle,
+        CdkDragPlaceholder,
+        CdkDropList,
+        CdkDropListGroup,
+        CdkTrapFocus,
+        KbqAgGridColumnMenuRow
+    ],
     standalone: true,
     template: `
         <div class="kbq-column-menu">
-            <button class="kbq-column-menu-trigger" type="button" (click)="toggle($event)">
+            <button
+                class="kbq-column-menu-trigger"
+                type="button"
+                aria-haspopup="dialog"
+                [attr.aria-label]="labels.title"
+                [attr.aria-expanded]="isOpen()"
+                (click)="toggle($event)"
+            >
                 <i class="kbq kbq-icon kbq-sliders_16"></i>
             </button>
 
             @if (isOpen()) {
-                <div class="kbq-column-menu-panel">
+                <div
+                    class="kbq-column-menu-panel"
+                    role="dialog"
+                    cdkTrapFocus
+                    cdkTrapFocusAutoCapture="true"
+                    [attr.aria-labelledby]="panelTitleId"
+                >
                     <div class="kbq-column-menu-panel-header">
-                        <div class="kbq-column-menu-panel-title" (click)="scrollToTop()">{{ labels.title }}</div>
+                        <div class="kbq-column-menu-panel-title" [id]="panelTitleId" (click)="scrollToTop()">
+                            {{ labels.title }}
+                        </div>
                         <div class="kbq-column-menu-panel-search">
                             <i class="kbq kbq-icon kbq-magnifying-glass_16 kbq-column-menu-search-icon"></i>
                             <input
@@ -124,6 +169,7 @@ const KBQ_AG_GRID_COLUMN_MENU_API = new InjectionToken<GridApi>('KBQ_AG_GRID_COL
                                 [placeholder]="labels.searchPlaceholder"
                                 [value]="searchQuery()"
                                 (input)="onSearch($event)"
+                                (keydown.arrowdown)="onSearchArrowDown($event)"
                             />
                             @if (searchQuery()) {
                                 <button type="button" class="kbq-column-menu-search-clear" (click)="clearSearch()">
@@ -136,6 +182,7 @@ const KBQ_AG_GRID_COLUMN_MENU_API = new InjectionToken<GridApi>('KBQ_AG_GRID_COL
                     <div
                         class="kbq-column-menu-panel-scroll"
                         [class.kbq-column-menu-panel-scroll--dragging]="isDragging()"
+                        (keydown)="onScrollKeydown($event)"
                     >
                         @if (hasNoResults()) {
                             <div class="kbq-column-menu-empty">{{ labels.emptyState }}</div>
@@ -154,17 +201,32 @@ const KBQ_AG_GRID_COLUMN_MENU_API = new InjectionToken<GridApi>('KBQ_AG_GRID_COL
                                         @for (col of pinnedLeftColumns(); track col.getColId()) {
                                             <div
                                                 cdkDrag
-                                                class="kbq-column-menu-row"
+                                                kbqColumnMenuRow
                                                 [cdkDragData]="col"
                                                 (cdkDragStarted)="isDragging.set(true)"
                                                 (cdkDragEnded)="isDragging.set(false)"
+                                                (keydown.space)="$event.preventDefault(); toggleVisibilityFromRow(col)"
                                             >
                                                 <span
+                                                    role="checkbox"
+                                                    aria-checked="true"
+                                                    tabindex="0"
                                                     class="kbq-column-menu-checkbox kbq-column-menu-checkbox--checked"
+                                                    [attr.aria-label]="col.getColDef().headerName ?? col.getColId()"
+                                                    [attr.aria-disabled]="
+                                                        col.getColDef().lockVisible || visibleCount() === 1
+                                                            ? 'true'
+                                                            : null
+                                                    "
                                                     [class.kbq-column-menu-checkbox--disabled]="
                                                         col.getColDef().lockVisible || visibleCount() === 1
                                                     "
                                                     (click)="$event.stopPropagation(); toggleVisibility(col)"
+                                                    (keydown.space)="
+                                                        $event.preventDefault();
+                                                        $event.stopPropagation();
+                                                        toggleVisibility(col)
+                                                    "
                                                 ></span>
                                                 <span
                                                     class="kbq-column-menu-label"
@@ -217,18 +279,33 @@ const KBQ_AG_GRID_COLUMN_MENU_API = new InjectionToken<GridApi>('KBQ_AG_GRID_COL
                                         @for (col of visibleColumns(); track col.getColId()) {
                                             <div
                                                 cdkDrag
-                                                class="kbq-column-menu-row"
+                                                kbqColumnMenuRow
                                                 [cdkDragData]="col"
                                                 (cdkDragStarted)="isDragging.set(true)"
                                                 (cdkDragEnded)="isDragging.set(false)"
                                                 (click)="toggleVisibility(col)"
+                                                (keydown.space)="$event.preventDefault(); toggleVisibilityFromRow(col)"
                                             >
                                                 <span
+                                                    role="checkbox"
+                                                    aria-checked="true"
+                                                    tabindex="0"
                                                     class="kbq-column-menu-checkbox kbq-column-menu-checkbox--checked"
+                                                    [attr.aria-label]="col.getColDef().headerName ?? col.getColId()"
+                                                    [attr.aria-disabled]="
+                                                        col.getColDef().lockVisible || visibleCount() === 1
+                                                            ? 'true'
+                                                            : null
+                                                    "
                                                     [class.kbq-column-menu-checkbox--disabled]="
                                                         col.getColDef().lockVisible || visibleCount() === 1
                                                     "
                                                     (click)="$event.stopPropagation(); toggleVisibility(col)"
+                                                    (keydown.space)="
+                                                        $event.preventDefault();
+                                                        $event.stopPropagation();
+                                                        toggleVisibility(col)
+                                                    "
                                                 ></span>
                                                 <span
                                                     class="kbq-column-menu-label"
@@ -281,17 +358,32 @@ const KBQ_AG_GRID_COLUMN_MENU_API = new InjectionToken<GridApi>('KBQ_AG_GRID_COL
                                         @for (col of pinnedRightColumns(); track col.getColId()) {
                                             <div
                                                 cdkDrag
-                                                class="kbq-column-menu-row"
+                                                kbqColumnMenuRow
                                                 [cdkDragData]="col"
                                                 (cdkDragStarted)="isDragging.set(true)"
                                                 (cdkDragEnded)="isDragging.set(false)"
+                                                (keydown.space)="$event.preventDefault(); toggleVisibilityFromRow(col)"
                                             >
                                                 <span
+                                                    role="checkbox"
+                                                    aria-checked="true"
+                                                    tabindex="0"
                                                     class="kbq-column-menu-checkbox kbq-column-menu-checkbox--checked"
+                                                    [attr.aria-label]="col.getColDef().headerName ?? col.getColId()"
+                                                    [attr.aria-disabled]="
+                                                        col.getColDef().lockVisible || visibleCount() === 1
+                                                            ? 'true'
+                                                            : null
+                                                    "
                                                     [class.kbq-column-menu-checkbox--disabled]="
                                                         col.getColDef().lockVisible || visibleCount() === 1
                                                     "
                                                     (click)="$event.stopPropagation(); toggleVisibility(col)"
+                                                    (keydown.space)="
+                                                        $event.preventDefault();
+                                                        $event.stopPropagation();
+                                                        toggleVisibility(col)
+                                                    "
                                                 ></span>
                                                 <span
                                                     class="kbq-column-menu-label"
@@ -339,10 +431,23 @@ const KBQ_AG_GRID_COLUMN_MENU_API = new InjectionToken<GridApi>('KBQ_AG_GRID_COL
                                 <div class="kbq-column-menu-group">
                                     @for (col of hiddenColumns(); track col.getColId()) {
                                         <div
-                                            class="kbq-column-menu-row kbq-column-menu-row--hidden"
+                                            kbqColumnMenuRow
+                                            class="kbq-column-menu-row--hidden"
                                             (click)="toggleVisibility(col)"
+                                            (keydown.space)="$event.preventDefault(); toggleVisibilityFromRow(col)"
                                         >
-                                            <span class="kbq-column-menu-checkbox"></span>
+                                            <span
+                                                role="checkbox"
+                                                aria-checked="false"
+                                                tabindex="0"
+                                                class="kbq-column-menu-checkbox"
+                                                [attr.aria-label]="col.getColDef().headerName ?? col.getColId()"
+                                                (keydown.space)="
+                                                    $event.preventDefault();
+                                                    $event.stopPropagation();
+                                                    toggleVisibility(col)
+                                                "
+                                            ></span>
                                             <span
                                                 class="kbq-column-menu-label"
                                                 [innerHTML]="
@@ -390,21 +495,21 @@ const KBQ_AG_GRID_COLUMN_MENU_API = new InjectionToken<GridApi>('KBQ_AG_GRID_COL
     host: {
         class: 'kbq-ag-grid-column-menu-panel',
         '(document:click)': 'onDocumentClick($event)',
-        '(document:keydown.escape)': 'close()'
+        '(document:keydown.escape)': 'onEscape()'
     }
 })
 class KbqAgGridColumnMenuComponent {
     private readonly api = inject(KBQ_AG_GRID_COLUMN_MENU_API);
     private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly destroyRef = inject(DestroyRef);
-
     protected readonly labels = inject(KBQ_AG_GRID_COLUMN_MENU_LABELS);
-
+    protected readonly panelTitleId = `kbq-column-menu-title-${++columnMenuInstanceCount}`;
+    private readonly rowItems = viewChildren(KbqAgGridColumnMenuRow);
+    private keyManager: FocusKeyManager<KbqAgGridColumnMenuRow> | null = null;
     protected readonly isOpen = signal(false);
     protected readonly searchQuery = signal('');
     protected readonly isDragging = signal(false);
     private readonly allColumns = signal<Column[]>([]);
-
     protected readonly pinnedLeftColumns = computed(() => {
         const q = this.searchQuery().toLowerCase();
         return this.allColumns().filter(
@@ -412,7 +517,6 @@ class KbqAgGridColumnMenuComponent {
                 c.isPinnedLeft() && c.isVisible() && (!q || (c.getColDef().headerName?.toLowerCase() ?? '').includes(q))
         );
     });
-
     protected readonly visibleColumns = computed(() => {
         const q = this.searchQuery().toLowerCase();
         return this.allColumns().filter(
@@ -423,7 +527,6 @@ class KbqAgGridColumnMenuComponent {
                 (!q || (c.getColDef().headerName?.toLowerCase() ?? '').includes(q))
         );
     });
-
     protected readonly pinnedRightColumns = computed(() => {
         const q = this.searchQuery().toLowerCase();
         return this.allColumns().filter(
@@ -433,16 +536,13 @@ class KbqAgGridColumnMenuComponent {
                 (!q || (c.getColDef().headerName?.toLowerCase() ?? '').includes(q))
         );
     });
-
     protected readonly hiddenColumns = computed(() => {
         const q = this.searchQuery().toLowerCase();
         return this.allColumns()
             .filter((c) => !c.isVisible() && (!q || (c.getColDef().headerName?.toLowerCase() ?? '').includes(q)))
             .sort((a, b) => (a.getColDef().headerName ?? '').localeCompare(b.getColDef().headerName ?? ''));
     });
-
     protected readonly visibleCount = computed(() => this.allColumns().filter((c) => c.isVisible()).length);
-
     protected readonly hasNoResults = computed(
         () =>
             this.searchQuery().length > 0 &&
@@ -462,6 +562,11 @@ class KbqAgGridColumnMenuComponent {
         this.destroyRef.onDestroy(() => {
             events.forEach((event) => this.api.removeEventListener(event, refresh));
         });
+
+        effect(() => {
+            const items = this.rowItems();
+            this.keyManager = items.length > 0 ? new FocusKeyManager(items).withWrap().withVerticalOrientation() : null;
+        });
     }
 
     protected toggle(event: Event): void {
@@ -469,8 +574,34 @@ class KbqAgGridColumnMenuComponent {
         this.isOpen.update((v) => !v);
     }
 
+    protected onScrollKeydown(event: KeyboardEvent): void {
+        this.keyManager?.onKeydown(event);
+    }
+
+    protected onSearchArrowDown(event: Event): void {
+        event.preventDefault();
+        this.keyManager?.setFirstItemActive();
+    }
+
+    protected toggleVisibilityFromRow(col: Column): void {
+        const index = this.keyManager?.activeItemIndex ?? 0;
+        this.toggleVisibility(col);
+        setTimeout(() => {
+            const items = this.rowItems();
+            if (items.length > 0) {
+                this.keyManager?.setActiveItem(Math.min(index, items.length - 1));
+            }
+        });
+    }
+
     protected close(): void {
         this.isOpen.set(false);
+    }
+
+    protected onEscape(): void {
+        if (!this.isOpen()) return;
+        this.close();
+        this.keyManager?.setFirstItemActive();
     }
 
     protected onDocumentClick(event: MouseEvent): void {
@@ -492,8 +623,8 @@ class KbqAgGridColumnMenuComponent {
     protected scrollToTop(): void {
         const scroll = this.elementRef.nativeElement.querySelector<HTMLElement>('.kbq-column-menu-panel-scroll');
         if (!scroll) return;
-        scroll.scrollTo({ top: 0 });
-        scroll.querySelector<HTMLElement>('.kbq-column-menu-row')?.focus();
+        scroll.scrollTo({ top: 0, behavior: 'smooth' });
+        this.keyManager?.setFirstItemActive();
     }
 
     protected toggleVisibility(col: Column): void {

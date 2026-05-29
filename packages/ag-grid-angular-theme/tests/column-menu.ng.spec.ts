@@ -689,6 +689,142 @@ describe(KbqAgGridColumnMenu.name, () => {
         });
     });
 
+    describe('keyboard navigation', () => {
+        it('row elements have tabindex="-1"', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name' });
+            const { api } = createApiMock([col]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            await waitFor(() => {
+                const rows = Array.from(container.querySelectorAll('.kbq-column-menu-row'));
+                expect(rows.length).toBeGreaterThan(0);
+                rows.forEach((row) => expect(row.getAttribute('tabindex')).toBe('-1'));
+            });
+        });
+
+        it('ArrowDown on search input focuses the first row', async () => {
+            const cols = [
+                createColumnMock({ colId: 'a', headerName: 'Alpha' }),
+                createColumnMock({ colId: 'b', headerName: 'Beta' })
+            ];
+            const { api } = createApiMock(cols);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
+
+            await waitFor(() => {
+                expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row'));
+            });
+        });
+
+        it('ArrowDown on scroll container moves focus to the next row', async () => {
+            const cols = [
+                createColumnMock({ colId: 'a', headerName: 'Alpha' }),
+                createColumnMock({ colId: 'b', headerName: 'Beta' })
+            ];
+            const { api } = createApiMock(cols);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
+            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-panel-scroll')!, {
+                key: 'ArrowDown',
+                keyCode: 40
+            });
+
+            await waitFor(() => {
+                const rows = container.querySelectorAll('.kbq-column-menu-row');
+                expect(document.activeElement).toBe(rows[1]);
+            });
+        });
+
+        it('ArrowUp on scroll container moves focus to the previous row', async () => {
+            const cols = [
+                createColumnMock({ colId: 'a', headerName: 'Alpha' }),
+                createColumnMock({ colId: 'b', headerName: 'Beta' })
+            ];
+            const { api } = createApiMock(cols);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            const scroll = container.querySelector('.kbq-column-menu-panel-scroll')!;
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
+            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+
+            fireEvent.keyDown(scroll, { key: 'ArrowDown', keyCode: 40 });
+            await waitFor(() =>
+                expect(document.activeElement).toBe(container.querySelectorAll('.kbq-column-menu-row')[1])
+            );
+
+            fireEvent.keyDown(scroll, { key: 'ArrowUp', keyCode: 38 });
+
+            await waitFor(() => {
+                expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row'));
+            });
+        });
+
+        it('Space on a row calls setColumnsVisible to toggle visibility', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name' });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age' });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-row')!, { key: ' ' });
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], false);
+            });
+        });
+
+        it('focus is preserved on a row after Space toggles a column off', async () => {
+            const col1 = createColumnMock({ colId: 'a', headerName: 'Alpha' });
+            const col2 = createColumnMock({ colId: 'b', headerName: 'Beta' });
+            const { api, dispatch } = createApiMock([col1, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
+            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+
+            // Simulate Alpha becoming hidden after the toggle
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            (col1.isVisible as jest.Mock).mockReturnValue(false);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-row')!, { key: ' ' });
+            dispatch('columnVisible');
+            fixture.detectChanges();
+
+            await waitFor(() => {
+                expect(document.activeElement?.classList.contains('kbq-column-menu-row')).toBe(true);
+            });
+        });
+    });
+
     describe('labels', () => {
         it('uses Russian labels by default', async () => {
             const { fixture, container } = await render(TestColumnMenuGrid);
