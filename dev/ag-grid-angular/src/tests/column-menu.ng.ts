@@ -51,8 +51,8 @@ export class DevColumnMenu {
         headerCheckbox: true
     };
     readonly columnDefs: ColDef[] = [
-        { field: 'athlete', headerName: 'Athlete', filter: true },
-        { field: 'age', headerName: 'Age', filter: true },
+        { field: 'athlete', headerName: 'Athlete', filter: true, lockVisible: true },
+        { field: 'age', headerName: 'Age', filter: true, lockVisible: true },
         { field: 'country', headerName: 'Country', filter: true },
         { field: 'year', headerName: 'Year', filter: true },
         { field: 'date', headerName: 'Date', filter: true, pinned: 'right' },

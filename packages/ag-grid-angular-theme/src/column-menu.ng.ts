@@ -208,19 +208,14 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                 (cdkDragEnded)="isDragging.set(false)"
                                                 (keydown.space)="$event.preventDefault(); toggleVisibilityFromRow(col)"
                                             >
+                                                @let disabled = col.getColDef().lockVisible || visibleCount() === 1;
                                                 <span
                                                     role="checkbox"
                                                     aria-checked="true"
                                                     class="kbq-column-menu-checkbox kbq-column-menu-checkbox--checked"
                                                     [attr.aria-label]="col.getColDef().headerName ?? col.getColId()"
-                                                    [attr.aria-disabled]="
-                                                        col.getColDef().lockVisible || visibleCount() === 1
-                                                            ? 'true'
-                                                            : null
-                                                    "
-                                                    [class.kbq-column-menu-checkbox--disabled]="
-                                                        col.getColDef().lockVisible || visibleCount() === 1
-                                                    "
+                                                    [attr.aria-disabled]="disabled ? 'true' : null"
+                                                    [class.kbq-column-menu-checkbox--disabled]="disabled"
                                                 ></span>
                                                 <span
                                                     class="kbq-column-menu-label"
@@ -282,19 +277,14 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                 (cdkDragEnded)="isDragging.set(false)"
                                                 (keydown.space)="$event.preventDefault(); toggleVisibilityFromRow(col)"
                                             >
+                                                @let disabled = col.getColDef().lockVisible || visibleCount() === 1;
                                                 <span
                                                     role="checkbox"
                                                     aria-checked="true"
                                                     class="kbq-column-menu-checkbox kbq-column-menu-checkbox--checked"
                                                     [attr.aria-label]="col.getColDef().headerName ?? col.getColId()"
-                                                    [attr.aria-disabled]="
-                                                        col.getColDef().lockVisible || visibleCount() === 1
-                                                            ? 'true'
-                                                            : null
-                                                    "
-                                                    [class.kbq-column-menu-checkbox--disabled]="
-                                                        col.getColDef().lockVisible || visibleCount() === 1
-                                                    "
+                                                    [attr.aria-disabled]="disabled ? 'true' : null"
+                                                    [class.kbq-column-menu-checkbox--disabled]="disabled"
                                                 ></span>
                                                 <span
                                                     class="kbq-column-menu-label"
@@ -356,19 +346,14 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                 (cdkDragEnded)="isDragging.set(false)"
                                                 (keydown.space)="$event.preventDefault(); toggleVisibilityFromRow(col)"
                                             >
+                                                @let disabled = col.getColDef().lockVisible || visibleCount() === 1;
                                                 <span
                                                     role="checkbox"
                                                     aria-checked="true"
                                                     class="kbq-column-menu-checkbox kbq-column-menu-checkbox--checked"
                                                     [attr.aria-label]="col.getColDef().headerName ?? col.getColId()"
-                                                    [attr.aria-disabled]="
-                                                        col.getColDef().lockVisible || visibleCount() === 1
-                                                            ? 'true'
-                                                            : null
-                                                    "
-                                                    [class.kbq-column-menu-checkbox--disabled]="
-                                                        col.getColDef().lockVisible || visibleCount() === 1
-                                                    "
+                                                    [attr.aria-disabled]="disabled ? 'true' : null"
+                                                    [class.kbq-column-menu-checkbox--disabled]="disabled"
                                                 ></span>
                                                 <span
                                                     class="kbq-column-menu-label"
