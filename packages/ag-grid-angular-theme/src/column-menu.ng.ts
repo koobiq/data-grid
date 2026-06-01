@@ -203,6 +203,7 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                 cdkDrag
                                                 kbqColumnMenuRow
                                                 [cdkDragData]="col"
+                                                (click)="toggleVisibilityFromRow(col)"
                                                 (cdkDragStarted)="isDragging.set(true)"
                                                 (cdkDragEnded)="isDragging.set(false)"
                                                 (keydown.space)="$event.preventDefault(); toggleVisibilityFromRow(col)"
@@ -210,7 +211,6 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                 <span
                                                     role="checkbox"
                                                     aria-checked="true"
-                                                    tabindex="0"
                                                     class="kbq-column-menu-checkbox kbq-column-menu-checkbox--checked"
                                                     [attr.aria-label]="col.getColDef().headerName ?? col.getColId()"
                                                     [attr.aria-disabled]="
@@ -220,12 +220,6 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                     "
                                                     [class.kbq-column-menu-checkbox--disabled]="
                                                         col.getColDef().lockVisible || visibleCount() === 1
-                                                    "
-                                                    (click)="$event.stopPropagation(); toggleVisibility(col)"
-                                                    (keydown.space)="
-                                                        $event.preventDefault();
-                                                        $event.stopPropagation();
-                                                        toggleVisibility(col)
                                                     "
                                                 ></span>
                                                 <span
@@ -238,6 +232,7 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                     <button
                                                         type="button"
                                                         class="kbq-column-menu-action-btn kbq-column-menu-action-btn--active"
+                                                        tabindex="-1"
                                                         [title]="labels.unpinButton"
                                                         [disabled]="!!col.getColDef().lockPinned"
                                                         (click)="$event.stopPropagation(); unpin(col)"
@@ -247,6 +242,7 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                     <button
                                                         type="button"
                                                         class="kbq-column-menu-action-btn kbq-column-menu-action-btn--mirrored"
+                                                        tabindex="-1"
                                                         [title]="labels.pinRightButton"
                                                         [disabled]="!!col.getColDef().lockPinned"
                                                         (click)="$event.stopPropagation(); pinRight(col)"
@@ -281,15 +277,14 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                 cdkDrag
                                                 kbqColumnMenuRow
                                                 [cdkDragData]="col"
+                                                (click)="toggleVisibilityFromRow(col)"
                                                 (cdkDragStarted)="isDragging.set(true)"
                                                 (cdkDragEnded)="isDragging.set(false)"
-                                                (click)="toggleVisibility(col)"
                                                 (keydown.space)="$event.preventDefault(); toggleVisibilityFromRow(col)"
                                             >
                                                 <span
                                                     role="checkbox"
                                                     aria-checked="true"
-                                                    tabindex="0"
                                                     class="kbq-column-menu-checkbox kbq-column-menu-checkbox--checked"
                                                     [attr.aria-label]="col.getColDef().headerName ?? col.getColId()"
                                                     [attr.aria-disabled]="
@@ -299,12 +294,6 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                     "
                                                     [class.kbq-column-menu-checkbox--disabled]="
                                                         col.getColDef().lockVisible || visibleCount() === 1
-                                                    "
-                                                    (click)="$event.stopPropagation(); toggleVisibility(col)"
-                                                    (keydown.space)="
-                                                        $event.preventDefault();
-                                                        $event.stopPropagation();
-                                                        toggleVisibility(col)
                                                     "
                                                 ></span>
                                                 <span
@@ -316,6 +305,7 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                 <span class="kbq-column-menu-row-actions">
                                                     <button
                                                         type="button"
+                                                        tabindex="-1"
                                                         class="kbq-column-menu-action-btn"
                                                         [title]="labels.pinLeftButton"
                                                         [disabled]="!!col.getColDef().lockPinned"
@@ -325,6 +315,7 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                     </button>
                                                     <button
                                                         type="button"
+                                                        tabindex="-1"
                                                         class="kbq-column-menu-action-btn kbq-column-menu-action-btn--mirrored"
                                                         [title]="labels.pinRightButton"
                                                         [disabled]="!!col.getColDef().lockPinned"
@@ -360,6 +351,7 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                 cdkDrag
                                                 kbqColumnMenuRow
                                                 [cdkDragData]="col"
+                                                (click)="toggleVisibilityFromRow(col)"
                                                 (cdkDragStarted)="isDragging.set(true)"
                                                 (cdkDragEnded)="isDragging.set(false)"
                                                 (keydown.space)="$event.preventDefault(); toggleVisibilityFromRow(col)"
@@ -367,7 +359,6 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                 <span
                                                     role="checkbox"
                                                     aria-checked="true"
-                                                    tabindex="0"
                                                     class="kbq-column-menu-checkbox kbq-column-menu-checkbox--checked"
                                                     [attr.aria-label]="col.getColDef().headerName ?? col.getColId()"
                                                     [attr.aria-disabled]="
@@ -377,12 +368,6 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                     "
                                                     [class.kbq-column-menu-checkbox--disabled]="
                                                         col.getColDef().lockVisible || visibleCount() === 1
-                                                    "
-                                                    (click)="$event.stopPropagation(); toggleVisibility(col)"
-                                                    (keydown.space)="
-                                                        $event.preventDefault();
-                                                        $event.stopPropagation();
-                                                        toggleVisibility(col)
                                                     "
                                                 ></span>
                                                 <span
@@ -394,6 +379,7 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                 <span class="kbq-column-menu-row-actions">
                                                     <button
                                                         type="button"
+                                                        tabindex="-1"
                                                         class="kbq-column-menu-action-btn"
                                                         [title]="labels.pinLeftButton"
                                                         [disabled]="!!col.getColDef().lockPinned"
@@ -403,6 +389,7 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                     </button>
                                                     <button
                                                         type="button"
+                                                        tabindex="-1"
                                                         class="kbq-column-menu-action-btn kbq-column-menu-action-btn--active kbq-column-menu-action-btn--mirrored"
                                                         [title]="labels.unpinButton"
                                                         [disabled]="!!col.getColDef().lockPinned"
@@ -433,20 +420,14 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                         <div
                                             kbqColumnMenuRow
                                             class="kbq-column-menu-row--hidden"
-                                            (click)="toggleVisibility(col)"
+                                            (click)="toggleVisibilityFromRow(col)"
                                             (keydown.space)="$event.preventDefault(); toggleVisibilityFromRow(col)"
                                         >
                                             <span
                                                 role="checkbox"
                                                 aria-checked="false"
-                                                tabindex="0"
                                                 class="kbq-column-menu-checkbox"
                                                 [attr.aria-label]="col.getColDef().headerName ?? col.getColId()"
-                                                (keydown.space)="
-                                                    $event.preventDefault();
-                                                    $event.stopPropagation();
-                                                    toggleVisibility(col)
-                                                "
                                             ></span>
                                             <span
                                                 class="kbq-column-menu-label"
@@ -457,6 +438,7 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                             <span class="kbq-column-menu-row-actions">
                                                 <button
                                                     type="button"
+                                                    tabindex="-1"
                                                     class="kbq-column-menu-action-btn"
                                                     [title]="labels.pinLeftButton"
                                                     [disabled]="!!col.getColDef().lockPinned"
@@ -466,6 +448,7 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                                 </button>
                                                 <button
                                                     type="button"
+                                                    tabindex="-1"
                                                     class="kbq-column-menu-action-btn kbq-column-menu-action-btn--mirrored"
                                                     [title]="labels.pinRightButton"
                                                     [disabled]="!!col.getColDef().lockPinned"
@@ -584,14 +567,36 @@ class KbqAgGridColumnMenuComponent {
     }
 
     protected toggleVisibilityFromRow(col: Column): void {
-        const index = this.keyManager?.activeItemIndex ?? 0;
-        this.toggleVisibility(col);
-        setTimeout(() => {
-            const items = this.rowItems();
-            if (items.length > 0) {
-                this.keyManager?.setActiveItem(Math.min(index, items.length - 1));
+        this.withFocusRestore(() => this.toggleVisibility(col));
+    }
+
+    private withFocusRestore(action: () => void): void {
+        const index = this.resolveActiveRowIndex();
+        action();
+        if (index >= 0) {
+            setTimeout(() => {
+                const items = this.rowItems();
+                if (items.length > 0) {
+                    this.keyManager?.setActiveItem(Math.min(index, items.length - 1));
+                }
+            });
+        }
+    }
+
+    private resolveActiveRowIndex(): number {
+        // DOM is always authoritative: covers both mouse click (browser focuses on mousedown)
+        // and keyboard Space (focused row or checkbox span → closest row).
+        const focused = document.activeElement;
+        if (focused) {
+            const rowEl = focused.hasAttribute('kbqcolumnmenurow') ? focused : focused.closest('[kbqcolumnmenurow]');
+            if (rowEl) {
+                const idx = Array.from(this.elementRef.nativeElement.querySelectorAll('[kbqcolumnmenurow]')).indexOf(
+                    rowEl
+                );
+                if (idx >= 0) return idx;
             }
-        });
+        }
+        return this.keyManager?.activeItemIndex ?? -1;
     }
 
     protected close(): void {
@@ -652,24 +657,30 @@ class KbqAgGridColumnMenuComponent {
     }
 
     protected pinLeft(col: Column): void {
-        if (!col.isVisible()) {
-            this.api.setColumnsVisible([col.getColId()], true);
-        }
-        this.api.setColumnsPinned([col.getColId()], 'left');
-        this.refreshColumns();
+        this.withFocusRestore(() => {
+            if (!col.isVisible()) {
+                this.api.setColumnsVisible([col.getColId()], true);
+            }
+            this.api.setColumnsPinned([col.getColId()], 'left');
+            this.refreshColumns();
+        });
     }
 
     protected pinRight(col: Column): void {
-        if (!col.isVisible()) {
-            this.api.setColumnsVisible([col.getColId()], true);
-        }
-        this.api.setColumnsPinned([col.getColId()], 'right');
-        this.refreshColumns();
+        this.withFocusRestore(() => {
+            if (!col.isVisible()) {
+                this.api.setColumnsVisible([col.getColId()], true);
+            }
+            this.api.setColumnsPinned([col.getColId()], 'right');
+            this.refreshColumns();
+        });
     }
 
     protected unpin(col: Column): void {
-        this.api.setColumnsPinned([col.getColId()], null);
-        this.refreshColumns();
+        this.withFocusRestore(() => {
+            this.api.setColumnsPinned([col.getColId()], null);
+            this.refreshColumns();
+        });
     }
 
     protected dropped(event: CdkDragDrop<Column[]>, targetSection: 'pinnedLeft' | 'visible' | 'pinnedRight'): void {

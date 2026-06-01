@@ -534,6 +534,78 @@ describe(KbqAgGridColumnMenu.name, () => {
                 expect(api.setColumnsVisible).not.toHaveBeenCalled();
             });
         });
+
+        it('calls setColumnsVisible(false) when clicking the row div itself (not the checkbox)', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name' });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age' });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.click(container.querySelector('.kbq-column-menu-row')!);
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], false);
+            });
+        });
+
+        it('calls setColumnsVisible exactly once when clicking the checkbox (stopPropagation prevents double-toggle)', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name' });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age' });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.click(container.querySelector('.kbq-column-menu-checkbox')!);
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledTimes(1);
+            });
+        });
+
+        it('calls setColumnsVisible(false) when clicking a row in the pinned-left section', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name', pinnedLeft: true });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age', pinnedLeft: true });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.click(container.querySelector('.kbq-column-menu-row')!);
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], false);
+            });
+        });
+
+        it('calls setColumnsVisible(false) when clicking a row in the pinned-right section', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name', pinnedRight: true });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age', pinnedRight: true });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.click(container.querySelector('.kbq-column-menu-row')!);
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], false);
+            });
+        });
     });
 
     describe('pinning actions', () => {
@@ -795,6 +867,97 @@ describe(KbqAgGridColumnMenu.name, () => {
             await waitFor(() => {
                 // eslint-disable-next-line @typescript-eslint/unbound-method
                 expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], false);
+            });
+        });
+
+        it('Space on a row in the pinned-left section calls setColumnsVisible', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name', pinnedLeft: true });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age', pinnedLeft: true });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-row')!, { key: ' ' });
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], false);
+            });
+        });
+
+        it('Space on a row in the pinned-right section calls setColumnsVisible', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name', pinnedRight: true });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age', pinnedRight: true });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-row')!, { key: ' ' });
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], false);
+            });
+        });
+
+        it('Space on the checkbox of a visible row calls setColumnsVisible', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name' });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age' });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-checkbox')!, { key: ' ' });
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], false);
+            });
+        });
+
+        it('Space on the checkbox of a visible row calls setColumnsVisible exactly once (stopPropagation)', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name' });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age' });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-checkbox')!, { key: ' ' });
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledTimes(1);
+            });
+        });
+
+        it('Space on the checkbox of a hidden row calls setColumnsVisible(true)', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name', visible: false });
+            const { api } = createApiMock([col]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-row--hidden .kbq-column-menu-checkbox')!, {
+                key: ' '
+            });
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], true);
             });
         });
 
