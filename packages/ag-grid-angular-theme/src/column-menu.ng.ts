@@ -27,6 +27,7 @@ import {
     OnDestroy,
     Provider,
     signal,
+    viewChild,
     viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -38,6 +39,7 @@ import { merge } from 'rxjs';
 export type KbqAgGridColumnMenuLabels = {
     title: string;
     searchPlaceholder: string;
+    clearSearchButton: string;
     emptyState: string;
     pinnedLeftSection: string;
     visibleSection: string;
@@ -53,6 +55,7 @@ export type KbqAgGridColumnMenuLabels = {
 export const KBQ_AG_GRID_COLUMN_MENU_LABELS_EN: KbqAgGridColumnMenuLabels = {
     title: 'Columns',
     searchPlaceholder: 'Search',
+    clearSearchButton: 'Clear search',
     emptyState: 'Nothing found',
     pinnedLeftSection: 'Pinned Left',
     visibleSection: 'Visible',
@@ -68,6 +71,7 @@ export const KBQ_AG_GRID_COLUMN_MENU_LABELS_EN: KbqAgGridColumnMenuLabels = {
 export const KBQ_AG_GRID_COLUMN_MENU_LABELS_RU: KbqAgGridColumnMenuLabels = {
     title: 'Колонки',
     searchPlaceholder: 'Поиск',
+    clearSearchButton: 'Очистить поиск',
     emptyState: 'Ничего не найдено',
     pinnedLeftSection: 'Закреплено слева',
     visibleSection: 'Видимые',
@@ -139,6 +143,7 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
     template: `
         <div class="kbq-column-menu">
             <button
+                #columnMenuTrigger
                 class="kbq-column-menu-trigger"
                 type="button"
                 aria-haspopup="dialog"
@@ -172,7 +177,12 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                 (keydown.arrowdown)="onSearchArrowDown($event)"
                             />
                             @if (searchQuery()) {
-                                <button type="button" class="kbq-column-menu-search-clear" (click)="clearSearch()">
+                                <button
+                                    type="button"
+                                    class="kbq-column-menu-search-clear"
+                                    [title]="labels.clearSearchButton"
+                                    (click)="clearSearch()"
+                                >
                                     <i class="kbq kbq-icon kbq-circle-xmark_16"></i>
                                 </button>
                             }
@@ -473,6 +483,7 @@ class KbqAgGridColumnMenuComponent {
     protected readonly labels = inject(KBQ_AG_GRID_COLUMN_MENU_LABELS);
     protected readonly panelTitleId = `kbq-column-menu-title-${++columnMenuInstanceCount}`;
     private readonly rowItems = viewChildren(KbqAgGridColumnMenuRow);
+    private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('columnMenuTrigger');
     private keyManager: FocusKeyManager<KbqAgGridColumnMenuRow> | null = null;
     protected readonly isOpen = signal(false);
     protected readonly searchQuery = signal('');
@@ -591,7 +602,7 @@ class KbqAgGridColumnMenuComponent {
     protected onEscape(): void {
         if (!this.isOpen()) return;
         this.close();
-        this.keyManager?.setFirstItemActive();
+        this.trigger().nativeElement.focus();
     }
 
     protected onDocumentClick(event: MouseEvent): void {
