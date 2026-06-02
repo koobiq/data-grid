@@ -53,37 +53,51 @@ test.describe('KbqAgGridColumnMenu', () => {
             gridApi.setColumnsVisible(['year', 'sport', 'gold', 'silver', 'bronze', 'total'], false);
         });
         await openPanel(page);
-        await expect(page.getByTestId('e2eScreenshotTarget')).toHaveScreenshot('column-menu-open-light.png');
+        await expect(page.getByTestId('e2eScreenshotTarget')).toHaveScreenshot('column-menu-opened-light.png');
     });
 
     test('hiding a column via panel removes its header cell from the grid', async ({ page }) => {
         await page.goto('/e2e/column-menu');
         await openPanel(page);
 
-        await getRow(getSection(page, 'Visible'), 'Age').locator('.kbq-column-menu-checkbox').click();
+        await getRow(getSection(page, 'Visible'), 'Country').locator('.kbq-column-menu-checkbox').click();
 
-        await expect(page.locator('.ag-header-cell[col-id="age"]')).not.toBeVisible();
+        await expect(page.locator('.ag-header-cell[col-id="country"]')).not.toBeVisible();
     });
 
     test('showing a hidden column via panel removes it from the Hidden section', async ({ page }) => {
         await page.goto('/e2e/column-menu');
         const api = await getAgGridApi(page);
-        await api.evaluate((gridApi) => gridApi.setColumnsVisible(['age'], false));
+        await api.evaluate((gridApi) => gridApi.setColumnsVisible(['country'], false));
 
         await openPanel(page);
 
-        const hiddenAge = getRow(getSection(page, 'Hidden'), 'Age');
-        await expect(hiddenAge).toBeVisible();
-        await hiddenAge.click();
+        const hiddenCountry = getRow(getSection(page, 'Hidden'), 'Country');
+        await expect(hiddenCountry).toBeVisible();
+        await hiddenCountry.click();
 
-        // Column virtualization may push Age off-screen after it is moved to the last position,
+        // Column virtualization may push Country off-screen after it is moved to the last position,
         // so verify via the column state API rather than the grid DOM.
         await expect
             .poll(async () => {
-                const state = await api.evaluate((gridApi) => gridApi.getColumnState().find((s) => s.colId === 'age'));
+                const state = await api.evaluate((gridApi) =>
+                    gridApi.getColumnState().find((s) => s.colId === 'country')
+                );
                 return state?.hide;
             })
             .toBeFalsy();
+    });
+
+    test('lockVisible column checkbox is disabled and clicking the row does not hide the column', async ({ page }) => {
+        await page.goto('/e2e/column-menu');
+        await openPanel(page);
+
+        const athleteCheckbox = getRow(getSection(page, 'Visible'), 'Athlete').locator('.kbq-column-menu-checkbox');
+        await expect(athleteCheckbox).toHaveAttribute('aria-disabled', 'true');
+
+        await getRow(getSection(page, 'Visible'), 'Athlete').click();
+
+        await expect(page.locator('.ag-header-cell[col-id="athlete"]')).toBeVisible();
     });
 
     test('pinning a column left via panel moves its header cell to the pinned-left container', async ({ page }) => {
