@@ -84,6 +84,10 @@ if (isDevMode()) {
             {
                 path: 'theme',
                 loadComponent: async () => import('./tests/theme.ng').then((m) => m.DevTheme)
+            },
+            {
+                path: 'loading-overlay',
+                loadComponent: async () => import('./tests/loading-overlay.ng').then((m) => m.DevLoadingOverlay)
             }
         ]
     };

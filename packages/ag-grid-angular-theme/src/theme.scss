@@ -745,6 +745,83 @@
     }
 }
 
+@mixin _ag-loading-overlay() {
+    // Based on `KbqAgGridLoadingOverlay` directive
+    .kbq-ag-grid-loading-overlay {
+        @keyframes kbq-ag-grid-skeleton-wave {
+            from {
+                transform: translateX(calc(var(--kbq-ag-grid-skeleton-wave-width) * -1));
+            }
+
+            to {
+                transform: translateX(100vw);
+            }
+        }
+
+        --kbq-ag-grid-skeleton-background: var(--kbq-skeleton-background);
+        --kbq-ag-grid-skeleton-animation-wave-start: var(--kbq-skeleton-animation-wave-start);
+        --kbq-ag-grid-skeleton-animation-wave-center: var(--kbq-skeleton-animation-wave-center);
+        --kbq-ag-grid-skeleton-animation-wave-end: var(--kbq-skeleton-animation-wave-end);
+
+        position: absolute;
+        inset: 0;
+        background: var(--kbq-background-bg);
+        z-index: 1;
+
+        .kbq-ag-grid-skeleton-overlay {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .kbq-ag-grid-skeleton-row {
+            display: flex;
+            align-items: center;
+            gap: var(--kbq-size-s);
+            padding: 0 var(--kbq-size-s);
+            height: var(--kbq-size-4xl);
+            flex-shrink: 0;
+        }
+
+        .kbq-ag-grid-skeleton-row_header {
+            border-bottom: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
+        }
+
+        .kbq-ag-grid-skeleton-cell {
+            --kbq-ag-grid-skeleton-wave-width: 100px;
+            --kbq-ag-grid-skeleton-animation-duration: 1200ms;
+            --kbq-ag-grid-skeleton-animation-delay: 0ms;
+            --kbq-ag-grid-skeleton-border-radius: var(--kbq-size-xxs);
+            --kbq-ag-grid-skeleton-z-index: 1;
+
+            flex: 1;
+            height: var(--kbq-size-l);
+            border-radius: var(--kbq-ag-grid-skeleton-border-radius);
+            position: relative;
+            overflow: hidden;
+            clip-path: inset(0);
+            background-color: var(--kbq-ag-grid-skeleton-background);
+
+            &::after {
+                content: '';
+                position: fixed;
+                inset-block: 0;
+                left: calc(var(--kbq-ag-grid-skeleton-wave-width) * -1);
+                width: var(--kbq-ag-grid-skeleton-wave-width);
+                z-index: var(--kbq-ag-grid-skeleton-z-index);
+                background: linear-gradient(
+                    90deg,
+                    var(--kbq-ag-grid-skeleton-animation-wave-start) 0%,
+                    var(--kbq-ag-grid-skeleton-animation-wave-center) 50%,
+                    var(--kbq-ag-grid-skeleton-animation-wave-end) 100%
+                );
+                animation: kbq-ag-grid-skeleton-wave var(--kbq-ag-grid-skeleton-animation-duration) ease-in
+                    var(--kbq-ag-grid-skeleton-animation-delay) infinite;
+            }
+        }
+    }
+}
+
 @mixin _ag-row-actions-overlay() {
     // Based on `KbqAgGridRowActions` directive
     .kbq-ag-grid-row-actions-overlay {
@@ -788,6 +865,7 @@
     @include _ag-body-scrollbar();
     @include _ag-pinned-column-border();
     @include _ag-cell-with-selection-checkbox();
+    @include _ag-loading-overlay();
     @include _ag-row-actions-overlay();
 
     &.ag-theme-koobiq_disable-cell-focus-styles {

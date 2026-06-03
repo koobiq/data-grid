@@ -285,6 +285,7 @@ export class DevAgGridStatusBarComponent {
             kbqAgGridTheme
             kbqAgGridColumnState="dev-ag-grid-column-state"
             kbqAgGridFilterState="dev-ag-grid-filter-state"
+            [loading]="true"
             [kbqAgGridRowActions]="rowActionsComponent"
             [kbqAgGridToNextRowByTab]="toNextRowByTab()"
             [kbqAgGridSelectRowsByShiftArrow]="selectRowsByShiftArrow()"
