@@ -74,7 +74,7 @@
         "@playwright/test": "^1.60.0",
         "@schematics/angular": "^18.2.18",
         "@swc-node/register": "^1.11.1",
-        "@swc/core": "^1.15.33",
+        "@swc/core": "^1.15.40",
         "@testing-library/angular": "16.0.0",
         "@testing-library/jest-dom": "^6.9.1",
         "@types/eslint": "^8.56.12",
