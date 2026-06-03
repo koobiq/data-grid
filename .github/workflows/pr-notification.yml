@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Notification to main channel
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: mattermost/action-mattermost-notify@2.0.0
+        uses: mattermost/action-mattermost-notify@v2.1.0
         with:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MM_WEBHOOK_URL }}
           MATTERMOST_CHANNEL: ${{ secrets.MM_CHANNEL_NAME }}
@@ -26,7 +26,7 @@ jobs:
           TEXT: ${{ env.TEXT }}
 
       - name: Notification to dev channel
-        uses: mattermost/action-mattermost-notify@2.0.0
+        uses: mattermost/action-mattermost-notify@v2.1.0
         with:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MM_WEBHOOK_URL }}
           MATTERMOST_CHANNEL: ${{ secrets.MM_CHANNEL_BOT_PR }}
