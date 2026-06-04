@@ -165,9 +165,7 @@ const ngTemplateRules = {
     rules: {
         '@angular-eslint/template/i18n': 0,
         '@angular-eslint/template/no-call-expression': 0,
-        '@angular-eslint/template/prefer-ngsrc': 0,
-        // Stylelint doesn't support Angular inline styles
-        '@angular-eslint/template/no-inline-styles': 1
+        '@angular-eslint/template/prefer-ngsrc': 0
     }
 };
 

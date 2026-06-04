@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { AgGridAngular, ILoadingOverlayAngularComp } from 'ag-grid-angular';
 import { ILoadingOverlayParams } from 'ag-grid-community';
+import { KbqAgGridSkeletonCellRenderer } from './skeleton-cell-renderer.ng';
 
 /** Configuration for {@link KbqAgGridLoadingOverlayComponent}. */
 export type KbqAgGridLoadingOverlayConfig = Partial<{
@@ -54,6 +55,7 @@ export function kbqAgGridLoadingOverlayConfigProvider(config: KbqAgGridLoadingOv
  */
 @Component({
     standalone: true,
+    imports: [KbqAgGridSkeletonCellRenderer],
     selector: 'kbq-ag-grid-loading-overlay',
     host: {
         class: 'kbq-ag-grid-loading-overlay'
@@ -63,13 +65,13 @@ export function kbqAgGridLoadingOverlayConfigProvider(config: KbqAgGridLoadingOv
         <div class="kbq-ag-grid-skeleton-overlay">
             <div class="kbq-ag-grid-skeleton-row kbq-ag-grid-skeleton-row_header">
                 @for (col of cols; track col) {
-                    <div class="kbq-ag-grid-skeleton-cell"></div>
+                    <kbq-ag-grid-skeleton-cell-renderer />
                 }
             </div>
             @for (row of rows; track row) {
                 <div class="kbq-ag-grid-skeleton-row">
                     @for (col of cols; track col) {
-                        <div class="kbq-ag-grid-skeleton-cell"></div>
+                        <kbq-ag-grid-skeleton-cell-renderer />
                     }
                 </div>
             }

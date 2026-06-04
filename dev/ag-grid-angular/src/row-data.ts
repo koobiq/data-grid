@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, Signal } from '@angular/core';
+import { computed, inject, Injectable, Signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { IDatasource, IGetRowsParams } from 'ag-grid-community';
 import { catchError, of, shareReplay } from 'rxjs';
 
 export type DevRowData = {
@@ -30,4 +31,26 @@ export class DevRowDataService {
 
 export function devInjectRowData(): Signal<DevRowData[]> {
     return inject(DevRowDataService).data;
+}
+
+export function devInjectDatasource(delay = 1300): Signal<IDatasource> {
+    let timeout: ReturnType<typeof setTimeout> | undefined = undefined;
+    const rowData = devInjectRowData();
+
+    return computed((): IDatasource => {
+        const data = rowData();
+        return {
+            rowCount: data.length,
+            getRows(params: IGetRowsParams): void {
+                timeout = setTimeout(() => {
+                    const rows = data.slice(params.startRow, params.endRow);
+                    const lastRow = params.endRow >= data.length ? data.length : -1;
+                    params.successCallback(rows, lastRow);
+                }, delay);
+            },
+            destroy(): void {
+                clearTimeout(timeout);
+            }
+        };
+    });
 }
