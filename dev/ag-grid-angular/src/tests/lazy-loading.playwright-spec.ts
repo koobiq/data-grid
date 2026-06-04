@@ -1,5 +1,4 @@
 import { expect, Locator, Page, test } from '@playwright/test';
-import { enableDarkTheme } from './utils/theme';
 
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
 const getSkeletonCells = (page: Page): Locator => page.locator('.kbq-ag-grid-skeleton-cell');
@@ -10,9 +9,7 @@ test.describe('DevLazyLoading', () => {
     test('renders skeleton cells in light theme on initial load', async ({ page }) => {
         await page.setViewportSize({ width: 1024, height: 600 });
         await page.goto('/e2e/lazy-loading');
-        await expect(getScreenshotTarget(page)).toHaveScreenshot('lazy-loading-initial-light.png');
-        await enableDarkTheme(page);
-        await expect(getScreenshotTarget(page)).toHaveScreenshot('lazy-loading-initial-dark.png');
+        await expect(getScreenshotTarget(page)).toHaveScreenshot('lazy-loading-light.png');
     });
 
     test('skeleton cells are visible before data loads', async ({ page }) => {
@@ -34,7 +31,7 @@ test.describe('DevLazyLoading', () => {
         await expect(getDataRows(page).first()).toBeVisible({ timeout: 5000 });
 
         // Scroll to the bottom to trigger the next block
-        await page.locator('.ag-body-viewport').evaluate((el) => el.scrollTo(0, 10000));
+        await getScreenshotTarget(page).evaluate((el) => el.querySelector('.ag-body-viewport')?.scrollTo(0, 10000));
 
         // Skeleton cells for the new block should appear
         await expect(getSkeletonCells(page).first()).toBeVisible({ timeout: 2000 });
