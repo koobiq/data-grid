@@ -53,6 +53,9 @@ test.describe('KbqAgGridColumnMenu', () => {
             gridApi.setColumnsVisible(['year', 'sport', 'gold', 'silver', 'bronze', 'total'], false);
         });
         await openPanel(page);
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('ArrowDown');
         await expect(page.getByTestId('e2eScreenshotTarget')).toHaveScreenshot('column-menu-opened-light.png');
     });
 

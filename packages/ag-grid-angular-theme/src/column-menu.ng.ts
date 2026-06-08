@@ -20,6 +20,7 @@ import {
     effect,
     ElementRef,
     EnvironmentInjector,
+    forwardRef,
     inject,
     InjectionToken,
     Injector,
@@ -109,37 +110,168 @@ export const kbqAgGridColumnMenuLabelsProvider = (labels: KbqAgGridColumnMenuLab
 
 const KBQ_AG_GRID_COLUMN_MENU_API = new InjectionToken<GridApi>('KBQ_AG_GRID_COLUMN_MENU_API');
 
+const KBQ_COLUMN_MENU_CONTEXT = new InjectionToken<KbqAgGridColumnMenuComponent>('KBQ_COLUMN_MENU_CONTEXT');
+
+type ColumnSection = 'pinnedLeft' | 'visible' | 'pinnedRight' | 'hidden';
+
 let columnMenuInstanceCount = 0;
 
-@Directive({
-    selector: '[kbqColumnMenuRow]',
+@Component({
+    selector: 'kbq-column-menu-row',
     standalone: true,
+    imports: [CdkDragHandle, CdkDragPlaceholder],
+    hostDirectives: [{ directive: CdkDrag }],
+    changeDetection: ChangeDetectionStrategy.OnPush,
     host: {
         class: 'kbq-column-menu-row',
-        '[attr.tabindex]': '-1'
-    }
+        '[attr.tabindex]': '-1',
+        '(click)': 'onRowClick()',
+        '(keydown.enter)': 'onRowClick()',
+        '(keydown.space)': '$event.preventDefault(); onRowClick()'
+    },
+    template: `
+        @let isChecked = section() !== 'hidden';
+        @let isPinLocked = !!col().getColDef().lockPinned;
+        @let isCheckboxDisabled = col().getColDef().lockVisible || (isChecked && context.visibleCount() === 1);
+
+        <div class="kbq-column-menu-row-wrapper">
+            <span
+                role="checkbox"
+                class="kbq-column-menu-checkbox"
+                [attr.aria-checked]="isChecked"
+                [class.kbq-column-menu-checkbox--checked]="isChecked"
+                [attr.aria-label]="col().getColDef().headerName ?? col().getColId()"
+                [attr.aria-disabled]="isCheckboxDisabled ? 'true' : null"
+                [class.kbq-column-menu-checkbox--disabled]="isCheckboxDisabled"
+            ></span>
+
+            <span
+                class="kbq-column-menu-label"
+                [innerHTML]="highlightHtml(col().getColDef().headerName ?? '', context.searchQuery())"
+            ></span>
+
+            <span class="kbq-column-menu-row-actions">
+                @if (section() === 'pinnedLeft') {
+                    <button
+                        type="button"
+                        tabindex="-1"
+                        class="kbq-column-menu-action-btn kbq-column-menu-action-btn--active"
+                        [title]="labels.unpinButton"
+                        [disabled]="isPinLocked"
+                        (click)="$event.stopPropagation(); context.unpin(col())"
+                    >
+                        <i class="kbq kbq-icon kbq-pin-slash_16"></i>
+                    </button>
+                } @else {
+                    <button
+                        type="button"
+                        tabindex="-1"
+                        class="kbq-column-menu-action-btn"
+                        [title]="labels.pinLeftButton"
+                        [disabled]="isPinLocked"
+                        (click)="$event.stopPropagation(); context.pinLeft(col())"
+                    >
+                        <i class="kbq kbq-icon kbq-pin_16"></i>
+                    </button>
+                }
+                @if (section() === 'pinnedRight') {
+                    <button
+                        type="button"
+                        tabindex="-1"
+                        class="kbq-column-menu-action-btn kbq-column-menu-action-btn--active kbq-column-menu-action-btn--mirrored"
+                        [title]="labels.unpinButton"
+                        [disabled]="isPinLocked"
+                        (click)="$event.stopPropagation(); context.unpin(col())"
+                    >
+                        <i class="kbq kbq-icon kbq-pin-slash_16"></i>
+                    </button>
+                } @else {
+                    <button
+                        type="button"
+                        tabindex="-1"
+                        class="kbq-column-menu-action-btn kbq-column-menu-action-btn--mirrored"
+                        [title]="labels.pinRightButton"
+                        [disabled]="isPinLocked"
+                        (click)="$event.stopPropagation(); context.pinRight(col())"
+                    >
+                        <i class="kbq kbq-icon kbq-pin_16"></i>
+                    </button>
+                }
+                @if (section() !== 'hidden') {
+                    <span cdkDragHandle class="kbq-column-menu-action-btn kbq-column-menu-drag-handle">
+                        <i class="kbq kbq-icon kbq-grip-vertical-s_16"></i>
+                    </span>
+                }
+            </span>
+        </div>
+
+        @if (section() !== 'hidden') {
+            <div *cdkDragPlaceholder class="kbq-column-menu-drag-placeholder"></div>
+        }
+    `
 })
-class KbqAgGridColumnMenuRow implements FocusableOption {
-    private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+class KbqColumnMenuRowComponent implements FocusableOption {
+    readonly col = input.required<Column>();
+    readonly section = input.required<ColumnSection>();
     readonly disabled = false;
+
+    protected readonly context = inject(KBQ_COLUMN_MENU_CONTEXT);
+    private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+    private readonly drag = inject(CdkDrag);
+    private readonly destroyRef = inject(DestroyRef);
+    protected readonly labels = inject(KBQ_AG_GRID_COLUMN_MENU_LABELS);
+
+    constructor() {
+        this.drag.previewContainer = 'parent';
+
+        effect(() => {
+            this.drag.data = this.col();
+            this.drag.disabled = this.section() === 'hidden';
+        });
+
+        this.drag.started.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.context.isDragging.set(true));
+        this.drag.ended.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.context.isDragging.set(false));
+    }
 
     focus(): void {
         this.elementRef.nativeElement.focus();
+    }
+
+    protected highlightHtml(text: string, query: string): string {
+        const escape = (s: string): string =>
+            s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+        if (!query) return escape(text);
+
+        const parts: string[] = [];
+        const lowerText = text.toLowerCase();
+        const lowerQuery = query.toLowerCase();
+        let lastIndex = 0;
+        let idx = lowerText.indexOf(lowerQuery);
+
+        while (idx !== -1) {
+            parts.push(escape(text.slice(lastIndex, idx)));
+            parts.push(`<mark class="kbq-column-menu-highlight">${escape(text.slice(idx, idx + query.length))}</mark>`);
+            lastIndex = idx + query.length;
+            idx = lowerText.indexOf(lowerQuery, lastIndex);
+        }
+
+        parts.push(escape(text.slice(lastIndex)));
+
+        return parts.join('');
+    }
+
+    protected onRowClick(): void {
+        this.context.toggleVisibilityFromRow(this.col());
     }
 }
 
 @Component({
     selector: 'kbq-ag-grid-column-menu-panel',
-    imports: [
-        CdkDrag,
-        CdkDragHandle,
-        CdkDragPlaceholder,
-        CdkDropList,
-        CdkDropListGroup,
-        CdkTrapFocus,
-        KbqAgGridColumnMenuRow
-    ],
+    imports: [CdkDropList, CdkDropListGroup, CdkTrapFocus, KbqColumnMenuRowComponent],
     standalone: true,
+    // eslint-disable-next-line @angular-eslint/no-forward-ref
+    providers: [{ provide: KBQ_COLUMN_MENU_CONTEXT, useExisting: forwardRef(() => KbqAgGridColumnMenuComponent) }],
     template: `
         <div class="kbq-column-menu">
             <button
@@ -209,60 +341,7 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                         (cdkDropListDropped)="dropped($event, 'pinnedLeft')"
                                     >
                                         @for (col of pinnedLeftColumns(); track col.getColId()) {
-                                            <div
-                                                cdkDrag
-                                                kbqColumnMenuRow
-                                                [cdkDragData]="col"
-                                                (click)="toggleVisibilityFromRow(col)"
-                                                (cdkDragStarted)="isDragging.set(true)"
-                                                (cdkDragEnded)="isDragging.set(false)"
-                                                (keydown.space)="$event.preventDefault(); toggleVisibilityFromRow(col)"
-                                            >
-                                                @let disabled = col.getColDef().lockVisible || visibleCount() === 1;
-                                                <span
-                                                    role="checkbox"
-                                                    aria-checked="true"
-                                                    class="kbq-column-menu-checkbox kbq-column-menu-checkbox--checked"
-                                                    [attr.aria-label]="col.getColDef().headerName ?? col.getColId()"
-                                                    [attr.aria-disabled]="disabled ? 'true' : null"
-                                                    [class.kbq-column-menu-checkbox--disabled]="disabled"
-                                                ></span>
-                                                <span
-                                                    class="kbq-column-menu-label"
-                                                    [innerHTML]="
-                                                        highlightHtml(col.getColDef().headerName ?? '', searchQuery())
-                                                    "
-                                                ></span>
-                                                <span class="kbq-column-menu-row-actions">
-                                                    <button
-                                                        type="button"
-                                                        class="kbq-column-menu-action-btn kbq-column-menu-action-btn--active"
-                                                        tabindex="-1"
-                                                        [title]="labels.unpinButton"
-                                                        [disabled]="!!col.getColDef().lockPinned"
-                                                        (click)="$event.stopPropagation(); unpin(col)"
-                                                    >
-                                                        <i class="kbq kbq-icon kbq-pin-slash_16"></i>
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        class="kbq-column-menu-action-btn kbq-column-menu-action-btn--mirrored"
-                                                        tabindex="-1"
-                                                        [title]="labels.pinRightButton"
-                                                        [disabled]="!!col.getColDef().lockPinned"
-                                                        (click)="$event.stopPropagation(); pinRight(col)"
-                                                    >
-                                                        <i class="kbq kbq-icon kbq-pin_16"></i>
-                                                    </button>
-                                                    <span
-                                                        cdkDragHandle
-                                                        class="kbq-column-menu-action-btn kbq-column-menu-drag-handle"
-                                                    >
-                                                        <i class="kbq kbq-icon kbq-grip-vertical-s_16"></i>
-                                                    </span>
-                                                </span>
-                                                <div *cdkDragPlaceholder class="kbq-column-menu-drag-placeholder"></div>
-                                            </div>
+                                            <kbq-column-menu-row section="pinnedLeft" [col]="col" />
                                         }
                                     </div>
                                 </section>
@@ -278,60 +357,7 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                         (cdkDropListDropped)="dropped($event, 'visible')"
                                     >
                                         @for (col of visibleColumns(); track col.getColId()) {
-                                            <div
-                                                cdkDrag
-                                                kbqColumnMenuRow
-                                                [cdkDragData]="col"
-                                                (click)="toggleVisibilityFromRow(col)"
-                                                (cdkDragStarted)="isDragging.set(true)"
-                                                (cdkDragEnded)="isDragging.set(false)"
-                                                (keydown.space)="$event.preventDefault(); toggleVisibilityFromRow(col)"
-                                            >
-                                                @let disabled = col.getColDef().lockVisible || visibleCount() === 1;
-                                                <span
-                                                    role="checkbox"
-                                                    aria-checked="true"
-                                                    class="kbq-column-menu-checkbox kbq-column-menu-checkbox--checked"
-                                                    [attr.aria-label]="col.getColDef().headerName ?? col.getColId()"
-                                                    [attr.aria-disabled]="disabled ? 'true' : null"
-                                                    [class.kbq-column-menu-checkbox--disabled]="disabled"
-                                                ></span>
-                                                <span
-                                                    class="kbq-column-menu-label"
-                                                    [innerHTML]="
-                                                        highlightHtml(col.getColDef().headerName ?? '', searchQuery())
-                                                    "
-                                                ></span>
-                                                <span class="kbq-column-menu-row-actions">
-                                                    <button
-                                                        type="button"
-                                                        tabindex="-1"
-                                                        class="kbq-column-menu-action-btn"
-                                                        [title]="labels.pinLeftButton"
-                                                        [disabled]="!!col.getColDef().lockPinned"
-                                                        (click)="$event.stopPropagation(); pinLeft(col)"
-                                                    >
-                                                        <i class="kbq kbq-icon kbq-pin_16"></i>
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        tabindex="-1"
-                                                        class="kbq-column-menu-action-btn kbq-column-menu-action-btn--mirrored"
-                                                        [title]="labels.pinRightButton"
-                                                        [disabled]="!!col.getColDef().lockPinned"
-                                                        (click)="$event.stopPropagation(); pinRight(col)"
-                                                    >
-                                                        <i class="kbq kbq-icon kbq-pin_16"></i>
-                                                    </button>
-                                                    <span
-                                                        cdkDragHandle
-                                                        class="kbq-column-menu-action-btn kbq-column-menu-drag-handle"
-                                                    >
-                                                        <i class="kbq kbq-icon kbq-grip-vertical-s_16"></i>
-                                                    </span>
-                                                </span>
-                                                <div *cdkDragPlaceholder class="kbq-column-menu-drag-placeholder"></div>
-                                            </div>
+                                            <kbq-column-menu-row section="visible" [col]="col" />
                                         }
                                     </div>
                                 </section>
@@ -347,60 +373,7 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                         (cdkDropListDropped)="dropped($event, 'pinnedRight')"
                                     >
                                         @for (col of pinnedRightColumns(); track col.getColId()) {
-                                            <div
-                                                cdkDrag
-                                                kbqColumnMenuRow
-                                                [cdkDragData]="col"
-                                                (click)="toggleVisibilityFromRow(col)"
-                                                (cdkDragStarted)="isDragging.set(true)"
-                                                (cdkDragEnded)="isDragging.set(false)"
-                                                (keydown.space)="$event.preventDefault(); toggleVisibilityFromRow(col)"
-                                            >
-                                                @let disabled = col.getColDef().lockVisible || visibleCount() === 1;
-                                                <span
-                                                    role="checkbox"
-                                                    aria-checked="true"
-                                                    class="kbq-column-menu-checkbox kbq-column-menu-checkbox--checked"
-                                                    [attr.aria-label]="col.getColDef().headerName ?? col.getColId()"
-                                                    [attr.aria-disabled]="disabled ? 'true' : null"
-                                                    [class.kbq-column-menu-checkbox--disabled]="disabled"
-                                                ></span>
-                                                <span
-                                                    class="kbq-column-menu-label"
-                                                    [innerHTML]="
-                                                        highlightHtml(col.getColDef().headerName ?? '', searchQuery())
-                                                    "
-                                                ></span>
-                                                <span class="kbq-column-menu-row-actions">
-                                                    <button
-                                                        type="button"
-                                                        tabindex="-1"
-                                                        class="kbq-column-menu-action-btn"
-                                                        [title]="labels.pinLeftButton"
-                                                        [disabled]="!!col.getColDef().lockPinned"
-                                                        (click)="$event.stopPropagation(); pinLeft(col)"
-                                                    >
-                                                        <i class="kbq kbq-icon kbq-pin_16"></i>
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        tabindex="-1"
-                                                        class="kbq-column-menu-action-btn kbq-column-menu-action-btn--active kbq-column-menu-action-btn--mirrored"
-                                                        [title]="labels.unpinButton"
-                                                        [disabled]="!!col.getColDef().lockPinned"
-                                                        (click)="$event.stopPropagation(); unpin(col)"
-                                                    >
-                                                        <i class="kbq kbq-icon kbq-pin-slash_16"></i>
-                                                    </button>
-                                                    <span
-                                                        cdkDragHandle
-                                                        class="kbq-column-menu-action-btn kbq-column-menu-drag-handle"
-                                                    >
-                                                        <i class="kbq kbq-icon kbq-grip-vertical-s_16"></i>
-                                                    </span>
-                                                </span>
-                                                <div *cdkDragPlaceholder class="kbq-column-menu-drag-placeholder"></div>
-                                            </div>
+                                            <kbq-column-menu-row section="pinnedRight" [col]="col" />
                                         }
                                     </div>
                                 </section>
@@ -412,47 +385,7 @@ class KbqAgGridColumnMenuRow implements FocusableOption {
                                 <div class="kbq-column-menu-section-label">{{ labels.hiddenSection }}</div>
                                 <div class="kbq-column-menu-group">
                                     @for (col of hiddenColumns(); track col.getColId()) {
-                                        <div
-                                            kbqColumnMenuRow
-                                            class="kbq-column-menu-row--hidden"
-                                            (click)="toggleVisibilityFromRow(col)"
-                                            (keydown.space)="$event.preventDefault(); toggleVisibilityFromRow(col)"
-                                        >
-                                            <span
-                                                role="checkbox"
-                                                aria-checked="false"
-                                                class="kbq-column-menu-checkbox"
-                                                [attr.aria-label]="col.getColDef().headerName ?? col.getColId()"
-                                            ></span>
-                                            <span
-                                                class="kbq-column-menu-label"
-                                                [innerHTML]="
-                                                    highlightHtml(col.getColDef().headerName ?? '', searchQuery())
-                                                "
-                                            ></span>
-                                            <span class="kbq-column-menu-row-actions">
-                                                <button
-                                                    type="button"
-                                                    tabindex="-1"
-                                                    class="kbq-column-menu-action-btn"
-                                                    [title]="labels.pinLeftButton"
-                                                    [disabled]="!!col.getColDef().lockPinned"
-                                                    (click)="$event.stopPropagation(); pinLeft(col)"
-                                                >
-                                                    <i class="kbq kbq-icon kbq-pin_16"></i>
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    tabindex="-1"
-                                                    class="kbq-column-menu-action-btn kbq-column-menu-action-btn--mirrored"
-                                                    [title]="labels.pinRightButton"
-                                                    [disabled]="!!col.getColDef().lockPinned"
-                                                    (click)="$event.stopPropagation(); pinRight(col)"
-                                                >
-                                                    <i class="kbq kbq-icon kbq-pin_16"></i>
-                                                </button>
-                                            </span>
-                                        </div>
+                                        <kbq-column-menu-row section="hidden" [col]="col" />
                                     }
                                 </div>
                             </section>
@@ -480,14 +413,15 @@ class KbqAgGridColumnMenuComponent {
     private readonly api = inject(KBQ_AG_GRID_COLUMN_MENU_API);
     private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly document = inject(DOCUMENT);
     protected readonly labels = inject(KBQ_AG_GRID_COLUMN_MENU_LABELS);
     protected readonly panelTitleId = `kbq-column-menu-title-${++columnMenuInstanceCount}`;
-    private readonly rowItems = viewChildren(KbqAgGridColumnMenuRow);
+    private readonly rowItems = viewChildren(KbqColumnMenuRowComponent);
     private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('columnMenuTrigger');
-    private keyManager: FocusKeyManager<KbqAgGridColumnMenuRow> | null = null;
+    private keyManager: FocusKeyManager<KbqColumnMenuRowComponent> | null = null;
     protected readonly isOpen = signal(false);
-    protected readonly searchQuery = signal('');
-    protected readonly isDragging = signal(false);
+    readonly searchQuery = signal('');
+    readonly isDragging = signal(false);
     private readonly allColumns = signal<Column[]>([]);
     protected readonly pinnedLeftColumns = computed(() => {
         const q = this.searchQuery().toLowerCase();
@@ -521,7 +455,7 @@ class KbqAgGridColumnMenuComponent {
             .filter((c) => !c.isVisible() && (!q || (c.getColDef().headerName?.toLowerCase() ?? '').includes(q)))
             .sort((a, b) => (a.getColDef().headerName ?? '').localeCompare(b.getColDef().headerName ?? ''));
     });
-    protected readonly visibleCount = computed(() => this.allColumns().filter((c) => c.isVisible()).length);
+    readonly visibleCount = computed(() => this.allColumns().filter((c) => c.isVisible()).length);
     protected readonly hasNoResults = computed(
         () =>
             this.searchQuery().length > 0 &&
@@ -562,7 +496,7 @@ class KbqAgGridColumnMenuComponent {
         this.keyManager?.setFirstItemActive();
     }
 
-    protected toggleVisibilityFromRow(col: Column): void {
+    toggleVisibilityFromRow(col: Column): void {
         this.withFocusRestore(() => this.toggleVisibility(col));
     }
 
@@ -582,11 +516,11 @@ class KbqAgGridColumnMenuComponent {
     private resolveActiveRowIndex(): number {
         // DOM is always authoritative: covers both mouse click (browser focuses on mousedown)
         // and keyboard Space (focused row or checkbox span → closest row).
-        const focused = document.activeElement;
+        const focused = this.document.activeElement;
         if (focused) {
-            const rowEl = focused.hasAttribute('kbqcolumnmenurow') ? focused : focused.closest('[kbqcolumnmenurow]');
+            const rowEl = focused.closest('kbq-column-menu-row');
             if (rowEl) {
-                const idx = Array.from(this.elementRef.nativeElement.querySelectorAll('[kbqcolumnmenurow]')).indexOf(
+                const idx = Array.from(this.elementRef.nativeElement.querySelectorAll('kbq-column-menu-row')).indexOf(
                     rowEl
                 );
                 if (idx >= 0) return idx;
@@ -628,7 +562,7 @@ class KbqAgGridColumnMenuComponent {
         this.keyManager?.setFirstItemActive();
     }
 
-    protected toggleVisibility(col: Column): void {
+    private toggleVisibility(col: Column): void {
         if (col.getColDef().lockVisible) return;
         if (col.isVisible() && this.visibleCount() === 1) return;
 
@@ -652,7 +586,7 @@ class KbqAgGridColumnMenuComponent {
         this.refreshColumns();
     }
 
-    protected pinLeft(col: Column): void {
+    pinLeft(col: Column): void {
         this.withFocusRestore(() => {
             if (!col.isVisible()) {
                 this.api.setColumnsVisible([col.getColId()], true);
@@ -662,7 +596,7 @@ class KbqAgGridColumnMenuComponent {
         });
     }
 
-    protected pinRight(col: Column): void {
+    pinRight(col: Column): void {
         this.withFocusRestore(() => {
             if (!col.isVisible()) {
                 this.api.setColumnsVisible([col.getColId()], true);
@@ -672,7 +606,7 @@ class KbqAgGridColumnMenuComponent {
         });
     }
 
-    protected unpin(col: Column): void {
+    unpin(col: Column): void {
         this.withFocusRestore(() => {
             this.api.setColumnsPinned([col.getColId()], null);
             this.refreshColumns();
@@ -711,30 +645,6 @@ class KbqAgGridColumnMenuComponent {
     protected reset(): void {
         this.api.resetColumnState();
         this.refreshColumns();
-    }
-
-    protected highlightHtml(text: string, query: string): string {
-        const escape = (s: string): string =>
-            s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
-        if (!query) return escape(text);
-
-        const parts: string[] = [];
-        const lowerText = text.toLowerCase();
-        const lowerQuery = query.toLowerCase();
-        let lastIndex = 0;
-        let idx = lowerText.indexOf(lowerQuery);
-
-        while (idx !== -1) {
-            parts.push(escape(text.slice(lastIndex, idx)));
-            parts.push(`<mark class="kbq-column-menu-highlight">${escape(text.slice(idx, idx + query.length))}</mark>`);
-            lastIndex = idx + query.length;
-            idx = lowerText.indexOf(lowerQuery, lastIndex);
-        }
-
-        parts.push(escape(text.slice(lastIndex)));
-
-        return parts.join('');
     }
 
     private refreshColumns(): void {

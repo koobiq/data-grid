@@ -891,9 +891,7 @@
     .kbq-ag-grid-column-menu-overlay {
         position: absolute;
         top: 0;
-
-        // ag-header-cell-resize width
-        right: 8px;
+        right: 0;
         height: var(--ag-header-height);
         background:
             linear-gradient(to right, transparent 0%, var(--kbq-background-bg) 70%),
@@ -903,9 +901,10 @@
         align-items: center;
         justify-content: end;
         pointer-events: none;
+        z-index: 1;
 
-        // Higher z-index than .ag-header-cell-resize
-        z-index: 3;
+        // .ag-header-cell-resize width
+        padding-right: var(--kbq-size-s);
     }
 
     // Based on `KbqAgGridColumnMenuPanel`
@@ -919,7 +918,6 @@
             height: 100%;
             display: flex;
             align-items: center;
-            padding: 0 var(--kbq-size-s);
 
             .kbq-icon {
                 color: var(--kbq-icon-fade-contrast-color);
@@ -934,10 +932,15 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            height: 100%;
+            padding: 0 var(--kbq-size-s);
             background: transparent;
             border: none;
-            padding: var(--kbq-size-3xs);
             cursor: pointer;
+
+            &:hover .kbq-icon {
+                color: var(--kbq-states-icon-contrast-fade-hover);
+            }
         }
 
         .kbq-column-menu-panel {
@@ -1019,8 +1022,10 @@
             align-items: center;
             justify-content: center;
             padding: var(--kbq-size-l);
-            font-family: var(--kbq-font-family-base);
+            font-family: var(--kbq-typography-text-normal-font-family);
             font-size: var(--kbq-typography-text-normal-font-size);
+            line-height: var(--kbq-typography-text-normal-line-height);
+            letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
             color: var(--kbq-foreground-contrast-secondary);
         }
 
@@ -1028,6 +1033,8 @@
             overflow-y: auto;
             flex: 1;
             min-height: 0;
+            margin-top: var(--kbq-size-xxs);
+            margin-bottom: var(--kbq-size-xxs);
 
             &::-webkit-scrollbar {
                 width: 14px;
@@ -1047,10 +1054,11 @@
 
         .kbq-column-menu-section-label {
             padding: var(--kbq-size-s) var(--kbq-size-l) var(--kbq-size-xxs);
-            font-family: var(--kbq-font-family-base);
-            font-size: var(--kbq-size-m);
-            font-weight: 600;
-            letter-spacing: 1px;
+            font-family: var(--kbq-typography-text-compact-font-family);
+            font-size: var(--kbq-typography-text-compact-font-size);
+            font-weight: var(--kbq-typography-text-compact-strong-font-weight);
+            line-height: var(--kbq-typography-text-compact-line-height);
+            letter-spacing: var(--kbq-typography-text-compact-letter-spacing);
             text-transform: uppercase;
             color: var(--kbq-foreground-contrast-secondary);
             user-select: none;
@@ -1060,35 +1068,42 @@
             z-index: 1;
         }
 
-        .kbq-column-menu-group {
-            border-radius: var(--kbq-size-border-radius);
-            margin: 0 var(--kbq-size-xxs);
-            overflow: hidden;
+        .kbq-column-menu-row {
+            --kbq-column-menu-row-background: transparent;
+
+            display: block;
+            padding: 0 var(--kbq-size-xxs);
+            cursor: pointer;
+            user-select: none;
+            font-family: var(--kbq-typography-text-normal-font-family);
+            font-size: var(--kbq-typography-text-normal-font-size);
+            line-height: var(--kbq-typography-text-normal-line-height);
+            letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
+            color: var(--kbq-foreground-contrast);
+
+            &:focus {
+                outline: none;
+            }
         }
 
-        // Base row styles — must precede all higher-specificity overrides below
-        .kbq-column-menu-row {
+        .kbq-column-menu-row-wrapper {
             display: flex;
             align-items: center;
             gap: var(--kbq-size-s);
             padding: 0 var(--kbq-size-m);
-            cursor: pointer;
-            user-select: none;
             height: var(--kbq-size-3xl);
             position: relative;
-            font-family: var(--kbq-font-family-base);
-            font-size: var(--kbq-typography-text-normal-font-size);
-            color: var(--kbq-foreground-contrast);
+            background: var(--kbq-column-menu-row-background);
+        }
 
-            &:has(.kbq-column-menu-checkbox--checked) {
-                background: var(--kbq-states-background-transparent-hover);
-            }
+        // Higher specificity — placed after base .kbq-column-menu-row-wrapper
+        .kbq-column-menu-row:has(.kbq-column-menu-checkbox--checked) .kbq-column-menu-row-wrapper {
+            --kbq-column-menu-row-background: var(--kbq-states-background-transparent-hover);
+        }
 
-            &:hover,
-            &:focus {
-                outline: none;
-                background: var(--kbq-states-background-transparent-active);
-            }
+        .kbq-column-menu-row:hover .kbq-column-menu-row-wrapper,
+        .kbq-column-menu-row:focus .kbq-column-menu-row-wrapper {
+            --kbq-column-menu-row-background: var(--kbq-states-background-transparent-active);
         }
 
         // Higher specificity than .kbq-column-menu-row — placed after the base block
@@ -1130,25 +1145,21 @@
             cursor: not-allowed;
         }
 
-        // Base label styles — must precede .kbq-column-menu-row--hidden .kbq-column-menu-label
         .kbq-column-menu-label {
             flex: 1;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             font-size: var(--kbq-typography-text-normal-font-size);
+            font-weight: var(--kbq-typography-text-normal-font-weight);
             line-height: var(--kbq-typography-text-normal-line-height);
+            letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
         }
 
         .kbq-column-menu-highlight {
             font-weight: 700;
             background: none;
             color: inherit;
-        }
-
-        // Higher specificity than .kbq-column-menu-label — placed after the base block
-        .kbq-column-menu-row--hidden .kbq-column-menu-label {
-            color: var(--kbq-foreground-contrast-secondary);
         }
 
         // Base row-actions styles — must precede the hover/focus-within overrides below
@@ -1161,11 +1172,49 @@
             bottom: 0;
             opacity: 0;
             transition: opacity 0.12s;
+
+            // Solid base + state tint — matches the wrapper's visual background exactly
+            background:
+                linear-gradient(
+                    var(--kbq-column-menu-row-background, transparent),
+                    var(--kbq-column-menu-row-background, transparent)
+                ),
+                var(--kbq-background-card);
+
+            &::before {
+                content: '';
+                position: absolute;
+                right: 100%;
+                top: 0;
+                bottom: 0;
+                width: var(--kbq-size-3xl);
+                pointer-events: none;
+                background:
+                    linear-gradient(to right, transparent, var(--kbq-column-menu-row-background, transparent)),
+                    linear-gradient(to right, transparent, var(--kbq-background-card));
+            }
+        }
+
+        .cdk-drag-preview.kbq-column-menu-row {
+            opacity: 0.95;
+
+            .kbq-column-menu-row-wrapper {
+                --kbq-column-menu-row-background: var(--kbq-background-card);
+
+                box-shadow: var(--kbq-shadow-popup);
+                background: var(--kbq-background-card);
+                border-radius: var(--kbq-size-border-radius);
+                border: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
+            }
+
+            .kbq-column-menu-row-actions {
+                opacity: 1;
+            }
         }
 
         // Higher specificity than .kbq-column-menu-row-actions — placed after the base block
-        .kbq-column-menu-row:hover .kbq-column-menu-row-actions,
-        .kbq-column-menu-row:focus-within .kbq-column-menu-row-actions {
+        .kbq-column-menu-row:hover .kbq-column-menu-row-wrapper .kbq-column-menu-row-actions,
+        .kbq-column-menu-row:focus-within .kbq-column-menu-row-wrapper .kbq-column-menu-row-actions {
             opacity: 1;
         }
 
@@ -1240,22 +1289,23 @@
 
         .kbq-column-menu-drag-placeholder {
             height: var(--kbq-size-3xl);
-            background: var(--kbq-states-background-theme-less);
-            border: var(--kbq-size-border-width) dashed var(--kbq-line-theme);
-            border-radius: var(--kbq-size-border-radius);
-            margin: var(--kbq-size-3xs) 0;
         }
 
-        .cdk-drag-preview.kbq-column-menu-row {
-            box-shadow: var(--kbq-shadow-popup);
-            background: var(--kbq-background-card);
-            border-radius: var(--kbq-size-border-radius);
-            border: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
-            opacity: 0.95;
+        // Draggable sections: rows share rounded corners only at the group's edges,
+        // so adjacent highlighted rows visually merge into one block.
+        .cdk-drop-list .kbq-column-menu-row:first-child .kbq-column-menu-row-wrapper {
+            border-top-left-radius: var(--kbq-size-border-radius);
+            border-top-right-radius: var(--kbq-size-border-radius);
+        }
 
-            .kbq-column-menu-row-actions {
-                opacity: 1;
-            }
+        .cdk-drop-list .kbq-column-menu-row:last-child .kbq-column-menu-row-wrapper {
+            border-bottom-left-radius: var(--kbq-size-border-radius);
+            border-bottom-right-radius: var(--kbq-size-border-radius);
+        }
+
+        // Hidden section: each row is standalone, full border-radius on every side.
+        .kbq-column-menu-group:not(.cdk-drop-list) .kbq-column-menu-row .kbq-column-menu-row-wrapper {
+            border-radius: var(--kbq-size-border-radius);
         }
 
         .cdk-drag-animating.kbq-column-menu-row {

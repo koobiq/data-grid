@@ -128,6 +128,13 @@ const openPanel = async (container: Element): Promise<void> => {
     await waitFor(() => expect(container.querySelector('.kbq-column-menu-panel')).toBeTruthy());
 };
 
+const getHiddenSection = (container: Element): Element | undefined =>
+    Array.from(container.querySelectorAll('section')).find((s) =>
+        s
+            .querySelector('.kbq-column-menu-section-label')
+            ?.textContent?.includes(KBQ_AG_GRID_COLUMN_MENU_LABELS_RU.hiddenSection)
+    );
+
 describe(KbqAgGridColumnMenu.name, () => {
     describe('overlay lifecycle', () => {
         it('creates overlay trigger button after gridReady', async () => {
@@ -302,9 +309,7 @@ describe(KbqAgGridColumnMenu.name, () => {
 
             await openPanel(container);
 
-            const labels = Array.from(
-                container.querySelectorAll('.kbq-column-menu-row--hidden .kbq-column-menu-label')
-            );
+            const labels = Array.from(getHiddenSection(container)?.querySelectorAll('.kbq-column-menu-label') ?? []);
             expect(labels[0].textContent).toContain('Apple');
             expect(labels[1].textContent).toContain('Zebra');
         });
@@ -493,7 +498,7 @@ describe(KbqAgGridColumnMenu.name, () => {
 
             await openPanel(container);
 
-            fireEvent.click(container.querySelector('.kbq-column-menu-row--hidden')!);
+            fireEvent.click(getHiddenSection(container)!.querySelector('kbq-column-menu-row')!);
 
             await waitFor(() => {
                 // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -852,6 +857,141 @@ describe(KbqAgGridColumnMenu.name, () => {
             });
         });
 
+        it('Enter on a row calls setColumnsVisible to toggle visibility', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name' });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age' });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-row')!, { key: 'Enter' });
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], false);
+            });
+        });
+
+        it('Enter on a row in the pinned-left section calls setColumnsVisible', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name', pinnedLeft: true });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age', pinnedLeft: true });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-row')!, { key: 'Enter' });
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], false);
+            });
+        });
+
+        it('Enter on a row in the pinned-right section calls setColumnsVisible', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name', pinnedRight: true });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age', pinnedRight: true });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-row')!, { key: 'Enter' });
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], false);
+            });
+        });
+
+        it('Enter on the checkbox of a visible row calls setColumnsVisible', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name' });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age' });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-checkbox')!, { key: 'Enter' });
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], false);
+            });
+        });
+
+        it('Enter on the checkbox of a visible row calls setColumnsVisible exactly once', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name' });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age' });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-checkbox')!, { key: 'Enter' });
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledTimes(1);
+            });
+        });
+
+        it('Enter on the checkbox of a hidden row calls setColumnsVisible(true)', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name', visible: false });
+            const { api } = createApiMock([col]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(getHiddenSection(container)!.querySelector('.kbq-column-menu-checkbox')!, {
+                key: 'Enter'
+            });
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], true);
+            });
+        });
+
+        it('focus is preserved on a row after Enter toggles a column off', async () => {
+            const col1 = createColumnMock({ colId: 'a', headerName: 'Alpha' });
+            const col2 = createColumnMock({ colId: 'b', headerName: 'Beta' });
+            const { api, dispatch } = createApiMock([col1, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
+            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+
+            // Simulate Alpha becoming hidden after the toggle
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            (col1.isVisible as jest.Mock).mockReturnValue(false);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-row')!, { key: 'Enter' });
+            dispatch('columnVisible');
+            fixture.detectChanges();
+
+            await waitFor(() => {
+                expect(document.activeElement?.classList.contains('kbq-column-menu-row')).toBe(true);
+            });
+        });
+
         it('Space on a row calls setColumnsVisible to toggle visibility', async () => {
             const col = createColumnMock({ colId: 'name', headerName: 'Name' });
             const col2 = createColumnMock({ colId: 'age', headerName: 'Age' });
@@ -870,40 +1010,21 @@ describe(KbqAgGridColumnMenu.name, () => {
             });
         });
 
-        it('Space on a row in the pinned-left section calls setColumnsVisible', async () => {
-            const col = createColumnMock({ colId: 'name', headerName: 'Name', pinnedLeft: true });
-            const col2 = createColumnMock({ colId: 'age', headerName: 'Age', pinnedLeft: true });
-            const { api } = createApiMock([col, col2]);
+        it('Space on a row prevents default scroll behavior', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name' });
+            const { api } = createApiMock([col]);
             const { fixture, container } = await render(TestColumnMenuGrid);
             fixture.componentInstance.grid().emitGridReady(api);
             fixture.detectChanges();
 
             await openPanel(container);
 
-            fireEvent.keyDown(container.querySelector('.kbq-column-menu-row')!, { key: ' ' });
+            const event = new KeyboardEvent('keydown', { key: ' ', bubbles: true, cancelable: true });
+            jest.spyOn(event, 'preventDefault');
+            container.querySelector('.kbq-column-menu-row')!.dispatchEvent(event);
 
-            await waitFor(() => {
-                // eslint-disable-next-line @typescript-eslint/unbound-method
-                expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], false);
-            });
-        });
-
-        it('Space on a row in the pinned-right section calls setColumnsVisible', async () => {
-            const col = createColumnMock({ colId: 'name', headerName: 'Name', pinnedRight: true });
-            const col2 = createColumnMock({ colId: 'age', headerName: 'Age', pinnedRight: true });
-            const { api } = createApiMock([col, col2]);
-            const { fixture, container } = await render(TestColumnMenuGrid);
-            fixture.componentInstance.grid().emitGridReady(api);
-            fixture.detectChanges();
-
-            await openPanel(container);
-
-            fireEvent.keyDown(container.querySelector('.kbq-column-menu-row')!, { key: ' ' });
-
-            await waitFor(() => {
-                // eslint-disable-next-line @typescript-eslint/unbound-method
-                expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], false);
-            });
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(event.preventDefault).toHaveBeenCalled();
         });
 
         it('Space on the checkbox of a visible row calls setColumnsVisible', async () => {
@@ -924,24 +1045,6 @@ describe(KbqAgGridColumnMenu.name, () => {
             });
         });
 
-        it('Space on the checkbox of a visible row calls setColumnsVisible exactly once (stopPropagation)', async () => {
-            const col = createColumnMock({ colId: 'name', headerName: 'Name' });
-            const col2 = createColumnMock({ colId: 'age', headerName: 'Age' });
-            const { api } = createApiMock([col, col2]);
-            const { fixture, container } = await render(TestColumnMenuGrid);
-            fixture.componentInstance.grid().emitGridReady(api);
-            fixture.detectChanges();
-
-            await openPanel(container);
-
-            fireEvent.keyDown(container.querySelector('.kbq-column-menu-checkbox')!, { key: ' ' });
-
-            await waitFor(() => {
-                // eslint-disable-next-line @typescript-eslint/unbound-method
-                expect(api.setColumnsVisible).toHaveBeenCalledTimes(1);
-            });
-        });
-
         it('Space on the checkbox of a hidden row calls setColumnsVisible(true)', async () => {
             const col = createColumnMock({ colId: 'name', headerName: 'Name', visible: false });
             const { api } = createApiMock([col]);
@@ -951,39 +1054,13 @@ describe(KbqAgGridColumnMenu.name, () => {
 
             await openPanel(container);
 
-            fireEvent.keyDown(container.querySelector('.kbq-column-menu-row--hidden .kbq-column-menu-checkbox')!, {
+            fireEvent.keyDown(getHiddenSection(container)!.querySelector('.kbq-column-menu-checkbox')!, {
                 key: ' '
             });
 
             await waitFor(() => {
                 // eslint-disable-next-line @typescript-eslint/unbound-method
                 expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], true);
-            });
-        });
-
-        it('focus is preserved on a row after Space toggles a column off', async () => {
-            const col1 = createColumnMock({ colId: 'a', headerName: 'Alpha' });
-            const col2 = createColumnMock({ colId: 'b', headerName: 'Beta' });
-            const { api, dispatch } = createApiMock([col1, col2]);
-            const { fixture, container } = await render(TestColumnMenuGrid);
-            fixture.componentInstance.grid().emitGridReady(api);
-            fixture.detectChanges();
-
-            await openPanel(container);
-
-            fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
-            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
-
-            // Simulate Alpha becoming hidden after the toggle
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            (col1.isVisible as jest.Mock).mockReturnValue(false);
-
-            fireEvent.keyDown(container.querySelector('.kbq-column-menu-row')!, { key: ' ' });
-            dispatch('columnVisible');
-            fixture.detectChanges();
-
-            await waitFor(() => {
-                expect(document.activeElement?.classList.contains('kbq-column-menu-row')).toBe(true);
             });
         });
     });

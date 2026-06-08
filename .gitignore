@@ -46,3 +46,6 @@ typings/
 /.playwright-mcp/
 
 .vscode/settings.json
+
+# TypeScript incremental build metadata
+*.tsbuildinfo

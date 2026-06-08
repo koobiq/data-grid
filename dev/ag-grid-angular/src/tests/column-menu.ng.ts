@@ -53,13 +53,13 @@ export class DevColumnMenu {
     readonly columnDefs: ColDef[] = [
         { field: 'athlete', headerName: 'Athlete', filter: true, lockVisible: true },
         { field: 'age', headerName: 'Age', filter: true, lockVisible: true },
-        { field: 'country', headerName: 'Country', filter: true },
+        { field: 'country', headerName: 'Country (header name with text overflow and ellipsis)', filter: true },
         { field: 'year', headerName: 'Year', filter: true },
         { field: 'date', headerName: 'Date', filter: true, pinned: 'right' },
         { field: 'sport', headerName: 'Sport', filter: true },
         { field: 'gold', headerName: 'Gold', filter: true },
         { field: 'silver', headerName: 'Silver', filter: true },
-        { field: 'bronze', headerName: 'Bronze', filter: true },
+        { field: 'bronze', headerName: 'Bronze (header name with text overflow and ellipsis)', filter: true },
         { field: 'total', headerName: 'Total', filter: true }
     ];
 }
