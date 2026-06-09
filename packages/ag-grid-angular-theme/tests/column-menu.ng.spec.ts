@@ -1,8 +1,9 @@
+import { SharedResizeObserver } from '@angular/cdk/observers/private';
 import { Component, Directive, forwardRef, viewChild } from '@angular/core';
 import { fireEvent, render, waitFor } from '@testing-library/angular';
 import { AgGridAngular } from 'ag-grid-angular';
 import { AgEventType, Column, GridApi } from 'ag-grid-community';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import {
     KBQ_AG_GRID_COLUMN_MENU_LABELS_EN,
     KBQ_AG_GRID_COLUMN_MENU_LABELS_RU,
@@ -10,6 +11,14 @@ import {
     KbqAgGridColumnMenuLabels,
     kbqAgGridColumnMenuLabelsProvider
 } from '../src/column-menu.ng';
+
+class MockSharedResizeObserver {
+    readonly resize$ = new Subject<ResizeObserverEntry[]>();
+
+    observe(_target: Element): Observable<ResizeObserverEntry[]> {
+        return this.resize$.asObservable();
+    }
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyEventHandler = (event?: any) => void;
@@ -1115,6 +1124,70 @@ describe(KbqAgGridColumnMenu.name, () => {
             await openPanel(container);
 
             expect(container.querySelector('.kbq-column-menu-panel-title')?.textContent?.trim()).toBe('My Columns');
+        });
+    });
+
+    describe('panel max height', () => {
+        it('sets --kbq-column-menu-panel-max-height to (clientHeight - header.offsetHeight) on resize', async () => {
+            const mockResizeObserver = new MockSharedResizeObserver();
+            const { fixture, container } = await render(TestColumnMenuGrid, {
+                providers: [{ provide: SharedResizeObserver, useValue: mockResizeObserver }]
+            });
+            fixture.componentInstance.grid().emitGridReady();
+            fixture.detectChanges();
+
+            const gridEl = container.querySelector<HTMLElement>('ag-grid-angular')!;
+            const headerEl = document.createElement('div');
+            headerEl.className = 'ag-header';
+            gridEl.appendChild(headerEl);
+
+            Object.defineProperty(gridEl, 'clientHeight', { configurable: true, get: () => 600 });
+            Object.defineProperty(headerEl, 'offsetHeight', { configurable: true, get: () => 56 });
+
+            mockResizeObserver.resize$.next([]);
+
+            expect(gridEl.style.getPropertyValue('--kbq-column-menu-panel-max-height')).toBe('544px');
+        });
+
+        it('defaults header height to 0 when .ag-header is not present', async () => {
+            const mockResizeObserver = new MockSharedResizeObserver();
+            const { fixture, container } = await render(TestColumnMenuGrid, {
+                providers: [{ provide: SharedResizeObserver, useValue: mockResizeObserver }]
+            });
+            fixture.componentInstance.grid().emitGridReady();
+            fixture.detectChanges();
+
+            const gridEl = container.querySelector<HTMLElement>('ag-grid-angular')!;
+            Object.defineProperty(gridEl, 'clientHeight', { configurable: true, get: () => 400 });
+
+            mockResizeObserver.resize$.next([]);
+
+            expect(gridEl.style.getPropertyValue('--kbq-column-menu-panel-max-height')).toBe('400px');
+        });
+
+        it('updates --kbq-column-menu-panel-max-height on subsequent resize events', async () => {
+            const mockResizeObserver = new MockSharedResizeObserver();
+            const { fixture, container } = await render(TestColumnMenuGrid, {
+                providers: [{ provide: SharedResizeObserver, useValue: mockResizeObserver }]
+            });
+            fixture.componentInstance.grid().emitGridReady();
+            fixture.detectChanges();
+
+            const gridEl = container.querySelector<HTMLElement>('ag-grid-angular')!;
+            const headerEl = document.createElement('div');
+            headerEl.className = 'ag-header';
+            gridEl.appendChild(headerEl);
+
+            let gridHeight = 600;
+            Object.defineProperty(gridEl, 'clientHeight', { configurable: true, get: () => gridHeight });
+            Object.defineProperty(headerEl, 'offsetHeight', { configurable: true, get: () => 56 });
+
+            mockResizeObserver.resize$.next([]);
+            expect(gridEl.style.getPropertyValue('--kbq-column-menu-panel-max-height')).toBe('544px');
+
+            gridHeight = 400;
+            mockResizeObserver.resize$.next([]);
+            expect(gridEl.style.getPropertyValue('--kbq-column-menu-panel-max-height')).toBe('344px');
         });
     });
 });

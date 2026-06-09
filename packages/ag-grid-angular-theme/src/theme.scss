@@ -956,7 +956,7 @@
         z-index: 100;
         display: flex;
         flex-direction: column;
-        max-height: 60vh;
+        max-height: calc(var(--kbq-column-menu-panel-max-height, 60vh) - var(--kbq-size-xxs));
     }
 
     .kbq-column-menu-panel-header {

@@ -7,6 +7,7 @@ import {
     CdkDropList,
     CdkDropListGroup
 } from '@angular/cdk/drag-drop';
+import { SharedResizeObserver } from '@angular/cdk/observers/private';
 import { DOCUMENT } from '@angular/common';
 import {
     ApplicationRef,
@@ -674,6 +675,8 @@ export class KbqAgGridColumnMenu implements OnDestroy {
     private readonly environmentInjector = inject(EnvironmentInjector);
     private readonly injector = inject(Injector);
     private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+    private readonly destroyRef = inject(DestroyRef);
+    private readonly sharedResizeObserver = inject(SharedResizeObserver);
     private readonly document = inject(DOCUMENT);
     readonly labels = input<KbqAgGridColumnMenuLabels | undefined>(undefined, { alias: 'kbqAgGridColumnMenuLabels' });
 
@@ -684,10 +687,24 @@ export class KbqAgGridColumnMenu implements OnDestroy {
         merge(this.grid.gridReady, this.grid.newColumnsLoaded)
             .pipe(takeUntilDestroyed())
             .subscribe(() => this.refreshOverlay());
+
+        this.observePanelMaxHeight();
     }
 
     ngOnDestroy(): void {
         this.clearOverlay();
+    }
+
+    private observePanelMaxHeight(): void {
+        const { nativeElement } = this.elementRef;
+        this.sharedResizeObserver
+            .observe(nativeElement)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => {
+                const header = nativeElement.querySelector<HTMLElement>('.ag-header');
+                const available = Math.max(0, nativeElement.clientHeight - (header?.offsetHeight ?? 0));
+                nativeElement.style.setProperty('--kbq-column-menu-panel-max-height', `${available}px`);
+            });
     }
 
     private refreshOverlay(): void {
