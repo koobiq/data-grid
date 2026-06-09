@@ -1030,25 +1030,88 @@
         }
 
         .kbq-column-menu-panel-scroll {
+            --ag-theme-koobiq-scrollbar-offset: 3px;
+            --ag-theme-koobiq-scrollbar-size: calc(var(--kbq-size-s) + var(--ag-theme-koobiq-scrollbar-offset) * 2);
+            --ag-theme-koobiq-scrollbar-track-color: transparent;
+            --ag-theme-koobiq-scrollbar-thumb-color: transparent;
+            --ag-theme-koobiq-scrollbar-thumb-color-visible: var(
+                --kbq-semantic-contrast-a3,
+                var(--kbq-palette-grey-50-a32)
+            );
+            --ag-theme-koobiq-scrollbar-thumb-min-size: var(--kbq-size-3xl);
+
+            @include _dark-theme {
+                --ag-theme-koobiq-scrollbar-thumb-color-visible: var(
+                    --kbq-semantic-dark-contrast-a9,
+                    var(--kbq-palette-grey-50-a48)
+                );
+            }
+
             overflow-y: auto;
             flex: 1;
             min-height: 0;
             margin-top: var(--kbq-size-xxs);
             margin-bottom: var(--kbq-size-xxs);
 
+            &:hover,
+            &:focus-within {
+                --ag-theme-koobiq-scrollbar-thumb-color: var(--ag-theme-koobiq-scrollbar-thumb-color-visible);
+
+                @supports not selector(::-webkit-scrollbar) {
+                    scrollbar-color: var(--ag-theme-koobiq-scrollbar-thumb-color)
+                        var(--ag-theme-koobiq-scrollbar-track-color);
+                }
+            }
+
+            @supports not selector(::-webkit-scrollbar) {
+                scrollbar-width: unset;
+                scrollbar-color: transparent transparent;
+            }
+
             &::-webkit-scrollbar {
-                width: 14px;
+                width: var(--ag-theme-koobiq-scrollbar-size);
             }
 
             &::-webkit-scrollbar-track {
-                background: transparent;
+                background-color: var(--ag-theme-koobiq-scrollbar-track-color);
             }
 
             &::-webkit-scrollbar-thumb {
-                background: var(--kbq-line-contrast-less);
-                border-radius: 999px;
-                border: 3px solid transparent;
+                background-color: var(--ag-theme-koobiq-scrollbar-thumb-color);
+                border-radius: var(--kbq-size-border-radius);
+                border: var(--ag-theme-koobiq-scrollbar-offset) solid var(--ag-theme-koobiq-scrollbar-track-color);
                 background-clip: content-box;
+                min-height: var(--ag-theme-koobiq-scrollbar-thumb-min-size);
+
+                &:hover {
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(
+                        --kbq-semantic-contrast-a4,
+                        var(--kbq-palette-grey-50-a48)
+                    );
+
+                    // stylelint-disable-next-line max-nesting-depth
+                    @include _dark-theme {
+                        --ag-theme-koobiq-scrollbar-thumb-color: var(
+                            --kbq-semantic-dark-contrast-a10,
+                            var(--kbq-palette-grey-50-a60)
+                        );
+                    }
+                }
+
+                &:active {
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(
+                        --kbq-semantic-contrast-a5,
+                        var(--kbq-palette-grey-20-a55)
+                    );
+
+                    // stylelint-disable-next-line max-nesting-depth
+                    @include _dark-theme {
+                        --ag-theme-koobiq-scrollbar-thumb-color: var(
+                            --kbq-semantic-dark-contrast-a11,
+                            var(--kbq-palette-grey-50-a80)
+                        );
+                    }
+                }
             }
         }
 
