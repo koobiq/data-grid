@@ -44,6 +44,7 @@ import {
     RowSelectionOptions,
     SelectionChangedEvent
 } from 'ag-grid-community';
+import { delay, take } from 'rxjs';
 import { devInjectRowData, DevRowData } from './row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -276,6 +277,13 @@ export class DevAgGridStatusBarComponent {
                 <legend>KbqAgGridFilterState</legend>
                 <button data-testid="e2eResetFilterState" type="button" (click)="filterState.reset()">Reset</button>
             </fieldset>
+            <fieldset class="dev-options">
+                <legend>KbqAgGridLoadingOverlay</legend>
+                <label>
+                    <input type="checkbox" [(ngModel)]="loading" />
+                    Loading overlay
+                </label>
+            </fieldset>
         </details>
 
         <ag-grid-angular
@@ -285,6 +293,7 @@ export class DevAgGridStatusBarComponent {
             kbqAgGridTheme
             kbqAgGridColumnState="dev-ag-grid-column-state"
             kbqAgGridFilterState="dev-ag-grid-filter-state"
+            [kbqAgGridLoadingOverlay]="loading()"
             [kbqAgGridRowActions]="rowActionsComponent"
             [kbqAgGridToNextRowByTab]="toNextRowByTab()"
             [kbqAgGridSelectRowsByShiftArrow]="selectRowsByShiftArrow()"
@@ -396,6 +405,7 @@ export class DevOverview {
     readonly copyFormat = model<(typeof this.copyFormatOptions)[number]>('tsv');
     readonly enableClickSelection = model(false);
     readonly cellTextSelection = model(true);
+    readonly loading = model(false);
 
     readonly statusBarComponent = DevAgGridStatusBarComponent;
 
@@ -615,6 +625,17 @@ export class DevOverview {
                 this.gridApi?.applyColumnState({
                     defaultState: { pinned: null }
                 });
+            });
+
+        toObservable(this.rowData)
+            .pipe(
+                // Fake loading delay to demonstrate loading overlay
+                delay(500),
+                take(1),
+                takeUntilDestroyed()
+            )
+            .subscribe(() => {
+                this.loading.set(false);
             });
     }
 

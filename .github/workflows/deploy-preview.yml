@@ -18,7 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
-      - run: yarn run build
+      # Run dev mode build to generate the `e2eRoute`
+      # @see dev/ag-grid-angular/src/main.ts
+      - run: yarn run build --configuration=development
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
