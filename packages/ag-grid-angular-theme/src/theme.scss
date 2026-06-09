@@ -877,6 +877,16 @@
 }
 
 @mixin _ag-column-menu() {
+    @keyframes kbq-column-menu-preview-in {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 0.95;
+        }
+    }
+
     &:has(.kbq-ag-grid-column-menu-overlay) {
         --ag-theme-koobiq-column-menu-width: var(--kbq-size-7xl);
 
@@ -1192,19 +1202,17 @@
         }
 
         &.cdk-drag-preview {
-            opacity: 0.95;
+            animation: kbq-column-menu-preview-in 120ms cubic-bezier(0, 0, 0.2, 1) both;
 
             .kbq-column-menu-row-wrapper {
                 --kbq-column-menu-row-background: var(--kbq-background-card);
 
-                box-shadow: var(--kbq-shadow-popup);
                 background: var(--kbq-background-card);
                 border-radius: var(--kbq-size-border-radius);
-                border: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
             }
 
             .kbq-column-menu-row-actions {
-                opacity: 1;
+                opacity: 0;
             }
         }
 
