@@ -548,6 +548,22 @@
     }
 }
 
+@mixin _ag-sort-indicator() {
+    .ag-sort-indicator-container {
+        .ag-sort-indicator-icon {
+            --ag-grid-size: var(--kbq-size-3xs);
+
+            order: 1;
+        }
+
+        // Should be always after the sort icon
+        .ag-sort-order {
+            order: 2;
+            color: var(--kbq-foreground-contrast);
+        }
+    }
+}
+
 @mixin _ag-row-border {
     .ag-row {
         border-bottom: unset;
@@ -877,6 +893,7 @@
     @include _ag-header-border();
     @include _ag-cell-padding();
     @include _ag-header-cell-border();
+    @include _ag-sort-indicator();
     @include _ag-text-field();
     @include _ag-row-border();
     @include _ag-cell-inline-editing();

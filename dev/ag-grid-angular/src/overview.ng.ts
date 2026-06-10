@@ -313,6 +313,7 @@ export class DevAgGridStatusBarComponent {
             [pagination]="pagination()"
             [columnHoverHighlight]="columnHoverHighlight()"
             [suppressCellFocus]="suppressCellFocus()"
+            [alwaysMultiSort]="true"
             [tooltipShowDelay]="500"
             [animateRows]="animateRows()"
             [enableCellTextSelection]="cellTextSelection()"

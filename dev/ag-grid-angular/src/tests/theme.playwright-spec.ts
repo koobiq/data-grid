@@ -1,35 +1,66 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { getAgGridApi } from './utils/api';
 import { enableDarkTheme } from './utils/theme';
 
-const getPaginationToggle = (page: Page): Locator => page.getByTestId('e2ePaginationToggle');
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
-const getPinFirstColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinFirstColumnToggle');
-const getPinLastColumnToggle = (page: Page): Locator => page.getByTestId('e2ePinLastColumnToggle');
 
-// Screenshot tests are only valid on CI. Do not update snapshots locally.
 test.describe('KbqAgGridAngularTheme', () => {
+    // Screenshot tests are only valid on CI. Do not update snapshots locally.
     test('default state', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/e2e/theme');
-        await getPaginationToggle(page).evaluate((label: HTMLLabelElement) => label.click());
+        await (
+            await getAgGridApi(page)
+        ).evaluate((api) => {
+            api.setGridOption('pagination', true);
+            api.applyColumnState({
+                state: [
+                    { colId: 'year', sort: 'asc', sortIndex: 1 },
+                    { colId: 'date', sort: 'asc', sortIndex: 2 }
+                ]
+            });
+            api.setFocusedCell(0, 'athlete');
+            api.forEachNode((node) => {
+                if (node.rowIndex === 4 || node.rowIndex === 5) {
+                    node.setSelected(true);
+                }
+            });
+        });
+        await expect(page.locator('.ag-paging-panel')).toBeVisible();
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-default-light.png');
         await enableDarkTheme(page);
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-default-dark.png');
     });
 
+    // Screenshot tests are only valid on CI. Do not update snapshots locally.
     test('with pinned columns', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/e2e/theme');
-        await getPinFirstColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
-        await getPinLastColumnToggle(page).evaluate((label: HTMLLabelElement) => label.click());
+        await (
+            await getAgGridApi(page)
+        ).evaluate((api) => {
+            api.setFocusedCell(0, 'athlete');
+            api.applyColumnState({
+                state: [
+                    { colId: 'athlete', pinned: 'left' },
+                    { colId: 'total', pinned: 'right' }
+                ]
+            });
+            api.forEachNode((node) => {
+                if (node.rowIndex === 4 || node.rowIndex === 5) {
+                    node.setSelected(true);
+                }
+            });
+        });
         await page
             .locator('.ag-center-cols-viewport')
             .evaluate((element: HTMLElement) => element.scrollTo({ left: 10 }));
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-pinned-columns-light.png');
     });
 
+    // Screenshot tests are only valid on CI. Do not update snapshots locally.
     test('with opened filter popup', async ({ page }) => {
-        await page.setViewportSize({ width: 500, height: 500 });
+        await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/e2e/theme');
         await page.hover('.ag-header-cell[col-id="athlete"]');
         await page.click('.ag-header-cell[col-id="athlete"] .ag-header-cell-filter-button');
