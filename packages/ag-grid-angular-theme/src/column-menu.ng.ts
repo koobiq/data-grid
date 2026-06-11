@@ -362,6 +362,7 @@ class KbqColumnMenuRowComponent implements FocusableOption {
                                     type="button"
                                     class="kbq-column-menu-search-clear"
                                     [title]="labels.clearSearchButton"
+                                    [attr.aria-label]="labels.clearSearchButton"
                                     (click)="clearSearch()"
                                 >
                                     <i class="kbq kbq-icon kbq-circle-xmark_16"></i>
