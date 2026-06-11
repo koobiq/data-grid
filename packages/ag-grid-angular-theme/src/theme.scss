@@ -550,6 +550,9 @@
 
 @mixin _ag-sort-indicator() {
     .ag-sort-indicator-container {
+        display: flex;
+        align-items: center;
+
         .ag-sort-indicator-icon {
             --ag-grid-size: var(--kbq-size-3xs);
 
