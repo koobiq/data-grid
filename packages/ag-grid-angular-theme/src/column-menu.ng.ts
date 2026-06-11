@@ -128,7 +128,8 @@ let columnMenuInstanceCount = 0;
         '[attr.tabindex]': '-1',
         '(click)': 'onRowClick()',
         '(keydown.enter)': 'onRowClick()',
-        '(keydown.space)': '$event.preventDefault(); onRowClick()'
+        '(keydown.space)': '$event.preventDefault(); onRowClick()',
+        '(keydown.tab)': 'onRowTab($event)'
     },
     template: `
         @let isChecked = section() !== 'hidden';
@@ -159,6 +160,9 @@ let columnMenuInstanceCount = 0;
                         class="kbq-column-menu-action-btn kbq-column-menu-action-btn--active"
                         [title]="labels.unpinButton"
                         [disabled]="isPinLocked"
+                        (keydown)="onActionKeydown($event)"
+                        (keydown.tab)="onActionButtonTab($event)"
+                        (keydown.enter)="onActionButtonEnter($event)"
                         (click)="$event.stopPropagation(); context.unpin(col())"
                     >
                         <i class="kbq kbq-icon kbq-pin-slash_16"></i>
@@ -170,6 +174,9 @@ let columnMenuInstanceCount = 0;
                         class="kbq-column-menu-action-btn"
                         [title]="labels.pinLeftButton"
                         [disabled]="isPinLocked"
+                        (keydown)="onActionKeydown($event)"
+                        (keydown.tab)="onActionButtonTab($event)"
+                        (keydown.enter)="onActionButtonEnter($event)"
                         (click)="$event.stopPropagation(); context.pinLeft(col())"
                     >
                         <i class="kbq kbq-icon kbq-pin_16"></i>
@@ -182,6 +189,9 @@ let columnMenuInstanceCount = 0;
                         class="kbq-column-menu-action-btn kbq-column-menu-action-btn--active kbq-column-menu-action-btn--mirrored"
                         [title]="labels.unpinButton"
                         [disabled]="isPinLocked"
+                        (keydown)="onActionKeydown($event)"
+                        (keydown.tab)="onActionButtonTab($event)"
+                        (keydown.enter)="onActionButtonEnter($event)"
                         (click)="$event.stopPropagation(); context.unpin(col())"
                     >
                         <i class="kbq kbq-icon kbq-pin-slash_16"></i>
@@ -193,15 +203,24 @@ let columnMenuInstanceCount = 0;
                         class="kbq-column-menu-action-btn kbq-column-menu-action-btn--mirrored"
                         [title]="labels.pinRightButton"
                         [disabled]="isPinLocked"
+                        (keydown)="onActionKeydown($event)"
+                        (keydown.tab)="onActionButtonTab($event)"
+                        (keydown.enter)="onActionButtonEnter($event)"
                         (click)="$event.stopPropagation(); context.pinRight(col())"
                     >
                         <i class="kbq kbq-icon kbq-pin_16"></i>
                     </button>
                 }
                 @if (section() !== 'hidden') {
-                    <span cdkDragHandle class="kbq-column-menu-action-btn kbq-column-menu-drag-handle">
+                    <button
+                        type="button"
+                        tabindex="-1"
+                        cdkDragHandle
+                        class="kbq-column-menu-action-btn kbq-column-menu-drag-handle"
+                        (click)="$event.stopPropagation()"
+                    >
                         <i class="kbq kbq-icon kbq-grip-vertical-s_16"></i>
-                    </span>
+                    </button>
                 }
             </span>
         </div>
@@ -264,6 +283,35 @@ class KbqColumnMenuRowComponent implements FocusableOption {
 
     protected onRowClick(): void {
         this.context.toggleVisibilityFromRow(this.col());
+    }
+
+    protected onRowTab(event: KeyboardEvent): void {
+        if (event.shiftKey) return;
+        if (this.context.focusFirstActionForRow(this.elementRef.nativeElement)) {
+            event.preventDefault();
+        }
+    }
+
+    protected onActionKeydown(event: KeyboardEvent): void {
+        this.context.handleRowActionKeydown(event, this.elementRef.nativeElement);
+    }
+
+    protected onActionButtonEnter(event: Event): void {
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.target instanceof HTMLButtonElement) event.target.click();
+    }
+
+    protected onActionButtonTab(event: Event): void {
+        if (event instanceof KeyboardEvent && event.shiftKey) {
+            event.preventDefault();
+            event.stopPropagation();
+            this.elementRef.nativeElement.focus();
+        } else {
+            event.preventDefault();
+            event.stopPropagation();
+            this.context.focusResetButton();
+        }
     }
 }
 
@@ -421,7 +469,9 @@ class KbqAgGridColumnMenuComponent {
     private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('columnMenuTrigger');
     private keyManager: FocusKeyManager<KbqColumnMenuRowComponent> | null = null;
     protected readonly isOpen = signal(false);
+    /** Current search query used to filter the column list. */
     readonly searchQuery = signal('');
+    /** Whether a drag-and-drop operation is in progress. */
     readonly isDragging = signal(false);
     private readonly allColumns = signal<Column[]>([]);
     protected readonly pinnedLeftColumns = computed(() => {
@@ -456,6 +506,7 @@ class KbqAgGridColumnMenuComponent {
             .filter((c) => !c.isVisible() && (!q || (c.getColDef().headerName?.toLowerCase() ?? '').includes(q)))
             .sort((a, b) => (a.getColDef().headerName ?? '').localeCompare(b.getColDef().headerName ?? ''));
     });
+    /** Number of currently visible (non-hidden) columns. */
     readonly visibleCount = computed(() => this.allColumns().filter((c) => c.isVisible()).length);
     protected readonly hasNoResults = computed(
         () =>
@@ -492,11 +543,61 @@ class KbqAgGridColumnMenuComponent {
         this.keyManager?.onKeydown(event);
     }
 
+    /** Focuses the first enabled action button inside the given row element. Returns `true` if an action was focused. */
+    focusFirstActionForRow(rowElement: HTMLElement): boolean {
+        const actions = this.getRowActions(rowElement);
+        if (actions.length === 0) return false;
+        const [firstAction] = actions;
+        firstAction.focus();
+        return true;
+    }
+
+    /** Handles keyboard navigation within row action buttons: Shift+Tab returns focus to the row, Tab moves to the reset button, ArrowLeft/Right cycles between actions. */
+    handleRowActionKeydown(event: KeyboardEvent, rowElement: HTMLElement): void {
+        if (event.key === 'Tab' && event.shiftKey) {
+            event.preventDefault();
+            rowElement.focus();
+            return;
+        }
+
+        if (event.key === 'Tab' && !event.shiftKey) {
+            event.preventDefault();
+            this.focusResetButton();
+            return;
+        }
+
+        if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') {
+            return;
+        }
+
+        const actions = this.getRowActions(rowElement);
+        if (actions.length === 0) return;
+
+        const { activeElement } = this.document;
+        if (!(activeElement instanceof HTMLButtonElement)) return;
+
+        const currentIndex = actions.indexOf(activeElement);
+        if (currentIndex === -1) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const delta = event.key === 'ArrowRight' ? 1 : -1;
+        const nextIndex = (currentIndex + delta + actions.length) % actions.length;
+        actions[nextIndex]?.focus();
+    }
+
+    /** Moves focus to the reset button in the panel footer. */
+    focusResetButton(): void {
+        this.elementRef.nativeElement.querySelector<HTMLButtonElement>('.kbq-column-menu-reset-btn')?.focus();
+    }
+
     protected onSearchArrowDown(event: Event): void {
         event.preventDefault();
         this.keyManager?.setFirstItemActive();
     }
 
+    /** Toggles the visibility of the given column and restores focus to the active row afterwards. */
     toggleVisibilityFromRow(col: Column): void {
         this.withFocusRestore(() => this.toggleVisibility(col));
     }
@@ -528,6 +629,12 @@ class KbqAgGridColumnMenuComponent {
             }
         }
         return this.keyManager?.activeItemIndex ?? -1;
+    }
+
+    private getRowActions(rowElement: HTMLElement): HTMLButtonElement[] {
+        return Array.from(rowElement.querySelectorAll<HTMLButtonElement>('.kbq-column-menu-action-btn')).filter(
+            (el) => !el.disabled && !el.classList.contains('kbq-column-menu-drag-handle')
+        );
     }
 
     protected close(): void {
@@ -587,6 +694,7 @@ class KbqAgGridColumnMenuComponent {
         this.refreshColumns();
     }
 
+    /** Pins the given column to the left side, making it visible if currently hidden. */
     pinLeft(col: Column): void {
         this.withFocusRestore(() => {
             if (!col.isVisible()) {
@@ -597,6 +705,7 @@ class KbqAgGridColumnMenuComponent {
         });
     }
 
+    /** Pins the given column to the right side, making it visible if currently hidden. */
     pinRight(col: Column): void {
         this.withFocusRestore(() => {
             if (!col.isVisible()) {
@@ -607,6 +716,7 @@ class KbqAgGridColumnMenuComponent {
         });
     }
 
+    /** Removes pinning from the given column. */
     unpin(col: Column): void {
         this.withFocusRestore(() => {
             this.api.setColumnsPinned([col.getColId()], null);

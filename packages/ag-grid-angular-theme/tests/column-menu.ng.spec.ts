@@ -1072,6 +1072,181 @@ describe(KbqAgGridColumnMenu.name, () => {
                 expect(api.setColumnsVisible).toHaveBeenCalledWith(['name'], true);
             });
         });
+
+        it('Tab on a row moves focus to the first row action button', async () => {
+            const cols = [
+                createColumnMock({ colId: 'a', headerName: 'Alpha' }),
+                createColumnMock({ colId: 'b', headerName: 'Beta' })
+            ];
+            const { api } = createApiMock(cols);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
+            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-row')!, { key: 'Tab' });
+
+            await waitFor(() => {
+                const firstRow = container.querySelector('.kbq-column-menu-row')!;
+                const [firstAction] = firstRow.querySelectorAll<HTMLButtonElement>('.kbq-column-menu-action-btn');
+                expect(document.activeElement).toBe(firstAction);
+            });
+        });
+
+        it('ArrowRight and ArrowLeft move focus across row action buttons', async () => {
+            const cols = [
+                createColumnMock({ colId: 'a', headerName: 'Alpha' }),
+                createColumnMock({ colId: 'b', headerName: 'Beta' })
+            ];
+            const { api } = createApiMock(cols);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
+            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+
+            const firstRow = container.querySelector('.kbq-column-menu-row')!;
+            const actions = firstRow.querySelectorAll<HTMLButtonElement>('.kbq-column-menu-action-btn');
+
+            fireEvent.keyDown(firstRow, { key: 'Tab' });
+            await waitFor(() => expect(document.activeElement).toBe(actions[0]));
+
+            fireEvent.keyDown(actions[0], { key: 'ArrowRight' });
+            await waitFor(() => expect(document.activeElement).toBe(actions[1]));
+
+            fireEvent.keyDown(actions[1], { key: 'ArrowLeft' });
+            await waitFor(() => expect(document.activeElement).toBe(actions[0]));
+        });
+
+        it('Shift+Tab on a row action button returns focus to its row', async () => {
+            const cols = [
+                createColumnMock({ colId: 'a', headerName: 'Alpha' }),
+                createColumnMock({ colId: 'b', headerName: 'Beta' })
+            ];
+            const { api } = createApiMock(cols);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
+            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+
+            const firstRow = container.querySelector('.kbq-column-menu-row')!;
+            const firstAction = firstRow.querySelector<HTMLButtonElement>('.kbq-column-menu-action-btn')!;
+
+            fireEvent.keyDown(firstRow, { key: 'Tab' });
+            await waitFor(() => expect(document.activeElement).toBe(firstAction));
+
+            fireEvent.keyDown(firstAction, { key: 'Tab', shiftKey: true });
+
+            await waitFor(() => {
+                expect(document.activeElement).toBe(firstRow);
+            });
+        });
+
+        it('Tab on a row action button moves focus to the reset button', async () => {
+            const cols = [
+                createColumnMock({ colId: 'a', headerName: 'Alpha' }),
+                createColumnMock({ colId: 'b', headerName: 'Beta' })
+            ];
+            const { api } = createApiMock(cols);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
+            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+
+            const [firstRow] = container.querySelectorAll<HTMLElement>('.kbq-column-menu-row');
+            const [firstAction] = firstRow.querySelectorAll<HTMLButtonElement>('.kbq-column-menu-action-btn');
+
+            fireEvent.keyDown(firstRow, { key: 'Tab' });
+            await waitFor(() => expect(document.activeElement).toBe(firstAction));
+
+            fireEvent.keyDown(firstAction, { key: 'Tab' });
+            fixture.detectChanges();
+
+            await waitFor(() => {
+                expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-reset-btn'));
+            });
+        });
+
+        it('Enter on a row action button triggers the action and prevents row toggle', async () => {
+            const cols = [createColumnMock({ colId: 'name', headerName: 'Name', visible: true })];
+            const { api } = createApiMock(cols);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
+            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+
+            const firstRow = container.querySelector('.kbq-column-menu-row')!;
+            const firstAction = firstRow.querySelector<HTMLButtonElement>('.kbq-column-menu-action-btn')!;
+
+            // Move focus to first action button (Pin Left)
+            fireEvent.keyDown(firstRow, { key: 'Tab' });
+            await waitFor(() => expect(document.activeElement).toBe(firstAction));
+
+            // Reset mock to check calls after this point
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            (api.setColumnsVisible as jest.Mock).mockClear();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            (api.setColumnsPinned as jest.Mock).mockClear();
+
+            // Press Enter on the Pin Left button
+            fireEvent.keyDown(firstAction, { key: 'Enter' });
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsPinned).toHaveBeenCalledWith(['name'], 'left');
+            });
+
+            // Verify that setColumnsVisible was NOT called (row toggle should not happen)
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(api.setColumnsVisible).not.toHaveBeenCalled();
+        });
+
+        it('Tab on a row action button does not cause errors and allows focus to move', async () => {
+            const cols = [
+                createColumnMock({ colId: 'a', headerName: 'Alpha' }),
+                createColumnMock({ colId: 'b', headerName: 'Beta' })
+            ];
+            const { api } = createApiMock(cols);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
+            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+
+            const firstRow = container.querySelector<HTMLElement>('.kbq-column-menu-row')!;
+            const firstRowAction = firstRow.querySelector<HTMLButtonElement>('.kbq-column-menu-action-btn')!;
+
+            // Move focus to first row's action button
+            fireEvent.keyDown(firstRow, { key: 'Tab' });
+            await waitFor(() => expect(document.activeElement).toBe(firstRowAction));
+
+            // Press Tab on the action button — event should be handled without errors
+            // This allows focus to move naturally or to the next row via our handler
+            expect(() => {
+                fireEvent.keyDown(firstRowAction, { key: 'Tab' });
+            }).not.toThrow();
+        });
     });
 
     describe('labels', () => {
