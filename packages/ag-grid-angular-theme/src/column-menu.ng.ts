@@ -173,6 +173,7 @@ let columnMenuInstanceCount = 0;
                         tabindex="-1"
                         class="kbq-column-menu-action-btn"
                         [title]="labels.pinLeftButton"
+                        [attr.aria-label]="labels.pinLeftButton"
                         [disabled]="isPinLocked"
                         (keydown)="onActionKeydown($event)"
                         (keydown.tab)="onActionButtonTab($event)"
