@@ -1092,7 +1092,8 @@ describe(KbqAgGridColumnMenu.name, () => {
 
             await waitFor(() => {
                 const firstRow = container.querySelector('.kbq-column-menu-row')!;
-                const [firstAction] = firstRow.querySelectorAll<HTMLButtonElement>('.kbq-column-menu-action-btn');
+                // eslint-disable-next-line @typescript-eslint/prefer-destructuring
+                const firstAction = firstRow.querySelectorAll<HTMLButtonElement>('.kbq-column-menu-action-btn')[0];
                 expect(document.activeElement).toBe(firstAction);
             });
         });
@@ -1168,8 +1169,10 @@ describe(KbqAgGridColumnMenu.name, () => {
             fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
             await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
 
-            const [firstRow] = container.querySelectorAll<HTMLElement>('.kbq-column-menu-row');
-            const [firstAction] = firstRow.querySelectorAll<HTMLButtonElement>('.kbq-column-menu-action-btn');
+            // eslint-disable-next-line @typescript-eslint/prefer-destructuring
+            const firstRow = container.querySelectorAll<HTMLElement>('.kbq-column-menu-row')[0];
+            // eslint-disable-next-line @typescript-eslint/prefer-destructuring
+            const firstAction = firstRow.querySelectorAll<HTMLButtonElement>('.kbq-column-menu-action-btn')[0];
 
             fireEvent.keyDown(firstRow, { key: 'Tab' });
             await waitFor(() => expect(document.activeElement).toBe(firstAction));
