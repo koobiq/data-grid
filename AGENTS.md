@@ -41,13 +41,13 @@ npm run lint:fix
 # Unit Testing (Jest)
 yarn unit:theme                   # Run unit tests for the theme package
 yarn unit                         # Run unit tests for all projects
-yarn jest <TEST_PATH_PATTERN>     # Run specific unit tests (e.g., yarn jest packages/ag-grid-angular-theme/tests/theme.ng.spec.ts)
+npx jest <TEST_PATH_PATTERN>     # Run specific unit tests (e.g., npx jest packages/ag-grid-angular-theme/tests/theme.ng.spec.ts)
 
 
 # E2E Testing (Playwright)
 yarn e2e:setup                              # Install Playwright browsers
 yarn e2e:dev-ag-grid-angular                # Run E2E tests
-yarn playwright test <TEST_PATH_PATTERN>    # Run specific E2E tests (e.g., yarn playwright test dev/ag-grid-angular/src/tests/theme.playwright-spec.ts)
+npx playwright test <TEST_PATH_PATTERN>    # Run specific E2E tests (e.g., npx playwright test dev/ag-grid-angular/src/tests/theme.playwright-spec.ts)
 
 # Clean
 yarn clean                        # Reset Nx cache, clear Playwright cache, remove dist/tmp
