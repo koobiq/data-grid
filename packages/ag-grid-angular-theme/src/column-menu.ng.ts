@@ -332,6 +332,7 @@ class KbqColumnMenuRowComponent implements FocusableOption {
                 class="kbq-column-menu-trigger"
                 type="button"
                 aria-haspopup="dialog"
+                [class.kbq-column-menu-trigger_active]="isOpen()"
                 [attr.aria-label]="labels.title"
                 [attr.aria-expanded]="isOpen()"
                 (click)="toggle($event)"

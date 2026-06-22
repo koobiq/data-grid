@@ -952,6 +952,10 @@
         &:hover .kbq-icon {
             color: var(--kbq-states-icon-contrast-fade-hover);
         }
+
+        &.kbq-column-menu-trigger_active .kbq-icon {
+            color: var(--kbq-states-icon-contrast-fade-active);
+        }
     }
 
     .kbq-column-menu-panel {
@@ -1201,6 +1205,9 @@
         &.cdk-drag-preview {
             transition: none;
             animation: kbq-column-menu-preview-in 120ms cubic-bezier(0, 0, 0.2, 1) both;
+
+            // For box-shadow to be visible outside the wrapper
+            padding: var(--kbq-size-m);
 
             .kbq-column-menu-row-wrapper {
                 --kbq-column-menu-row-background: var(--kbq-states-background-transparent-active);
