@@ -1,5 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 import { getAgGridApi } from './utils/api';
+import { enableDarkTheme } from './utils/theme';
 
 // DevColumnMenu uses KBQ_AG_GRID_COLUMN_MENU_LABELS_EN
 const LABEL_PIN_LEFT = 'Pin Left';
@@ -56,7 +57,11 @@ test.describe('KbqAgGridColumnMenu', () => {
         await page.keyboard.press('ArrowDown');
         await page.keyboard.press('ArrowDown');
         await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('ArrowRight');
         await expect(page.getByTestId('e2eScreenshotTarget')).toHaveScreenshot('column-menu-opened-light.png');
+        await enableDarkTheme(page);
+        await expect(page.getByTestId('e2eScreenshotTarget')).toHaveScreenshot('column-menu-opened-dark.png');
     });
 
     test('hiding a column via panel removes its header cell from the grid', async ({ page }) => {

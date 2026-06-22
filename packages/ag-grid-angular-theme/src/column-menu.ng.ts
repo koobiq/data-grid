@@ -223,7 +223,7 @@ let columnMenuInstanceCount = 0;
                         class="kbq-column-menu-action-btn kbq-column-menu-drag-handle"
                         (click)="$event.stopPropagation()"
                     >
-                        <i class="kbq kbq-icon kbq-grip-vertical-s_16"></i>
+                        <i class="kbq kbq-icon kbq-grip-vertical_16"></i>
                     </button>
                 }
             </span>

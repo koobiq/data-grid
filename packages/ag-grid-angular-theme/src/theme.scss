@@ -1292,8 +1292,7 @@
         align-items: center;
         justify-content: center;
         width: var(--kbq-size-3xl);
-        height: calc(var(--kbq-size-3xl) - var(--kbq-column-menu-action-btn-outline-width) * 2);
-        margin: var(--kbq-column-menu-action-btn-outline-width);
+        height: var(--kbq-size-3xl);
         background: transparent;
         border: none;
         border-radius: var(--kbq-size-border-radius);
@@ -1304,7 +1303,7 @@
 
         &:focus-visible {
             outline: var(--kbq-column-menu-action-btn-outline-width) solid var(--kbq-states-line-focus-theme);
-            outline-offset: 0;
+            outline-offset: calc(var(--kbq-column-menu-action-btn-outline-width) * -1);
         }
 
         &:hover {
