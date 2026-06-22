@@ -1,5 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, model } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { KBQ_AG_GRID_ROW_ACTIONS_PARAMS, KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry } from 'ag-grid-community';
@@ -39,26 +38,16 @@ export class DevRowActionsCellComponent {
 
 @Component({
     standalone: true,
-    imports: [AgGridModule, KbqAgGridThemeModule, FormsModule],
+    imports: [AgGridModule, KbqAgGridThemeModule],
     selector: 'dev-row-actions',
     template: `
-        <div>
-            <label data-testid="e2ePinFirstColumnToggle">
-                <input type="checkbox" [(ngModel)]="pinFirstColumn" />
-                Pin First Column
-            </label>
-            <label data-testid="e2ePinLastColumnToggle">
-                <input type="checkbox" [(ngModel)]="pinLastColumn" />
-                Pin Last Column
-            </label>
-        </div>
         <ag-grid-angular
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
             animateRows="false"
             [kbqAgGridRowActions]="rowActionsComponent"
             [rowData]="rowData()"
-            [columnDefs]="columnDefs()"
+            [columnDefs]="columnDefs"
         />
     `,
     styles: `
@@ -79,10 +68,8 @@ export class DevRowActionsCellComponent {
 export class DevRowActions {
     readonly rowData = devInjectRowData();
     readonly rowActionsComponent = DevRowActionsCellComponent;
-    readonly pinFirstColumn = model(false);
-    readonly pinLastColumn = model(false);
-    readonly columnDefs = computed<ColDef[]>(() => [
-        { field: 'athlete', headerName: 'Athlete', pinned: this.pinFirstColumn() ? 'left' : false },
+    readonly columnDefs: ColDef[] = [
+        { field: 'athlete', headerName: 'Athlete' },
         { field: 'age', headerName: 'Age' },
         { field: 'country', headerName: 'Country' },
         { field: 'year', headerName: 'Year' },
@@ -91,6 +78,6 @@ export class DevRowActions {
         { field: 'gold', headerName: 'Gold' },
         { field: 'silver', headerName: 'Silver' },
         { field: 'bronze', headerName: 'Bronze' },
-        { field: 'total', headerName: 'Total', pinned: this.pinLastColumn() ? 'right' : false }
-    ]);
+        { field: 'total', headerName: 'Total' }
+    ];
 }
