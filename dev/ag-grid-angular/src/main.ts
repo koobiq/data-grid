@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { ApplicationConfig, isDevMode, provideZoneChangeDetection } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
+import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Route, Routes } from '@angular/router';
 import { DevApp } from './app.ng';
 
@@ -78,6 +79,10 @@ if (isDevMode()) {
                 loadComponent: async () => import('./tests/row-actions.ng').then((m) => m.DevRowActions)
             },
             {
+                path: 'column-menu',
+                loadComponent: async () => import('./tests/column-menu.ng').then((m) => m.DevColumnMenu)
+            },
+            {
                 path: 'status-bar',
                 loadComponent: async () => import('./tests/status-bar.ng').then((m) => m.DevStatusBar)
             },
@@ -100,7 +105,12 @@ if (isDevMode()) {
 }
 
 const appConfig: ApplicationConfig = {
-    providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideHttpClient(), provideRouter(routes)]
+    providers: [
+        provideZoneChangeDetection({ eventCoalescing: true }),
+        provideHttpClient(),
+        provideRouter(routes),
+        provideAnimations()
+    ]
 };
 
 bootstrapApplication(DevApp, appConfig).catch((error: unknown) => console.error(error));

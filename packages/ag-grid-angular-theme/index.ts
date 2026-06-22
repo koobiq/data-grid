@@ -1,3 +1,4 @@
+export * from './src/column-menu.ng';
 export * from './src/column-state.ng';
 export * from './src/copy-by-ctrl-c.ng';
 export * from './src/external-filter-state.ng';

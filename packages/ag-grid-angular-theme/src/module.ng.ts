@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import { KbqAgGridColumnMenu } from './column-menu.ng';
 import { KbqAgGridColumnState } from './column-state.ng';
 import { KbqAgGridCopyByCtrlC } from './copy-by-ctrl-c.ng';
 import { KbqAgGridExternalFilterState } from './external-filter-state.ng';
@@ -16,6 +17,7 @@ import { KbqAgGridTheme } from './theme.ng';
 import { KbqAgGridToNextRowByTab } from './to-next-row-by-tab.ng';
 
 const COMPONENTS = [
+    KbqAgGridColumnMenu,
     KbqAgGridTheme,
     KbqAgGridToNextRowByTab,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
