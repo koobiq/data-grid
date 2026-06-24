@@ -1,7 +1,7 @@
 import { booleanAttribute, DestroyRef, Directive, ElementRef, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgGridAngular } from 'ag-grid-angular';
-import { debounceTime, delay, filter, startWith } from 'rxjs';
+import { EMPTY, filter, startWith, switchMap } from 'rxjs';
 
 /**
  * Directive that applies the koobiq theme for ag-grid-angular.
@@ -56,12 +56,24 @@ export class KbqAgGridTheme {
     }
 
     private observeColumnsOverflow(): void {
-        this.grid.bodyScroll
+        this.grid.gridReady
             .pipe(
-                startWith({ direction: 'horizontal' }),
-                delay(100),
-                debounceTime(100),
-                filter(({ direction }) => direction === 'horizontal'),
+                switchMap(() =>
+                    this.grid.columnPinned.pipe(
+                        startWith(null),
+                        switchMap(() => {
+                            if (!this.grid.api.isPinning()) {
+                                this.columnsOverflowLeft.set(false);
+                                this.columnsOverflowRight.set(false);
+                                return EMPTY;
+                            }
+                            return this.grid.bodyScroll.pipe(
+                                startWith({ direction: 'horizontal' }),
+                                filter(({ direction }) => direction === 'horizontal')
+                            );
+                        })
+                    )
+                ),
                 takeUntilDestroyed(this.destroyRef)
             )
             .subscribe(() => {
