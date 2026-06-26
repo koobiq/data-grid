@@ -3,6 +3,7 @@ export * from './src/column-state.ng';
 export * from './src/copy-by-ctrl-c.ng';
 export * from './src/external-filter-state.ng';
 export * from './src/filter-state.ng';
+export * from './src/infinite-selection.ng';
 export * from './src/loading-overlay.ng';
 export * from './src/module.ng';
 export * from './src/quick-filter-state.ng';

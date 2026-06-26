@@ -97,6 +97,10 @@ if (isDevMode()) {
             {
                 path: 'lazy-loading',
                 loadComponent: async () => import('./tests/lazy-loading.ng').then((m) => m.DevLazyLoading)
+            },
+            {
+                path: 'infinite-selection',
+                loadComponent: async () => import('./tests/infinite-selection.ng').then((m) => m.DevInfiniteSelection)
             }
         ]
     };
