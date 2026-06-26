@@ -1,5 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
-import { getRow, isRowSelected, toggleRowSelection } from './utils/helpers';
+import { getCell, getRow, isRowSelected, toggleRowSelection } from './utils/helpers';
 
 const getHeaderCheckbox = (page: Page): Locator => page.locator('.ag-header-cell input[type="checkbox"]');
 
@@ -145,5 +145,56 @@ test.describe('KbqAgGridInfiniteSelection', () => {
         });
 
         await expect(getRow(page, 10)).toHaveClass(/ag-row-selected/, { timeout: 2000 });
+    });
+
+    test('Ctrl+A selects all visible rows', async ({ page }) => {
+        await page.goto('/e2e/infinite-selection');
+        await waitForDataLoaded(page);
+
+        await getCell(page, 0, 'athlete').click();
+        await page.keyboard.press('Control+a');
+
+        await waitForRowSelected(page, 0);
+        await waitForRowSelected(page, 1);
+
+        const state = await getState(page);
+        expect(state.selectAll).toBe(true);
+        expect(state.excludedIds).toHaveLength(0);
+    });
+
+    test('Ctrl+A does nothing when already fully selected', async ({ page }) => {
+        await page.goto('/e2e/infinite-selection');
+        await waitForDataLoaded(page);
+
+        await getCell(page, 0, 'athlete').click();
+        await page.keyboard.press('Control+a');
+        await waitForRowSelected(page, 0);
+
+        await page.keyboard.press('Control+a'); // already all selected — should stay selected
+        await page.waitForTimeout(200); // give time for any (unexpected) state change
+
+        const state = await getState(page);
+        expect(state.selectAll).toBe(true);
+        expect(state.excludedIds).toHaveLength(0);
+        expect(await isRowSelected(page, 0)).toBe(true);
+    });
+
+    test('Ctrl+A from indeterminate state selects all', async ({ page }) => {
+        await page.goto('/e2e/infinite-selection');
+        await waitForDataLoaded(page);
+
+        await getCell(page, 0, 'athlete').click();
+        await page.keyboard.press('Control+a'); // select all → checked
+        await waitForRowSelected(page, 0);
+        await toggleRowSelection(page, 0); // uncheck row 0 → indeterminate
+
+        await page.keyboard.press('Control+a');
+        await waitForRowSelected(page, 0); // row 0 should become selected again
+
+        const state = await getState(page);
+        expect(state.selectAll).toBe(true);
+        expect(state.excludedIds).toHaveLength(0);
+        expect(await isRowSelected(page, 0)).toBe(true);
+        expect(await isRowSelected(page, 1)).toBe(true);
     });
 });

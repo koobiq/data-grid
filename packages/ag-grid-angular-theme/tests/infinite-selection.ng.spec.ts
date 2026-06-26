@@ -1,7 +1,8 @@
+import { A } from '@angular/cdk/keycodes';
 import { Component, Directive, forwardRef, signal, viewChild } from '@angular/core';
 import { render, waitFor } from '@testing-library/angular';
 import { AgGridAngular } from 'ag-grid-angular';
-import { GridApi, IDatasource, IGetRowsParams, IRowNode } from 'ag-grid-community';
+import { CellKeyDownEvent, GridApi, IDatasource, IGetRowsParams, IRowNode } from 'ag-grid-community';
 import { Subject } from 'rxjs';
 import { KbqAgGridInfiniteSelection } from '../src/infinite-selection.ng';
 
@@ -50,6 +51,7 @@ class TestAgGridAngularStub {
 
     readonly gridReady = new Subject<{ api: GridApi }>();
     readonly selectionChanged = new Subject<void>();
+    readonly cellKeyDown = new Subject<Partial<CellKeyDownEvent>>();
 
     emitGridReady(): void {
         this.gridReady.next({ api: this.api });
@@ -57,10 +59,19 @@ class TestAgGridAngularStub {
     emitSelectionChanged(): void {
         this.selectionChanged.next();
     }
+    emitCellKeyDown(event: KeyboardEvent): void {
+        this.cellKeyDown.next({ event, api: this.api });
+    }
 }
 
 // eslint-disable-next-line @typescript-eslint/strict-void-return
 const createMockDatasource = (): IDatasource => ({ getRows: jest.fn(), rowCount: 100 });
+
+const createKeyEvent = (keyCode: number, modifiers: { ctrlKey?: boolean; metaKey?: boolean } = {}): KeyboardEvent => {
+    const event = new KeyboardEvent('keydown', { cancelable: true, ...modifiers });
+    Object.defineProperty(event, 'keyCode', { value: keyCode });
+    return event;
+};
 
 const makeNode = (id: string, selected: boolean, data: object | null = {}): IRowNode =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
@@ -308,6 +319,69 @@ describe(KbqAgGridInfiniteSelection.name, () => {
             await new Promise<void>((resolve) => setTimeout(resolve, 0));
 
             expect(stub.mock.setNodesSelected).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('Ctrl+A shortcut', () => {
+        it('sets selectAll=true when nothing is selected', async () => {
+            const { stub, directive } = await setup();
+            stub.emitCellKeyDown(createKeyEvent(A, { ctrlKey: true }));
+            expect(directive.state()).toEqual({ selectAll: true, excludedIds: [] });
+        });
+
+        it('does nothing when selectAll=true and excludedIds is empty', async () => {
+            const { stub, directive } = await setup();
+            directive.toggle(); // selectAll=true, excludedIds=[]
+            stub.mock.setNodesSelected.mockClear();
+
+            stub.emitCellKeyDown(createKeyEvent(A, { ctrlKey: true }));
+
+            expect(directive.state()).toEqual({ selectAll: true, excludedIds: [] });
+            expect(stub.mock.setNodesSelected).not.toHaveBeenCalled();
+        });
+
+        it('clears excludedIds and selects all from indeterminate state', async () => {
+            const { stub, directive } = await setup();
+            directive.toggle(); // selectAll=true
+            stub.mock.nodes.push(makeNode('r1', false), makeNode('r2', true));
+            stub.emitSelectionChanged(); // r1 not selected → excludedIds=['r1']
+            expect(directive.state()).toEqual({ selectAll: true, excludedIds: ['r1'] });
+            stub.mock.setNodesSelected.mockClear();
+
+            stub.emitCellKeyDown(createKeyEvent(A, { ctrlKey: true }));
+
+            expect(directive.state()).toEqual({ selectAll: true, excludedIds: [] });
+            expect(stub.mock.setNodesSelected).toHaveBeenCalledWith({
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                nodes: expect.arrayContaining([expect.objectContaining({ id: 'r1' })]),
+                newValue: true
+            });
+        });
+
+        it('works with metaKey (Cmd on Mac)', async () => {
+            const { stub, directive } = await setup();
+            stub.emitCellKeyDown(createKeyEvent(A, { metaKey: true }));
+            expect(directive.state()).toEqual({ selectAll: true, excludedIds: [] });
+        });
+
+        it('calls event.preventDefault()', async () => {
+            const { stub } = await setup();
+            const event = createKeyEvent(A, { ctrlKey: true });
+            const spy = jest.spyOn(event, 'preventDefault');
+            stub.emitCellKeyDown(event);
+            expect(spy).toHaveBeenCalled();
+        });
+
+        it('ignores key A without modifier', async () => {
+            const { stub, directive } = await setup();
+            stub.emitCellKeyDown(createKeyEvent(A));
+            expect(directive.state()).toEqual({ selectAll: false, excludedIds: [] });
+        });
+
+        it('ignores Ctrl+other key', async () => {
+            const { stub, directive } = await setup();
+            stub.emitCellKeyDown(createKeyEvent(66, { ctrlKey: true })); // Ctrl+B
+            expect(directive.state()).toEqual({ selectAll: false, excludedIds: [] });
         });
     });
 });

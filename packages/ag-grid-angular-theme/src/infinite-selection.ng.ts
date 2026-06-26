@@ -1,3 +1,4 @@
+import { A } from '@angular/cdk/keycodes';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -74,6 +75,7 @@ class KbqAgGridInfiniteSelectionHeaderComponent implements IHeaderAngularComp {
  *
  * The directive automatically configures `rowSelection` (`mode: 'multiRow'`, `checkboxes: true`,
  * `headerCheckbox: false`) and injects a select-all header checkbox into the selection column.
+ * Ctrl+A (Cmd+A on Mac) selects all rows; pressing it again when all are already selected does nothing.
  *
  * **Requirements:**
  * - Pass the datasource via `[kbqAgGridInfiniteSelectionDatasource]` instead of `[datasource]` —
@@ -128,6 +130,17 @@ export class KbqAgGridInfiniteSelection {
             this.onSelectionChanged();
         });
 
+        this.grid.cellKeyDown.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ event }) => {
+            if (!(event instanceof KeyboardEvent)) return;
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            if ((event.ctrlKey || event.metaKey) && event.keyCode === A) {
+                event.preventDefault();
+                const state = this._state();
+                if (state.selectAll && state.excludedIds.length === 0) return;
+                this.applySelectAll();
+            }
+        });
+
         // Separate input prevents Angular binding from replacing the wrapped datasource
         // when the upstream creates a new object reference on each data load (e.g. computed()).
         combineLatest([toObservable(this.datasource), this.grid.gridReady])
@@ -149,15 +162,19 @@ export class KbqAgGridInfiniteSelection {
             this.applyingSelection = false;
             this.setState({ selectAll: false, excludedIds: [] });
         } else {
-            this.setState({ selectAll: true, excludedIds: [] });
-            this.applyingSelection = true;
-            const nodes: IRowNode[] = [];
-            this.grid.api.forEachNode((n) => {
-                if (n.data) nodes.push(n);
-            });
-            this.grid.api.setNodesSelected({ nodes, newValue: true });
-            this.applyingSelection = false;
+            this.applySelectAll();
         }
+    }
+
+    private applySelectAll(): void {
+        this.setState({ selectAll: true, excludedIds: [] });
+        this.applyingSelection = true;
+        const nodes: IRowNode[] = [];
+        this.grid.api.forEachNode((n) => {
+            if (n.data) nodes.push(n);
+        });
+        this.grid.api.setNodesSelected({ nodes, newValue: true });
+        this.applyingSelection = false;
     }
 
     private configureRowSelection(): void {
