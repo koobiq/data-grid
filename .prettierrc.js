@@ -8,7 +8,7 @@ const config = {
     singleQuote: true,
     trailingComma: 'none',
     htmlWhitespaceSensitivity: 'ignore',
-    plugins: ['prettier-plugin-organize-imports'],
+    plugins: ['prettier-plugin-organize-imports', 'prettier-plugin-sh'],
     overrides: [
         {
             files: ['*.yml'],

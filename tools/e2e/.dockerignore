@@ -1,0 +1,26 @@
+# Exclude everything by default, then explicitly allow only what is needed.
+# BuildKit picks up this file from the Dockerfile's directory (tools/e2e/).
+**
+
+# Yarn Berry binary and configuration
+!.yarn/releases/
+!.yarn/releases/**
+!.yarnrc.yml
+!package.json
+!yarn.lock
+
+# Nx and TypeScript configuration
+!nx.json
+!tsconfig.json
+!tsconfig.playwright-spec.json
+!jest.config.ts
+!jest.preset.js
+
+# Playwright configuration
+!playwright.config.ts
+
+# Application and test source code
+!packages/ag-grid-angular-theme/
+!packages/ag-grid-angular-theme/**
+!dev/ag-grid-angular/
+!dev/ag-grid-angular/**

@@ -1,0 +1,11 @@
+services:
+  e2e:
+    build:
+      context: ../..
+      dockerfile: tools/e2e/Dockerfile
+    volumes:
+      # Only the screenshot output directories are mounted back to the host.
+      # Everything else (source, node_modules, dev server) lives entirely inside the container.
+      - ../../dev/ag-grid-angular/src/tests/__screenshots__:/app/dev/ag-grid-angular/src/tests/__screenshots__
+      - ../../dev/ag-grid-angular/src/tests/__snapshots__:/app/dev/ag-grid-angular/src/tests/__snapshots__
+      - ../../playwright-report:/app/playwright-report
