@@ -1,5 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 import { getCell, getRow, isRowSelected, toggleRowSelection } from './utils/helpers';
+import { enableDarkTheme } from './utils/theme';
 
 const getHeaderCheckbox = (page: Page): Locator => page.locator('.ag-header-cell input[type="checkbox"]');
 
@@ -23,7 +24,20 @@ const waitForRowSelected = async (page: Page, rowIndex: number): Promise<void> =
     await expect(getRow(page, rowIndex)).toHaveClass(/ag-row-selected/, { timeout: 2000 });
 };
 
+const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
+
 test.describe('KbqAgGridInfiniteSelection', () => {
+    // Screenshot tests are only valid on CI. Do not update snapshots locally.
+    test('initial state', async ({ page }) => {
+        await page.goto('/e2e/infinite-selection');
+        await waitForDataLoaded(page);
+        await getHeaderCheckbox(page).click();
+        await getCell(page, 3, 'ag-Grid-SelectionColumn').click();
+        await expect(getScreenshotTarget(page)).toHaveScreenshot('infinite-selection-light.png');
+        await enableDarkTheme(page);
+        await expect(getScreenshotTarget(page)).toHaveScreenshot('infinite-selection-dark.png');
+    });
+
     test('initial state is selectAll=false with empty excludedIds', async ({ page }) => {
         await page.goto('/e2e/infinite-selection');
         await waitForDataLoaded(page);

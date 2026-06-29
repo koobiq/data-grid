@@ -1,10 +1,15 @@
 import { A } from '@angular/cdk/keycodes';
-import { Component, Directive, forwardRef, signal, viewChild } from '@angular/core';
+import { Component, Directive, forwardRef, signal, viewChild, WritableSignal } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { render, waitFor } from '@testing-library/angular';
 import { AgGridAngular } from 'ag-grid-angular';
 import { CellKeyDownEvent, GridApi, IDatasource, IGetRowsParams, IRowNode } from 'ag-grid-community';
 import { Subject } from 'rxjs';
-import { KbqAgGridInfiniteSelection } from '../src/infinite-selection.ng';
+import {
+    KbqAgGridInfiniteSelection,
+    KbqAgGridInfiniteSelectionHeaderComponent,
+    KbqAgGridInfiniteSelectionState
+} from '../src/infinite-selection.ng';
 
 type ApiMock = {
     setGridOption: jest.Mock;
@@ -122,6 +127,84 @@ const setup = async () => {
     const ds = fixture.componentInstance.ds();
     return { fixture, stub, directive, ds, wrapped };
 };
+
+describe(KbqAgGridInfiniteSelectionHeaderComponent.name, () => {
+    const createHeader = (
+        stateValue: KbqAgGridInfiniteSelectionState = { selectAll: false, excludedIds: [] },
+        toggle: jest.Mock = jest.fn()
+    ): {
+        fixture: ComponentFixture<KbqAgGridInfiniteSelectionHeaderComponent>;
+        state: WritableSignal<KbqAgGridInfiniteSelectionState>;
+        toggle: jest.Mock;
+        el: HTMLElement;
+    } => {
+        const state = signal(stateValue);
+        const fixture = TestBed.createComponent(KbqAgGridInfiniteSelectionHeaderComponent);
+        fixture.componentInstance.agInit(
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            { state, toggle } as unknown as Parameters<KbqAgGridInfiniteSelectionHeaderComponent['agInit']>[0]
+        );
+        fixture.detectChanges();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        return { fixture, state, toggle, el: fixture.nativeElement as HTMLElement };
+    };
+
+    it('renders the ag-grid checkbox wrapper structure', () => {
+        const { el } = createHeader();
+        expect(el.querySelector('.ag-header-select-all')).toBeTruthy();
+        expect(el.querySelector('.ag-checkbox-input-wrapper')).toBeTruthy();
+        expect(el.querySelector('.ag-checkbox-input')).toBeTruthy();
+    });
+
+    it('has no state classes when selectAll is false', () => {
+        const { el } = createHeader({ selectAll: false, excludedIds: [] });
+        const wrapper = el.querySelector('.ag-checkbox-input-wrapper')!;
+        expect(wrapper.classList).not.toContain('ag-checked');
+        expect(wrapper.classList).not.toContain('ag-indeterminate');
+    });
+
+    it('applies ag-checked when selectAll=true and excludedIds is empty', () => {
+        const { el } = createHeader({ selectAll: true, excludedIds: [] });
+        const wrapper = el.querySelector('.ag-checkbox-input-wrapper')!;
+        expect(wrapper.classList).toContain('ag-checked');
+        expect(wrapper.classList).not.toContain('ag-indeterminate');
+    });
+
+    it('applies ag-indeterminate when selectAll=true and excludedIds is non-empty', () => {
+        const { el } = createHeader({ selectAll: true, excludedIds: ['r1'] });
+        const wrapper = el.querySelector('.ag-checkbox-input-wrapper')!;
+        expect(wrapper.classList).toContain('ag-indeterminate');
+        expect(wrapper.classList).not.toContain('ag-checked');
+    });
+
+    it('updates classes when state signal changes', () => {
+        const { el, fixture, state } = createHeader({ selectAll: false, excludedIds: [] });
+        const wrapper = el.querySelector('.ag-checkbox-input-wrapper')!;
+
+        state.set({ selectAll: true, excludedIds: [] });
+        fixture.detectChanges();
+
+        expect(wrapper.classList).toContain('ag-checked');
+    });
+
+    it('calls toggle() on input click', () => {
+        const toggle = jest.fn();
+        const { el } = createHeader({ selectAll: false, excludedIds: [] }, toggle);
+        el.querySelector<HTMLInputElement>('.ag-checkbox-input')!.dispatchEvent(
+            new MouseEvent('click', { bubbles: true })
+        );
+        expect(toggle).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls event.preventDefault() on click', () => {
+        const { el } = createHeader();
+        const input = el.querySelector<HTMLInputElement>('.ag-checkbox-input')!;
+        const event = new MouseEvent('click', { cancelable: true, bubbles: true });
+        const spy = jest.spyOn(event, 'preventDefault');
+        input.dispatchEvent(event);
+        expect(spy).toHaveBeenCalled();
+    });
+});
 
 describe(KbqAgGridInfiniteSelection.name, () => {
     it('sets rowModelType to "infinite" on construction', async () => {

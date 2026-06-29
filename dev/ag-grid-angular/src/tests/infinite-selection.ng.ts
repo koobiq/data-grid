@@ -28,6 +28,7 @@ const COLUMN_DEFS: ColDef[] = [
             #selection="kbqAgGridInfiniteSelection"
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
+            kbqAgGridThemeDisableCellFocusStyles
             kbqAgGridInfiniteSelection
             animateRows="false"
             [columnDefs]="columnDefs"

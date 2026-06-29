@@ -35,16 +35,28 @@ type KbqAgGridInfiniteSelectionHeaderParams = {
     standalone: true,
     selector: 'kbq-ag-grid-select-all-header',
     template: `
-        <input
-            type="checkbox"
-            [checked]="params.state().selectAll && params.state().excludedIds.length === 0"
-            [indeterminate]="params.state().selectAll && params.state().excludedIds.length > 0"
-            (change)="onToggle($event)"
-        />
+        <div
+            role="presentation"
+            class="ag-labeled ag-label-align-right ag-checkbox ag-input-field ag-header-select-all"
+        >
+            <div
+                role="presentation"
+                class="ag-wrapper ag-input-wrapper ag-checkbox-input-wrapper"
+                [class.ag-checked]="params.state().selectAll && params.state().excludedIds.length === 0"
+                [class.ag-indeterminate]="params.state().selectAll && params.state().excludedIds.length > 0"
+            >
+                <input
+                    class="ag-input-field-input ag-checkbox-input"
+                    type="checkbox"
+                    tabindex="-1"
+                    (click)="onToggle($event)"
+                />
+            </div>
+        </div>
     `,
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-class KbqAgGridInfiniteSelectionHeaderComponent implements IHeaderAngularComp {
+export class KbqAgGridInfiniteSelectionHeaderComponent implements IHeaderAngularComp {
     protected params!: KbqAgGridInfiniteSelectionHeaderParams;
 
     agInit(params: KbqAgGridInfiniteSelectionHeaderParams): void {
@@ -56,14 +68,8 @@ class KbqAgGridInfiniteSelectionHeaderComponent implements IHeaderAngularComp {
     }
 
     protected onToggle(event: Event): void {
+        event.preventDefault();
         this.params.toggle();
-        // Angular caches [checked] and skips DOM update when the expression value is unchanged
-        // (e.g. indeterminate state has checked=false, and after deselect-all it is still false).
-        // Directly sync the native input to match the updated signal state.
-        if (!(event.currentTarget instanceof HTMLInputElement)) return;
-        const state = this.params.state();
-        event.currentTarget.checked = state.selectAll && state.excludedIds.length === 0;
-        event.currentTarget.indeterminate = state.selectAll && state.excludedIds.length > 0;
     }
 }
 
