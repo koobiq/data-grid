@@ -49,6 +49,7 @@ type KbqAgGridInfiniteSelectionHeaderParams = {
                     class="ag-input-field-input ag-checkbox-input"
                     type="checkbox"
                     tabindex="-1"
+                    [indeterminate]="params.state().selectAll && params.state().excludedIds.length > 0"
                     (click)="onToggle($event)"
                 />
             </div>
