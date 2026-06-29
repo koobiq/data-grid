@@ -6,7 +6,14 @@ import {
     KbqAgGridThemeModule
 } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
-import { AllCommunityModule, ColDef, GetRowIdFunc, ICellRendererParams, ModuleRegistry } from 'ag-grid-community';
+import {
+    AllCommunityModule,
+    ColDef,
+    GetRowIdFunc,
+    ICellRendererParams,
+    ModuleRegistry,
+    RowSelectionOptions
+} from 'ag-grid-community';
 import { devInjectDatasource, DevRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -33,6 +40,7 @@ const COLUMN_DEFS: ColDef[] = [
             animateRows="false"
             [columnDefs]="columnDefs"
             [defaultColDef]="defaultColDef"
+            [rowSelection]="rowSelection"
             [kbqAgGridInfiniteSelectionDatasource]="datasource()"
             [getRowId]="getRowId"
             [cacheBlockSize]="10"
@@ -66,6 +74,10 @@ export class DevInfiniteSelection {
     protected readonly defaultColDef: ColDef = {
         cellRendererSelector: (params: ICellRendererParams) =>
             params.data === undefined ? { component: KbqAgGridSkeletonCellRenderer } : undefined
+    };
+    protected readonly rowSelection: RowSelectionOptions<DevRowData> = {
+        mode: 'multiRow',
+        isRowSelectable: ({ data }) => data !== undefined
     };
 
     protected onSelectAllChange(state: KbqAgGridInfiniteSelectionState): void {

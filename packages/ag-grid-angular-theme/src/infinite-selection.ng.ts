@@ -184,7 +184,9 @@ export class KbqAgGridInfiniteSelection {
     }
 
     private configureRowSelection(): void {
+        const rowSelection = this.grid.api.getGridOption('rowSelection') ?? {};
         this.grid.api.setGridOption('rowSelection', {
+            ...rowSelection,
             mode: 'multiRow',
             checkboxes: true,
             headerCheckbox: false
