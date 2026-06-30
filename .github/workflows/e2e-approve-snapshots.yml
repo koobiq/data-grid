@@ -22,7 +22,7 @@ jobs:
       - uses: thollander/actions-comment-pull-request@v3
         with:
           message: 🔄 [Updating](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) snapshots.
-      - run: yarn run e2e:docker:update-snapshots
+      - run: npm run e2e:docker:update-snapshots
       - uses: stefanzweifel/git-auto-commit-action@v7
         id: commit-and-push
         with:
