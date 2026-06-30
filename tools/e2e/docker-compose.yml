@@ -3,6 +3,9 @@ services:
     build:
       context: ../..
       dockerfile: tools/e2e/Dockerfile
+    # Chromium renderer processes use /dev/shm for IPC; the Docker default (64 MB) causes browser
+    # crashes when many workers run in parallel. 2 GB is the standard recommendation for Playwright.
+    shm_size: '2gb'
     volumes:
       # Only the screenshot output directories are mounted back to the host.
       # Everything else (source, node_modules, dev server) lives entirely inside the container.

@@ -13,15 +13,15 @@ const getState = async (page: Page): Promise<{ selectAll: boolean; excludedIds: 
 // Wait until row data is actually loaded (skeleton cells in row 0 are gone).
 // In InfiniteRowModel, row elements appear in the DOM before data arrives (skeleton state).
 const waitForDataLoaded = async (page: Page): Promise<void> => {
-    await expect(getRow(page, 0)).toBeVisible({ timeout: 2000 });
+    await expect(getRow(page, 0)).toBeVisible({ timeout: 1000 });
     await expect(page.locator('.ag-row[row-index="0"] .kbq-ag-grid-skeleton-cell')).toHaveCount(0, {
-        timeout: 10000
+        timeout: 1000
     });
 };
 
 // Wait until a row is visually selected (ag-row-selected class applied).
 const waitForRowSelected = async (page: Page, rowIndex: number): Promise<void> => {
-    await expect(getRow(page, rowIndex)).toHaveClass(/ag-row-selected/, { timeout: 2000 });
+    await expect(getRow(page, rowIndex)).toHaveClass(/ag-row-selected/, { timeout: 1000 });
 };
 
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
@@ -79,8 +79,11 @@ test.describe('KbqAgGridInfiniteSelection', () => {
 
         await getHeaderCheckbox(page).click();
 
-        // Wait for row 0 deselection before reading state from DOM.
-        await expect(getRow(page, 0)).not.toHaveClass(/ag-row-selected/, { timeout: 2000 });
+        // Wait for the state signal to reflect deselection — more reliable than the DOM class,
+        // which can clear before the Angular signal flushes in slower CI environments.
+        await expect(page.getByTestId('e2eInfiniteSelectionState')).toContainText('"selectAll": false', {
+            timeout: 1000
+        });
 
         const state = await getState(page);
         expect(state.selectAll).toBe(false);
@@ -95,6 +98,11 @@ test.describe('KbqAgGridInfiniteSelection', () => {
         await getHeaderCheckbox(page).click();
         await waitForRowSelected(page, 0);
         await toggleRowSelection(page, 0);
+
+        // Wait for the state signal to reflect the exclusion before reading it.
+        await expect(page.getByTestId('e2eInfiniteSelectionState')).not.toContainText('"excludedIds": []', {
+            timeout: 5000
+        });
 
         const state = await getState(page);
         expect(state.selectAll).toBe(true);
@@ -132,7 +140,7 @@ test.describe('KbqAgGridInfiniteSelection', () => {
 
         // Wait for row 1 to be deselected before reading state from DOM.
         // Row 1 was selected (only row 0 was excluded); AG Grid removes ag-row-selected synchronously.
-        await expect(getRow(page, 1)).not.toHaveClass(/ag-row-selected/, { timeout: 2000 });
+        await expect(getRow(page, 1)).not.toHaveClass(/ag-row-selected/, { timeout: 1000 });
 
         const state = await getState(page);
         expect(state.selectAll).toBe(false);
@@ -158,7 +166,7 @@ test.describe('KbqAgGridInfiniteSelection', () => {
             el.scrollTop = 10000;
         });
 
-        await expect(getRow(page, 10)).toHaveClass(/ag-row-selected/, { timeout: 2000 });
+        await expect(getRow(page, 10)).toHaveClass(/ag-row-selected/, { timeout: 1000 });
     });
 
     test('auto-selects a block that loads only after select-all (not in initial viewport)', async ({ page }) => {
@@ -177,8 +185,8 @@ test.describe('KbqAgGridInfiniteSelection', () => {
 
         // Rows in a block that didn't exist at select-all time must be auto-selected.
         // Datasource has a 300 ms delay, so allow generous timeout.
-        await expect(getRow(page, 20)).toHaveClass(/ag-row-selected/, { timeout: 3000 });
-        await expect(getRow(page, 25)).toHaveClass(/ag-row-selected/, { timeout: 3000 });
+        await expect(getRow(page, 20)).toHaveClass(/ag-row-selected/, { timeout: 1000 });
+        await expect(getRow(page, 21)).toHaveClass(/ag-row-selected/, { timeout: 1000 });
     });
 
     test('Ctrl+A selects all visible rows', async ({ page }) => {

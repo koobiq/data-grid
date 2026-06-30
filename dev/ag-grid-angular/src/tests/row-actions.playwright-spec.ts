@@ -19,7 +19,7 @@ test.describe('KbqAgGridRowActions', () => {
                 ]
             });
         });
-        await getRow(page, 1).first().hover();
+        await getRow(page, 1).first().hover({ timeout: 1000 });
         await expect(getScreenshotTarget(page)).toHaveScreenshot('row-actions-hover-light.png');
     });
 
