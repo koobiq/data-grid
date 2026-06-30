@@ -45,7 +45,7 @@ const getHeaderCellLeft = async (page: Page, colId: string): Promise<number> =>
 
 test.describe('KbqAgGridColumnMenu', () => {
     // Screenshot tests are only valid on CI. Do not update snapshots locally.
-    test('open panel visual — light theme', async ({ page }) => {
+    test('open panel visual', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 700 });
         await page.goto('/e2e/column-menu');
         const api = await getAgGridApi(page);

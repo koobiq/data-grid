@@ -6,7 +6,7 @@ const getDataRows = (page: Page): Locator => page.locator('.ag-row[row-index]');
 
 test.describe('DevLazyLoading', () => {
     // Screenshot tests are only valid on CI. Do not update snapshots locally.
-    test('renders skeleton cells in light theme on initial load', async ({ page }) => {
+    test('renders skeleton cells on initial load', async ({ page }) => {
         await page.setViewportSize({ width: 1024, height: 600 });
         await page.goto('/e2e/lazy-loading');
         await expect(getScreenshotTarget(page)).toHaveScreenshot('lazy-loading-light.png');

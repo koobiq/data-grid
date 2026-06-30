@@ -69,6 +69,7 @@ You can apply custom keyboard shortcuts by adding the corresponding directives t
 | `Ctrl + Click`  | Select row                    | `kbqAgGridSelectRowsByCtrlClick`  |
 | `Ctrl + C`      | Copy selected rows            | `kbqAgGridCopyByCtrlC`            |
 | `Shift + Click` | Select/deselect range of rows | `kbqAgGridSelectRowsByShiftClick` |
+| `Ctrl + A`      | Select all rows               | `kbqAgGridInfiniteSelection`      |
 
 ### State persistence
 

@@ -5,6 +5,7 @@ import { IDatasource, IGetRowsParams } from 'ag-grid-community';
 import { catchError, of, shareReplay } from 'rxjs';
 
 export type DevRowData = {
+    id: string;
     athlete: string;
     age: number;
     country: string;

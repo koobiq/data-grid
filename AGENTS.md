@@ -90,7 +90,7 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Avoid the `any` type; use `unknown` when type is uncertain
 - Prefer `readonly` where appropriate (e.g., signals, injections)
 - Use `protected` for template bindings
-- All public methods and properties MUST have a JSDoc comment describing their purpose
+- All public methods and properties MUST have a comment describing their purpose (JSDoc format is optional)
 
 ### Angular Best Practices
 

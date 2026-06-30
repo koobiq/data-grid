@@ -10,7 +10,7 @@ const getSkeletonHeaderCells = (page: Page): Locator =>
 
 test.describe('KbqAgGridLoadingOverlay', () => {
     // Screenshot tests are only valid on CI. Do not update snapshots locally.
-    test('renders skeleton overlay in light theme', async ({ page }) => {
+    test('renders skeleton overlay', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 400 });
         await page.goto('/e2e/loading-overlay');
         await expect(getScreenshotTarget(page)).toHaveScreenshot('loading-overlay-light.png');
