@@ -365,6 +365,28 @@ describe(KbqAgGridInfiniteSelection.name, () => {
             expect(stub.mock.getDisplayedRowAtIndex).toHaveBeenCalledTimes(3);
         });
 
+        it('auto-selects newly loaded rows when datasource passes lastRow=-1 (non-final page)', async () => {
+            const { stub, directive, ds, wrapped } = await setup();
+
+            directive.toggle(); // selectAll=true
+            stub.mock.setNodesSelected.mockClear();
+
+            const node = makeNode('r10', false);
+            stub.mock.getDisplayedRowAtIndex.mockImplementation((i: number) => (i === 10 ? node : undefined));
+
+            const params = makeParams({ startRow: 10, endRow: 20 });
+            wrapped.getRows(params);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-unsafe-member-access
+            const originalParams = (ds.getRows as jest.Mock).mock.calls[0][0] as IGetRowsParams;
+            // The dev datasource (and many real datasources) pass -1 for all non-last pages
+            originalParams.successCallback([{ id: 'r10' }], -1);
+
+            // eslint-disable-next-line @typescript-eslint/strict-void-return
+            await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+            expect(stub.mock.setNodesSelected).toHaveBeenCalledWith({ nodes: [node], newValue: true });
+        });
+
         it('does not auto-select when selectAll=false', async () => {
             const { stub, ds, wrapped } = await setup();
 

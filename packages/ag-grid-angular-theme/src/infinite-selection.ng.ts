@@ -238,7 +238,8 @@ export class KbqAgGridInfiniteSelection {
 
                             const excludedIds = new Set(this._state().excludedIds);
                             const nodesToSelect: IRowNode[] = [];
-                            const endRow = lastRow != null ? Math.min(params.endRow, lastRow) : params.endRow;
+                            const endRow =
+                                lastRow != null && lastRow >= 0 ? Math.min(params.endRow, lastRow) : params.endRow;
 
                             for (let i = params.startRow; i < endRow; i++) {
                                 const node = this.grid.api.getDisplayedRowAtIndex(i);

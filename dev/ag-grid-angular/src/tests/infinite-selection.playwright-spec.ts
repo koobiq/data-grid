@@ -161,6 +161,26 @@ test.describe('KbqAgGridInfiniteSelection', () => {
         await expect(getRow(page, 10)).toHaveClass(/ag-row-selected/, { timeout: 2000 });
     });
 
+    test('auto-selects a block that loads only after select-all (not in initial viewport)', async ({ page }) => {
+        // Small viewport: ~4 rows visible → only block 0 (rows 0-9) loads initially.
+        await page.setViewportSize({ width: 1280, height: 200 });
+        await page.goto('/e2e/infinite-selection');
+        await waitForDataLoaded(page);
+
+        await getHeaderCheckbox(page).click();
+        await waitForRowSelected(page, 0);
+
+        // Scroll far past the initial viewport to trigger loading of blocks 2+ (rows 20+).
+        await page.locator('.ag-body-viewport').evaluate((el: Element) => {
+            el.scrollTop = 10000;
+        });
+
+        // Rows in a block that didn't exist at select-all time must be auto-selected.
+        // Datasource has a 300 ms delay, so allow generous timeout.
+        await expect(getRow(page, 20)).toHaveClass(/ag-row-selected/, { timeout: 3000 });
+        await expect(getRow(page, 25)).toHaveClass(/ag-row-selected/, { timeout: 3000 });
+    });
+
     test('Ctrl+A selects all visible rows', async ({ page }) => {
         await page.goto('/e2e/infinite-selection');
         await waitForDataLoaded(page);
