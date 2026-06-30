@@ -44,7 +44,7 @@ const getHeaderCellLeft = async (page: Page, colId: string): Promise<number> =>
     page.locator(`.ag-header-cell[col-id="${colId}"]`).evaluate((el: Element) => el.getBoundingClientRect().left);
 
 test.describe('KbqAgGridColumnMenu', () => {
-    // Screenshot tests are only valid on CI. Do not update snapshots locally.
+    // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('open panel visual', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 700 });
         await page.goto('/e2e/column-menu');

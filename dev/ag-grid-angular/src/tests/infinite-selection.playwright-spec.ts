@@ -27,7 +27,7 @@ const waitForRowSelected = async (page: Page, rowIndex: number): Promise<void> =
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
 
 test.describe('KbqAgGridInfiniteSelection', () => {
-    // Screenshot tests are only valid on CI. Do not update snapshots locally.
+    // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('initial state', async ({ page }) => {
         await page.goto('/e2e/infinite-selection');
         await waitForDataLoaded(page);

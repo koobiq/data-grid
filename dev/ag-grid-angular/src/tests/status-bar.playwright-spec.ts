@@ -5,7 +5,7 @@ const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreen
 const getStatusBarSelected = (page: Page): Locator => page.getByTestId('e2eStatusBarSelected');
 
 test.describe('KbqAgGridStatusBar', () => {
-    // Screenshot tests are only valid on CI. Do not update snapshots locally.
+    // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('renders status bar', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/e2e/status-bar');

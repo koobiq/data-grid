@@ -5,7 +5,7 @@ import { getRow } from './utils/helpers';
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
 
 test.describe('KbqAgGridRowActions', () => {
-    // Screenshot tests are only valid on CI. Do not update snapshots locally.
+    // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('shows actions overlay on hover with horizontal scroll', async ({ page }) => {
         await page.setViewportSize({ width: 650, height: 500 });
         await page.goto('/e2e/row-actions');

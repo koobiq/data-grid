@@ -5,7 +5,7 @@ import { enableDarkTheme } from './utils/theme';
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
 
 test.describe('KbqAgGridAngularTheme', () => {
-    // Screenshot tests are only valid on CI. Do not update snapshots locally.
+    // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('default state', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/e2e/theme');
@@ -32,7 +32,7 @@ test.describe('KbqAgGridAngularTheme', () => {
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-default-dark.png');
     });
 
-    // Screenshot tests are only valid on CI. Do not update snapshots locally.
+    // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('with pinned columns', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/e2e/theme');
@@ -58,7 +58,7 @@ test.describe('KbqAgGridAngularTheme', () => {
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-pinned-columns-light.png');
     });
 
-    // Screenshot tests are only valid on CI. Do not update snapshots locally.
+    // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('with opened filter popup', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/e2e/theme');

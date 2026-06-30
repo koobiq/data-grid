@@ -5,7 +5,7 @@ const getSkeletonCells = (page: Page): Locator => page.locator('.kbq-ag-grid-ske
 const getDataRows = (page: Page): Locator => page.locator('.ag-row[row-index]');
 
 test.describe('DevLazyLoading', () => {
-    // Screenshot tests are only valid on CI. Do not update snapshots locally.
+    // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('renders skeleton cells on initial load', async ({ page }) => {
         await page.setViewportSize({ width: 1024, height: 600 });
         await page.goto('/e2e/lazy-loading');
