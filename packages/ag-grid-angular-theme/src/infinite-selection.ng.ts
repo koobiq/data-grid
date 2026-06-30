@@ -214,15 +214,15 @@ export class KbqAgGridInfiniteSelection {
     private onSelectionChanged(): void {
         if (this.applyingSelection || !this._state().selectAll) return;
 
-        const excludedIds: string[] = [];
+        const excluded = new Set(this._state().excludedIds);
 
         this.grid.api.forEachNode((node) => {
-            if (node.id && !node.isSelected()) {
-                excludedIds.push(node.id);
-            }
+            if (!node.id) return;
+            if (!node.isSelected()) excluded.add(node.id);
+            else excluded.delete(node.id);
         });
 
-        this.setState({ ...this._state(), excludedIds });
+        this.setState({ ...this._state(), excludedIds: [...excluded] });
     }
 
     private wrapDatasource(datasource: IDatasource): IDatasource {

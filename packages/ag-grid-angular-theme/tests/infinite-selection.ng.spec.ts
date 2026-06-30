@@ -324,6 +324,25 @@ describe(KbqAgGridInfiniteSelection.name, () => {
 
             expect(directive.state()).toEqual({ selectAll: false, excludedIds: [] });
         });
+
+        it('preserves excludedIds from evicted blocks when a subsequent selectionChanged fires', async () => {
+            const { stub, directive } = await setup();
+
+            directive.toggle(); // selectAll=true
+
+            // r1 is deselected → added to excludedIds
+            stub.mock.nodes.push(makeNode('r1', false), makeNode('r2', true));
+            stub.emitSelectionChanged();
+            expect(directive.state().excludedIds).toContain('r1');
+
+            // Simulate maxBlocksInCache eviction: r1's block is gone, only r3 visible now
+            stub.mock.nodes.length = 0;
+            stub.mock.nodes.push(makeNode('r3', true));
+            stub.emitSelectionChanged();
+
+            // r1 must still be excluded — evicted block exclusions must not be lost
+            expect(directive.state().excludedIds).toContain('r1');
+        });
     });
 
     describe('wrapDatasource', () => {
