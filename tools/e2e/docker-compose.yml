@@ -1,5 +1,6 @@
 services:
   e2e:
+    platform: linux/arm64
     build:
       context: ../..
       dockerfile: tools/e2e/Dockerfile
