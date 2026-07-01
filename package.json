@@ -71,7 +71,7 @@
         "@nx/angular": "^20.8.4",
         "@nx/jest": "^20.8.4",
         "@nx/js": "^20.8.4",
-        "@playwright/test": "^1.60.0",
+        "@playwright/test": "^1.61.1",
         "@schematics/angular": "^18.2.18",
         "@swc-node/register": "^1.11.1",
         "@swc/core": "^1.15.40",
