@@ -12,15 +12,12 @@ permissions:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
-      - uses: ./.github/actions/setup-node
-      - run: yarn run e2e:setup
       - id: run-e2e-tests
-        run: |
-          yarn run e2e:dev-ag-grid-angular
+        run: npm run e2e:docker
       - uses: actions/upload-artifact@v7
         if: ${{ always() }}
         id: upload-report

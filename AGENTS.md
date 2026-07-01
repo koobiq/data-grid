@@ -26,31 +26,36 @@ yarn husky
 
 ```bash
 # Development
-yarn dev:theme                    # Serve dev app (port 4200)
+yarn run dev:theme                              # Serve dev app (port 4200)
 
 # Building
-yarn build:theme                  # Build the publishable theme package
-yarn build                        # Build all projects
+yarn run build:theme                            # Build the publishable theme package
+yarn run build                                  # Build all projects
 
 # Lint (runs prettier, eslint, stylelint in parallel)
-npm run lint
+yarn run lint
 
 # Auto-fix lint errors
-npm run lint:fix
+yarn run lint:fix
 
 # Unit Testing (Jest)
-yarn unit:theme                   # Run unit tests for the theme package
-yarn unit                         # Run unit tests for all projects
-npx jest <TEST_PATH_PATTERN>     # Run specific unit tests (e.g., npx jest packages/ag-grid-angular-theme/tests/theme.ng.spec.ts)
+yarn run unit:theme                             # Run unit tests for the theme package
+yarn run unit                                   # Run unit tests for all projects
+npx jest <TEST_PATH_PATTERN>                    # Run specific unit tests (e.g., npx jest packages/ag-grid-angular-theme/tests/theme.ng.spec.ts)
 
 
 # E2E Testing (Playwright)
-yarn e2e:setup                              # Install Playwright browsers
-yarn e2e:dev-ag-grid-angular                # Run E2E tests
-npx playwright test <TEST_PATH_PATTERN>    # Run specific E2E tests (e.g., npx playwright test dev/ag-grid-angular/src/tests/theme.playwright-spec.ts)
+yarn run e2e:setup                              # Install Playwright browsers
+yarn run e2e:dev-ag-grid-angular                # Run E2E tests
+npx playwright test <TEST_PATH_PATTERN>         # Run specific E2E tests (e.g., npx playwright test dev/ag-grid-angular/src/tests/theme.playwright-spec.ts)
+npx playwright show-report                      # Show the last E2E test report
+
+# Screenshots differ across operating systems — always use Docker to update snapshots:
+yarn run e2e:docker                             # Run E2E tests in Docker (matches CI environment)
+yarn run e2e:docker:update-snapshots            # Run E2E tests in Docker and update snapshots
 
 # Clean
-yarn clean                        # Reset Nx cache, clear Playwright cache, remove dist/tmp
+yarn run clean                                  # Reset Nx cache, clear Playwright cache, remove dist/tmp
 ```
 
 ## Repository Structure
@@ -72,9 +77,11 @@ dev/
 └── ag-grid-angular/                        # Demo app for development and E2E testing
     ├── src/main.ts                         # Application entry point
     └── src/tests/                          # Playwright E2E tests
+        ├── __screenshots__/*.png           # E2E test screenshots
+        ├── __snapshots__/*.txt             # E2E test snapshots
         ├── utils/*.ts                      # Utility functions for E2E tests
         ├── *.ng.ts                         # E2e test components
-        └── *.playwright-spec.ts            # E2e test specs (playwright)
+        └── *.playwright-spec.ts            # E2e test specs
 ```
 
 ## Best Practices

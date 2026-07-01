@@ -22,15 +22,12 @@ jobs:
       - uses: thollander/actions-comment-pull-request@v3
         with:
           message: 🔄 [Updating](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) snapshots.
-      - uses: ./.github/actions/setup-node
-      - run: yarn run e2e:setup
-      - run: |
-          yarn run e2e:dev-ag-grid-angular --update-snapshots
+      - run: npm run e2e:docker:update-snapshots
       - uses: stefanzweifel/git-auto-commit-action@v7
         id: commit-and-push
         with:
           commit_message: 'test: updated e2e snapshots'
-          file_pattern: '**/*.png'
+          file_pattern: '**/*.png **/*.txt'
       - uses: thollander/actions-comment-pull-request@v3
         if: ${{ steps.commit-and-push.outputs.changes_detected == 'true' }}
         with:
