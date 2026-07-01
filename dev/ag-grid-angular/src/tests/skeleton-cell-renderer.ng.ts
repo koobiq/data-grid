@@ -20,7 +20,7 @@ const COLUMN_DEFS: ColDef[] = [
 @Component({
     standalone: true,
     imports: [AgGridModule, KbqAgGridThemeModule],
-    selector: 'dev-lazy-loading',
+    selector: 'dev-skeleton-cell-renderer',
     template: `
         <ag-grid-angular
             data-testid="e2eScreenshotTarget"
@@ -44,7 +44,7 @@ const COLUMN_DEFS: ColDef[] = [
     `,
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DevLazyLoading {
+export class DevSkeletonCellRenderer {
     readonly columnDefs = COLUMN_DEFS;
     readonly datasource = devInjectDatasource();
     readonly defaultColDef: ColDef = {

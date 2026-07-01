@@ -48,6 +48,7 @@ npx jest <TEST_PATH_PATTERN>                    # Run specific unit tests (e.g.,
 yarn run e2e:setup                              # Install Playwright browsers
 yarn run e2e:dev-ag-grid-angular                # Run E2E tests
 npx playwright test <TEST_PATH_PATTERN>         # Run specific E2E tests (e.g., npx playwright test dev/ag-grid-angular/src/tests/theme.playwright-spec.ts)
+npx playwright show-report                      # Show the last E2E test report
 
 # Screenshots differ across operating systems — always use Docker to update snapshots:
 yarn run e2e:docker                             # Run E2E tests in Docker (matches CI environment)

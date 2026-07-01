@@ -14,6 +14,7 @@ COPY . .
 
 # Disable Nx daemon — it does not work reliably in containers
 ENV NX_DAEMON=false
+ENV CI=true
 
 # playwright.config.ts automatically starts the Angular dev server via the webServer block,
 # waits for it to be ready, runs the tests, and exits

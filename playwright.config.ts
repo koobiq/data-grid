@@ -13,7 +13,7 @@ export default defineConfig({
     fullyParallel: true,
     timeout: 15 * 1000,
     forbidOnly: isCI,
-    retries: isCI ? 2 : 0,
+    retries: isCI ? 0 : undefined,
     workers: isCI ? '100%' : undefined,
     reporter: [
         ['list', { printSteps: true }],
@@ -35,7 +35,8 @@ export default defineConfig({
             threshold: 0,
             scale: 'device',
             animations: 'disabled'
-        }
+        },
+        timeout: 2000
     },
     webServer: {
         command: webServerCommand,

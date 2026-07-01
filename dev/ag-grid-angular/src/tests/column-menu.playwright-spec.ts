@@ -49,6 +49,8 @@ test.describe('KbqAgGridColumnMenu', () => {
         await page.setViewportSize({ width: 768, height: 700 });
         await page.goto('/e2e/column-menu');
         const api = await getAgGridApi(page);
+        // Wait for row data to load via HTTP before manipulating grid state.
+        await page.locator('.ag-row[row-index]').first().waitFor();
         await api.evaluate((gridApi) => {
             gridApi.setColumnsPinned(['athlete'], 'left');
             gridApi.setColumnsVisible(['year', 'sport', 'gold', 'silver', 'bronze', 'total'], false);

@@ -71,6 +71,7 @@ const ROW_SELECTION: RowSelectionOptions = {
         <ag-grid-angular
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
+            kbqAgGridThemeDisableCellFocusStyles
             animateRows="false"
             [kbqAgGridStatusBar]="statusBarComponent"
             [rowData]="rowData()"

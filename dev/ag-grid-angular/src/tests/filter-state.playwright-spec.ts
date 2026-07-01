@@ -97,7 +97,7 @@ test.describe('KbqAgGridFilterState', () => {
 
             await page.reload();
 
-            await expect(page.locator(floatingFilterInput('athlete'))).toHaveValue('Michael');
+            await expect(page.locator(floatingFilterInput('athlete'))).toHaveValue('Michael', { timeout: 10_000 });
         });
 
         test('removes filter state from localStorage when filter is cleared', async ({ page }) => {
@@ -125,7 +125,7 @@ test.describe('KbqAgGridFilterState', () => {
             );
             await page.goto('/e2e/filter-state');
 
-            await expect(page.locator(floatingFilterInput('athlete'))).toHaveValue('Phelps');
+            await expect(page.locator(floatingFilterInput('athlete'))).toHaveValue('Phelps', { timeout: 10_000 });
         });
     });
 
@@ -157,7 +157,7 @@ test.describe('KbqAgGridFilterState', () => {
 
             await page.reload();
 
-            await expect(page.locator(floatingFilterInput('athlete'))).toHaveValue('Michael');
+            await expect(page.locator(floatingFilterInput('athlete'))).toHaveValue('Michael', { timeout: 10_000 });
         });
 
         test('removes filter state from URL when filter is cleared', async ({ page }) => {
@@ -179,7 +179,7 @@ test.describe('KbqAgGridFilterState', () => {
                 })
             );
 
-            await expect(page.locator(floatingFilterInput('athlete'))).toHaveValue('Phelps');
+            await expect(page.locator(floatingFilterInput('athlete'))).toHaveValue('Phelps', { timeout: 10_000 });
         });
     });
 });
