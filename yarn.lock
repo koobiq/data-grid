@@ -4292,10 +4292,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@koobiq/icons@npm:^10.10.2":
-  version: 10.10.2
-  resolution: "@koobiq/icons@npm:10.10.2"
-  checksum: 10c0/dc642d76b071eb67ecc281445f32b96dac9a2ce731cb81d46ba5ef68b59fd1ef22fb85571ba29e1f8fdaa55f90bff32aa25152ba815ec15672d08afa10829eda
+"@koobiq/icons@npm:^10.10.3":
+  version: 10.10.3
+  resolution: "@koobiq/icons@npm:10.10.3"
+  checksum: 10c0/4a737dff76221bfb751e3067fffc2f8a32530742d28982b7408a914f13dd4e04029763538624f767c065ec212900c90cc947c60f157ae01af19beb118cfae58c
   languageName: node
   linkType: hard
 
@@ -10343,7 +10343,7 @@ __metadata:
     "@commitlint/config-conventional": "npm:^19.8.1"
     "@fontsource/inter": "npm:^5.2.8"
     "@koobiq/design-tokens": "npm:^3.17.2"
-    "@koobiq/icons": "npm:^10.10.2"
+    "@koobiq/icons": "npm:^10.10.3"
     "@nx/angular": "npm:^20.8.4"
     "@nx/jest": "npm:^20.8.4"
     "@nx/js": "npm:^20.8.4"
