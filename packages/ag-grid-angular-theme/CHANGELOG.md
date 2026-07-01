@@ -1,3 +1,20 @@
+## 34.4.0 (2026-07-01)
+
+### 🚀 Features
+
+- **ag-grid-angular-theme:** added `KbqAgGridInfiniteSelection` directive (#DS-3628) ([#177](https://github.com/koobiq/data-grid/pull/177))
+- **ag-grid-angular-theme:** added `KbqAgGridColumnMenu` directive (#DS-3660) ([#167](https://github.com/koobiq/data-grid/pull/167))
+- **ag-grid-angular-theme:** added multi sort styles (#DS-4844) ([#175](https://github.com/koobiq/data-grid/pull/175))
+- **ag-grid-angular-theme:** added `KbqAgGridLoadingOverlay`, `KbqAgGridSkeletonCellRenderer` directives (#DS-4937) ([#174](https://github.com/koobiq/data-grid/pull/174))
+
+### 🩹 Fixes
+
+- **ag-grid-angular-theme:** pinned column overflow delay (#DS-5108) ([#176](https://github.com/koobiq/data-grid/pull/176))
+
+### ❤️ Thank You
+
+- Artem Belik @artembelik
+
 ## 34.3.1 (2026-05-15)
 
 ### 🩹 Fixes
