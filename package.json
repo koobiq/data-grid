@@ -88,6 +88,7 @@
         "eslint": "^8.57.0",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-eslint-comments": "^3.2.0",
+        "eslint-plugin-playwright": "^2.10.4",
         "eslint-plugin-prettier": "^5.5.6",
         "eslint-plugin-promise": "^7.3.0",
         "eslint-plugin-rxjs": "^5.0.3",

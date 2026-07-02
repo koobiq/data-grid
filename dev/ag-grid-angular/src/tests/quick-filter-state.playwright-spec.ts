@@ -67,7 +67,7 @@ test.describe('KbqAgGridQuickFilterState', () => {
 
             await expect.poll(async () => getDisplayedRowCount(page), { timeout: 10_000 }).toBeGreaterThan(0);
             await expect(page.locator('.ag-row')).not.toHaveCount(0);
-            await expect(page.locator('.ag-overlay-no-rows-center')).not.toBeVisible();
+            await expect(page.locator('.ag-overlay-no-rows-center')).toBeHidden();
         });
 
         test('removes quick filter state from localStorage when text is cleared', async ({ page }) => {
@@ -123,7 +123,7 @@ test.describe('KbqAgGridQuickFilterState', () => {
 
             await expect.poll(async () => getDisplayedRowCount(page), { timeout: 10_000 }).toBeGreaterThan(0);
             await expect(page.locator('.ag-row')).not.toHaveCount(0);
-            await expect(page.locator('.ag-overlay-no-rows-center')).not.toBeVisible();
+            await expect(page.locator('.ag-overlay-no-rows-center')).toBeHidden();
         });
 
         test('removes quick filter state from URL when text is cleared', async ({ page }) => {

@@ -77,11 +77,11 @@ test.describe('KbqAgGridColumnState', () => {
             const initialWidth = await headerCell.evaluate((el: Element) => el.getBoundingClientRect().width);
             const bounds = await resizer.boundingBox();
 
-            if (!bounds) throw new Error('resizer not found');
+            expect(bounds).not.toBeNull();
 
-            await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+            await page.mouse.move(bounds!.x + bounds!.width / 2, bounds!.y + bounds!.height / 2);
             await page.mouse.down();
-            await page.mouse.move(bounds.x + bounds.width / 2 + 60, bounds.y);
+            await page.mouse.move(bounds!.x + bounds!.width / 2 + 60, bounds!.y);
             await page.mouse.up();
 
             await expect
@@ -99,11 +99,11 @@ test.describe('KbqAgGridColumnState', () => {
             const resizer = page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-resize');
             const bounds = await resizer.boundingBox();
 
-            if (!bounds) throw new Error('resizer not found');
+            expect(bounds).not.toBeNull();
 
-            await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+            await page.mouse.move(bounds!.x + bounds!.width / 2, bounds!.y + bounds!.height / 2);
             await page.mouse.down();
-            await page.mouse.move(bounds.x + bounds.width / 2 + 60, bounds.y);
+            await page.mouse.move(bounds!.x + bounds!.width / 2 + 60, bounds!.y);
             await page.mouse.up();
 
             const widthBeforeReload = await page
@@ -213,7 +213,7 @@ test.describe('KbqAgGridColumnState', () => {
             );
             await page.goto('/e2e/column-state');
 
-            await expect(page.locator('.ag-header-cell[col-id="athlete"]')).not.toBeVisible();
+            await expect(page.locator('.ag-header-cell[col-id="athlete"]')).toBeHidden();
         });
     });
 
@@ -255,11 +255,11 @@ test.describe('KbqAgGridColumnState', () => {
             const initialWidth = await headerCell.evaluate((el: Element) => el.getBoundingClientRect().width);
             const bounds = await resizer.boundingBox();
 
-            if (!bounds) throw new Error('resizer not found');
+            expect(bounds).not.toBeNull();
 
-            await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+            await page.mouse.move(bounds!.x + bounds!.width / 2, bounds!.y + bounds!.height / 2);
             await page.mouse.down();
-            await page.mouse.move(bounds.x + bounds.width / 2 + 60, bounds.y);
+            await page.mouse.move(bounds!.x + bounds!.width / 2 + 60, bounds!.y);
             await page.mouse.up();
 
             await expect
@@ -276,11 +276,11 @@ test.describe('KbqAgGridColumnState', () => {
             const resizer = page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-resize');
             const bounds = await resizer.boundingBox();
 
-            if (!bounds) throw new Error('resizer not found');
+            expect(bounds).not.toBeNull();
 
-            await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+            await page.mouse.move(bounds!.x + bounds!.width / 2, bounds!.y + bounds!.height / 2);
             await page.mouse.down();
-            await page.mouse.move(bounds.x + bounds.width / 2 + 60, bounds.y);
+            await page.mouse.move(bounds!.x + bounds!.width / 2 + 60, bounds!.y);
             await page.mouse.up();
 
             const widthBeforeReload = await page
@@ -380,7 +380,7 @@ test.describe('KbqAgGridColumnState', () => {
                 ])
             );
 
-            await expect(page.locator('.ag-header-cell[col-id="athlete"]')).not.toBeVisible();
+            await expect(page.locator('.ag-header-cell[col-id="athlete"]')).toBeHidden();
         });
     });
 });

@@ -1,6 +1,8 @@
 dist
 node_modules
 tmp
+.angular
+playwright-report
 
 # eslint ignores root level "dot" files by default
 !/.*.js

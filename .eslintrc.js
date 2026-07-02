@@ -172,6 +172,18 @@ const ngTemplateRules = {
 };
 
 /** @type {import('eslint').Linter.ConfigOverride} */
+const playwrightRules = {
+    files: ['*.playwright-spec.ts'],
+    extends: ['plugin:playwright/recommended'],
+    rules: {
+        'playwright/expect-expect': [
+            'warn',
+            { assertFunctionNames: ['expect', 'expectFilterValue', 'waitForRowSelected'] }
+        ]
+    }
+};
+
+/** @type {import('eslint').Linter.ConfigOverride} */
 const prettierRules = {
     files: ['*.js', '*.ts', '*.html'],
     extends: ['plugin:prettier/recommended']
@@ -199,6 +211,7 @@ const config = {
         tsPackagesRules,
         ngTsPackagesRules,
         ngTemplateRules,
+        playwrightRules,
         // should be last
         prettierRules
     ]
