@@ -1,14 +1,17 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 import { getAgGridApi } from './utils/api';
+import { getCell, toggleRowSelection } from './utils/helpers';
 import { enableDarkTheme } from './utils/theme';
 
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
 
 test.describe('KbqAgGridAngularTheme', () => {
-    // Screenshot tests are only valid on CI. Do not update snapshots locally.
+    // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('default state', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/e2e/theme');
+        // Wait for row data to load via HTTP before manipulating grid state.
+        await page.locator('.ag-row[row-index]').first().waitFor();
         await (
             await getAgGridApi(page)
         ).evaluate((api) => {
@@ -19,23 +22,22 @@ test.describe('KbqAgGridAngularTheme', () => {
                     { colId: 'date', sort: 'asc', sortIndex: 2 }
                 ]
             });
-            api.setFocusedCell(0, 'athlete');
-            api.forEachNode((node) => {
-                if (node.rowIndex === 4 || node.rowIndex === 5) {
-                    node.setSelected(true);
-                }
-            });
         });
+        await toggleRowSelection(page, 4);
+        await toggleRowSelection(page, 5);
+        await getCell(page, 0, 'athlete').click();
         await expect(page.locator('.ag-paging-panel')).toBeVisible();
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-default-light.png');
         await enableDarkTheme(page);
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-default-dark.png');
     });
 
-    // Screenshot tests are only valid on CI. Do not update snapshots locally.
+    // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('with pinned columns', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/e2e/theme');
+        // Wait for row data to load via HTTP before manipulating grid state.
+        await page.locator('.ag-row[row-index]').first().waitFor();
         await (
             await getAgGridApi(page)
         ).evaluate((api) => {
@@ -46,19 +48,17 @@ test.describe('KbqAgGridAngularTheme', () => {
                     { colId: 'total', pinned: 'right' }
                 ]
             });
-            api.forEachNode((node) => {
-                if (node.rowIndex === 4 || node.rowIndex === 5) {
-                    node.setSelected(true);
-                }
-            });
         });
+        await toggleRowSelection(page, 3);
+        await toggleRowSelection(page, 5);
+        await toggleRowSelection(page, 6);
         await page
             .locator('.ag-center-cols-viewport')
             .evaluate((element: HTMLElement) => element.scrollTo({ left: 10 }));
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-pinned-columns-light.png');
     });
 
-    // Screenshot tests are only valid on CI. Do not update snapshots locally.
+    // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('with opened filter popup', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/e2e/theme');

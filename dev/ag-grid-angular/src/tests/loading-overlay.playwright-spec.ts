@@ -9,7 +9,7 @@ const getSkeletonHeaderCells = (page: Page): Locator =>
     page.locator('.kbq-ag-grid-skeleton-row_header .kbq-ag-grid-skeleton-cell');
 
 test.describe('KbqAgGridLoadingOverlay', () => {
-    // Screenshot tests are only valid on CI. Do not update snapshots locally.
+    // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('renders skeleton overlay', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 400 });
         await page.goto('/e2e/loading-overlay');

@@ -95,8 +95,9 @@ if (isDevMode()) {
                 loadComponent: async () => import('./tests/loading-overlay.ng').then((m) => m.DevLoadingOverlay)
             },
             {
-                path: 'lazy-loading',
-                loadComponent: async () => import('./tests/lazy-loading.ng').then((m) => m.DevLazyLoading)
+                path: 'skeleton-cell-renderer',
+                loadComponent: async () =>
+                    import('./tests/skeleton-cell-renderer.ng').then((m) => m.DevSkeletonCellRenderer)
             },
             {
                 path: 'infinite-selection',

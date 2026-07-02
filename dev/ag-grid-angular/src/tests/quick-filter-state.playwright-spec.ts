@@ -65,7 +65,7 @@ test.describe('KbqAgGridQuickFilterState', () => {
             );
             await page.goto('/e2e/quick-filter-state');
 
-            await expect.poll(async () => getDisplayedRowCount(page)).toBeGreaterThan(0);
+            await expect.poll(async () => getDisplayedRowCount(page), { timeout: 10_000 }).toBeGreaterThan(0);
             await expect(page.locator('.ag-row')).not.toHaveCount(0);
             await expect(page.locator('.ag-overlay-no-rows-center')).not.toBeVisible();
         });
@@ -121,9 +121,7 @@ test.describe('KbqAgGridQuickFilterState', () => {
         test('filters rows when quick filter is restored from URL', async ({ page }) => {
             await page.goto(buildQuickFilterUrl('Michael'));
 
-            const rowCount = await getDisplayedRowCount(page);
-
-            expect(rowCount).toBeGreaterThan(0);
+            await expect.poll(async () => getDisplayedRowCount(page), { timeout: 10_000 }).toBeGreaterThan(0);
             await expect(page.locator('.ag-row')).not.toHaveCount(0);
             await expect(page.locator('.ag-overlay-no-rows-center')).not.toBeVisible();
         });

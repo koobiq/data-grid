@@ -61,7 +61,7 @@ test.describe('KbqAgGridExternalFilterState', () => {
             );
             await page.goto('/e2e/external-filter-state');
 
-            await expect(getSportSelect(page)).toHaveValue(OPTION);
+            await expect(getSportSelect(page)).toHaveValue(OPTION, { timeout: 10_000 });
         });
 
         test('filters rows when external filter is restored from localStorage', async ({ page }) => {
@@ -71,7 +71,7 @@ test.describe('KbqAgGridExternalFilterState', () => {
             );
             await page.goto('/e2e/external-filter-state');
 
-            await expect.poll(async () => getDisplayedRowCount(page)).toBeGreaterThan(0);
+            await expect.poll(async () => getDisplayedRowCount(page), { timeout: 10_000 }).toBeGreaterThan(0);
             await expect(page.locator('.ag-overlay-no-rows-center')).not.toBeVisible();
         });
 
@@ -113,13 +113,13 @@ test.describe('KbqAgGridExternalFilterState', () => {
         test('restores external filter from URL on page load', async ({ page }) => {
             await page.goto(buildExternalFilterUrl(OPTION));
 
-            await expect(getSportSelect(page)).toHaveValue(OPTION);
+            await expect(getSportSelect(page)).toHaveValue(OPTION, { timeout: 10_000 });
         });
 
         test('filters rows when external filter is restored from URL', async ({ page }) => {
             await page.goto(buildExternalFilterUrl(OPTION));
 
-            await expect.poll(async () => getDisplayedRowCount(page)).toBeGreaterThan(0);
+            await expect.poll(async () => getDisplayedRowCount(page), { timeout: 10_000 }).toBeGreaterThan(0);
             await expect(page.locator('.ag-overlay-no-rows-center')).not.toBeVisible();
         });
 

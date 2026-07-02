@@ -36,7 +36,9 @@
         "unit": "nx run-many --target=test",
         "-----E2E_TESTS-----": "--------------------------------------------------------------------------------------",
         "e2e:setup": "playwright install chromium --with-deps",
-        "e2e:dev-ag-grid-angular": "playwright test ./dev/ag-grid-angular"
+        "e2e:dev-ag-grid-angular": "playwright test ./dev/ag-grid-angular",
+        "e2e:docker": "docker compose --file tools/e2e/docker-compose.yml run --rm --build e2e",
+        "e2e:docker:update-snapshots": "docker compose --file tools/e2e/docker-compose.yml run --rm --build e2e yarn run e2e:dev-ag-grid-angular --update-snapshots"
     },
     "dependencies": {
         "@angular/animations": "^18.2.14",
@@ -98,8 +100,9 @@
         "lint-staged": "^15.5.2",
         "ng-packagr": "^18.2.0",
         "nx": "^20.8.4",
-        "prettier": "^3.8.3",
+        "prettier": "^3.9.4",
         "prettier-plugin-organize-imports": "^4.3.0",
+        "prettier-plugin-sh": "^0.18.1",
         "rimraf": "^5.0.5",
         "stylelint": "^16.26.1",
         "stylelint-config-standard-scss": "^14.0.0",

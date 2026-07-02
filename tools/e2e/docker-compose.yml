@@ -1,0 +1,17 @@
+services:
+  e2e:
+    platform: linux/arm64
+    build:
+      context: ../..
+      dockerfile: tools/e2e/Dockerfile
+    # Playwright recommendation: --init avoids zombie Chromium processes accumulating at PID=1.
+    init: true
+    # Playwright recommendation: share host IPC namespace so Chromium renderer processes
+    # get unrestricted /dev/shm access (avoids crashes with the Docker default of 64 MB).
+    ipc: host
+    volumes:
+      # Mount only test output directories back to the host so snapshots and reports are accessible
+      # after the container exits. Source, node_modules, and the dev server stay inside the container.
+      - ../../dev/ag-grid-angular/src/tests/__screenshots__:/app/dev/ag-grid-angular/src/tests/__screenshots__
+      - ../../dev/ag-grid-angular/src/tests/__snapshots__:/app/dev/ag-grid-angular/src/tests/__snapshots__
+      - ../../playwright-report:/app/playwright-report
