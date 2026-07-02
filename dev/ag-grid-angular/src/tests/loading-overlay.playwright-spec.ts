@@ -26,7 +26,7 @@ test.describe('KbqAgGridLoadingOverlay', () => {
     test('hides overlay when toggle button is clicked', async ({ page }) => {
         await page.goto('/e2e/loading-overlay');
         await getToggleButton(page).click();
-        await expect(getOverlay(page)).not.toBeVisible();
+        await expect(getOverlay(page)).toBeHidden();
     });
 
     test('shows overlay again after second toggle', async ({ page }) => {

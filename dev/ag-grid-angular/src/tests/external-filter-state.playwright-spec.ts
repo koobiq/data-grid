@@ -72,7 +72,7 @@ test.describe('KbqAgGridExternalFilterState', () => {
             await page.goto('/e2e/external-filter-state');
 
             await expect.poll(async () => getDisplayedRowCount(page), { timeout: 10_000 }).toBeGreaterThan(0);
-            await expect(page.locator('.ag-overlay-no-rows-center')).not.toBeVisible();
+            await expect(page.locator('.ag-overlay-no-rows-center')).toBeHidden();
         });
 
         test('removes external filter state from localStorage when filter is cleared', async ({ page }) => {
@@ -120,7 +120,7 @@ test.describe('KbqAgGridExternalFilterState', () => {
             await page.goto(buildExternalFilterUrl(OPTION));
 
             await expect.poll(async () => getDisplayedRowCount(page), { timeout: 10_000 }).toBeGreaterThan(0);
-            await expect(page.locator('.ag-overlay-no-rows-center')).not.toBeVisible();
+            await expect(page.locator('.ag-overlay-no-rows-center')).toBeHidden();
         });
 
         test('removes external filter state from URL when filter is cleared', async ({ page }) => {

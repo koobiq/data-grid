@@ -203,6 +203,7 @@ test.describe('KbqAgGridInfiniteSelection', () => {
         await waitForRowSelected(page, 0);
 
         await page.keyboard.press('Control+a'); // already all selected — should stay selected
+        // eslint-disable-next-line playwright/no-wait-for-timeout
         await page.waitForTimeout(200); // give time for any (unexpected) state change
 
         const state = await getState(page);

@@ -34,8 +34,10 @@ const drag = async (page: Page, source: Locator, target: Locator): Promise<void>
     await page.mouse.move(srcX, srcY);
     await page.mouse.down();
     await page.mouse.move(srcX, srcY - 10); // past CDK's 5-px drag-start threshold
+    // eslint-disable-next-line playwright/no-wait-for-timeout
     await page.waitForTimeout(100);
     await page.mouse.move(tgtX, tgtY, { steps: 50 }); // slow enough for CDK to register each position
+    // eslint-disable-next-line playwright/no-wait-for-timeout
     await page.waitForTimeout(150); // hold so CDK registers the active drop list
     await page.mouse.up();
 };
@@ -72,7 +74,7 @@ test.describe('KbqAgGridColumnMenu', () => {
 
         await getRow(getSection(page, 'Visible'), 'Country').locator('.kbq-column-menu-checkbox').click();
 
-        await expect(page.locator('.ag-header-cell[col-id="country"]')).not.toBeVisible();
+        await expect(page.locator('.ag-header-cell[col-id="country"]')).toBeHidden();
     });
 
     test('showing a hidden column via panel removes it from the Hidden section', async ({ page }) => {
@@ -126,7 +128,7 @@ test.describe('KbqAgGridColumnMenu', () => {
 
         await getRow(getSection(page, 'Pinned Right'), 'Date').locator(`[title="${LABEL_UNPIN}"]`).click();
 
-        await expect(page.locator('.ag-pinned-right-header .ag-header-cell[col-id="date"]')).not.toBeVisible();
+        await expect(page.locator('.ag-pinned-right-header .ag-header-cell[col-id="date"]')).toBeHidden();
         await expect
             .poll(async () => {
                 const state = await api.evaluate((gridApi) => gridApi.getColumnState().find((s) => s.colId === 'date'));
@@ -152,7 +154,7 @@ test.describe('KbqAgGridColumnMenu', () => {
         await page.locator('.kbq-column-menu-reset-btn').click();
 
         await expect(page.locator('.ag-header-cell[col-id="age"]')).toBeVisible();
-        await expect(page.locator('.ag-pinned-left-header .ag-header-cell[col-id="athlete"]')).not.toBeVisible();
+        await expect(page.locator('.ag-pinned-left-header .ag-header-cell[col-id="athlete"]')).toBeHidden();
         await expect(page.locator('.ag-pinned-right-header .ag-header-cell[col-id="date"]')).toBeVisible();
     });
 
@@ -206,6 +208,6 @@ test.describe('KbqAgGridColumnMenu', () => {
             })
             .toBeFalsy();
 
-        await expect(page.locator('.kbq-column-menu-section-label', { hasText: 'Pinned Left' })).not.toBeVisible();
+        await expect(page.locator('.kbq-column-menu-section-label', { hasText: 'Pinned Left' })).toBeHidden();
     });
 });
