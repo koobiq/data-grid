@@ -11,7 +11,7 @@ permissions:
 jobs:
   approve_snapshots:
     if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/approve-snapshots') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 10
     steps:
       - uses: xt0rted/pull-request-comment-branch@v3
