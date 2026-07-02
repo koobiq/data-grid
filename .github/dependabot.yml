@@ -4,6 +4,10 @@ updates:
     directory: '/'
     schedule:
       interval: 'monthly'
+  - package-ecosystem: 'docker'
+    directory: '/tools/e2e'
+    schedule:
+      interval: 'monthly'
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
