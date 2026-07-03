@@ -4,6 +4,8 @@ services:
     build:
       context: ../..
       dockerfile: tools/e2e/Dockerfile
+      args:
+        - PLAYWRIGHT_VERSION
     # Playwright recommendation: --init avoids zombie Chromium processes accumulating at PID=1.
     init: true
     # Playwright recommendation: share host IPC namespace so Chromium renderer processes
