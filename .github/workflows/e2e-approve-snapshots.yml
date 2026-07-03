@@ -1,3 +1,4 @@
+# Triggered workflow by PR comment: /approve-snapshots
 name: E2E approve snapshots
 
 on:
@@ -5,8 +6,8 @@ on:
     types: [created]
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: write # for stefanzweifel/git-auto-commit-action to push changes
+  pull-requests: write # for thollander/actions-comment-pull-request to comment on PRs
 
 jobs:
   approve_snapshots:
@@ -26,8 +27,8 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v7
         id: commit-and-push
         with:
-          commit_message: 'test: updated e2e snapshots'
-          file_pattern: '**/*.png **/*.txt'
+          commit_message: "test: updated e2e snapshots"
+          file_pattern: "**/*.png **/*.txt"
       - uses: thollander/actions-comment-pull-request@v3
         if: ${{ steps.commit-and-push.outputs.changes_detected == 'true' }}
         with:

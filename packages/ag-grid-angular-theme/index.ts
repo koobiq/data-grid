@@ -8,6 +8,7 @@ export * from './src/loading-overlay.ng';
 export * from './src/module.ng';
 export * from './src/quick-filter-state.ng';
 export * from './src/row-actions.ng';
+export * from './src/row-group.ng';
 export * from './src/select-all-rows-by-ctrl-a.ng';
 export * from './src/select-rows-by-ctrl-click.ng';
 export * from './src/select-rows-by-shift-arrow.ng';
