@@ -6,7 +6,10 @@ const timeLabel = 'Runtime';
 console.time(timeLabel);
 
 const { spawnSync } = require('child_process');
-const version = require('../../package.json').devDependencies['@playwright/test']?.replace(/[\^~]/, '');
+const { devDependencies } = require('../../package.json');
+
+// Read from package.json directly — node_modules may not exist on the CI runner (no yarn install step).
+const version = devDependencies['@playwright/test']?.replace(/[\^~]/, '');
 
 if (!version) {
     console.error('@playwright/test version not found in package.json');
@@ -21,8 +24,10 @@ const result = spawnSync(
     { stdio: 'inherit', env: { ...process.env, PLAYWRIGHT_VERSION: version } }
 );
 
-if (result.status !== 0) {
-    console.info('To view the test report, run: npx playwright show-report');
+if (result.error) {
+    console.error(`Failed to run docker: ${result.error.message}`);
+} else if (result.status !== 0) {
+    console.info('To view the test report, run: `npx playwright show-report`');
 }
 
 console.timeEnd(timeLabel);
