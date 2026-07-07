@@ -72,7 +72,7 @@ export class DevRowGroup {
     readonly columnDefs = COLUMN_DEFS;
     readonly defaultColDef = DEFAULT_COL_DEF;
     protected readonly selectedFields = signal<string[]>([]);
-    protected readonly rowSelection = { mode: 'multiRow' } as const;
+    protected readonly rowSelection = { mode: 'multiRow', checkboxes: true } as const;
 
     protected onToggle(field: string, event: Event): void {
         const { target } = event;
