@@ -182,6 +182,94 @@ test.describe('KbqAgGridRowGroup', () => {
         await waitForRowSelected(page, 1);
     });
 
+    test('deselecting one child unchecks the parent group but keeps all siblings selected', async ({ page }) => {
+        await page.goto('/e2e/row-group');
+        await waitForDataLoaded(page);
+
+        await getGroupCheckbox(page, 'Country').click();
+        await waitForGroupsVisible(page);
+
+        // Expand the first group so children are visible
+        await getGroupCellInner(page, 0).click();
+        await expect(page.locator('.ag-row[row-index="1"]')).toBeVisible();
+
+        // Select the group header — all children become selected
+        await getRowCheckbox(page, 0).click();
+        await waitForRowSelected(page, 1);
+        await waitForRowSelected(page, 2);
+
+        // Deselect only the first child
+        await getRowCheckbox(page, 1).click();
+
+        // Parent must become unchecked, first child must be unchecked
+        await expect(page.locator('.ag-row[row-index="0"]')).not.toHaveClass(/ag-row-selected/);
+        await expect(page.locator('.ag-row[row-index="1"]')).not.toHaveClass(/ag-row-selected/);
+
+        // Remaining siblings must still be selected
+        await waitForRowSelected(page, 2);
+        await waitForRowSelected(page, 3);
+    });
+
+    test('all visible children are selected after expanding a previously selected collapsed group', async ({
+        page
+    }) => {
+        await page.goto('/e2e/row-group');
+        await waitForDataLoaded(page);
+
+        await getGroupCheckbox(page, 'Country').click();
+        await waitForGroupsVisible(page);
+
+        // Select the first group while it is still collapsed
+        await getRowCheckbox(page, 0).click();
+        await waitForRowSelected(page, 0);
+
+        // Expand the selected group
+        await getGroupCellInner(page, 0).click();
+        await expect(page.locator('.ag-row[row-index="1"]')).toBeVisible();
+
+        // Every visible row must be selected — not just the first two
+        await waitForRowSelected(page, 0);
+        await waitForRowSelected(page, 1);
+        await waitForRowSelected(page, 2);
+        await waitForRowSelected(page, 3);
+
+        const totalRows = await page.locator('.ag-row').count();
+        const selectedRows = page.locator('.ag-row-selected');
+        await expect(selectedRows).toHaveCount(totalRows);
+    });
+
+    test('two group levels: deselecting one sub-group unchecks parent but keeps siblings selected', async ({
+        page
+    }) => {
+        await page.goto('/e2e/row-group');
+        await waitForDataLoaded(page);
+
+        await getGroupCheckbox(page, 'Country').click();
+        await waitForGroupsVisible(page);
+
+        await getGroupCheckbox(page, 'Sport').click();
+
+        // Expand the first top-level group
+        await getGroupCellInner(page, 0).click();
+        await expect(getGroupCellInner(page, 1)).toBeVisible();
+
+        // Select the country group — all sport sub-groups become selected
+        await getRowCheckbox(page, 0).click();
+        await waitForRowSelected(page, 1);
+        await waitForRowSelected(page, 2);
+
+        // Deselect the first sport sub-group
+        await getRowCheckbox(page, 1).click();
+
+        // Country group must become unchecked, first sport must be unchecked
+        await expect(page.locator('.ag-row[row-index="0"]')).not.toHaveClass(/ag-row-selected/);
+        await expect(page.locator('.ag-row[row-index="1"]')).not.toHaveClass(/ag-row-selected/);
+
+        // Remaining sport siblings must still be selected
+        await waitForRowSelected(page, 2);
+        await waitForRowSelected(page, 3);
+    });
+
     test('unchecking a column checkbox removes grouping', async ({ page }) => {
         await page.goto('/e2e/row-group');
         await waitForDataLoaded(page);

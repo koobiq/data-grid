@@ -27,8 +27,8 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v7
         id: commit-and-push
         with:
-          commit_message: "test: updated e2e snapshots"
-          file_pattern: "**/*.png **/*.txt"
+          commit_message: 'test: updated e2e snapshots'
+          file_pattern: '**/*.png **/*.txt'
       - uses: thollander/actions-comment-pull-request@v3
         if: ${{ steps.commit-and-push.outputs.changes_detected == 'true' }}
         with:

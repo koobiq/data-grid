@@ -241,7 +241,8 @@ export class KbqAgGridRowGroup {
 
     private originalColDefs: (ColDef | ColGroupDef)[] = [];
     private groupColShown = false;
-    private propagatingSelection = false;
+    /** Nodes whose next `rowSelected` event was caused by our own `setSelected()` call — skip to prevent re-entrant cascades. */
+    private readonly programmaticallySetNodes = new WeakSet();
 
     constructor() {
         // Reactive: update rowData whenever data, groupCols, or collapsedPaths change
@@ -249,10 +250,13 @@ export class KbqAgGridRowGroup {
             const api = this.api();
             if (!api) return;
 
-            // Snapshot selected group paths before rowData is replaced
+            // Snapshot selected group paths before rowData is replaced.
+            // Also mark old selected nodes so their async deselect events (fired when
+            // setGridOption replaces rowData) are ignored and don't cascade.
             const selectedGroupPaths = new Set<string>();
             api.forEachNode((node) => {
                 if (!node.isSelected()) return;
+                this.programmaticallySetNodes.add(node);
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const row = node.data as Row | undefined;
                 if (row?.KbqAgGridRowGroup.isGroup) selectedGroupPaths.add(row.KbqAgGridRowGroup.path);
@@ -262,7 +266,6 @@ export class KbqAgGridRowGroup {
 
             // Restore group selection and propagate to newly visible children
             if (selectedGroupPaths.size === 0) return;
-            this.propagatingSelection = true;
             api.forEachNode((node) => {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const row = node.data as Row | undefined;
@@ -271,9 +274,11 @@ export class KbqAgGridRowGroup {
                 const shouldSelect =
                     (meta.isGroup && selectedGroupPaths.has(meta.path)) ||
                     meta.ancestors.some((a) => selectedGroupPaths.has(a));
-                if (shouldSelect) node.setSelected(true, false);
+                if (shouldSelect) {
+                    this.programmaticallySetNodes.add(node);
+                    node.setSelected(true, false);
+                }
             });
-            this.propagatingSelection = false;
         });
 
         // Reactive: add/remove the "Group" column when grouping is activated/deactivated
@@ -298,26 +303,49 @@ export class KbqAgGridRowGroup {
         });
 
         this.grid.rowSelected.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ node }) => {
-            if (this.propagatingSelection) return;
+            // Skip events caused by our own programmatic setSelected calls
+            if (this.programmaticallySetNodes.has(node)) {
+                this.programmaticallySetNodes.delete(node);
+                return;
+            }
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const row = node.data as Row | undefined;
-            if (!row?.KbqAgGridRowGroup.isGroup) return;
+            // In flat mode rows have no KbqAgGridRowGroup metadata — skip propagation
+            if (!row?.KbqAgGridRowGroup) return;
 
             const api = this.api();
             if (!api) return;
 
             const selected = !!node.isSelected();
-            const { path } = row.KbqAgGridRowGroup;
 
-            this.propagatingSelection = true;
-            api.forEachNode((childNode) => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-                const childRow = childNode.data as Row | undefined;
-                if (childRow?.KbqAgGridRowGroup.ancestors.includes(path)) {
-                    childNode.setSelected(selected, false);
-                }
-            });
-            this.propagatingSelection = false;
+            // Top-down: propagate selection to all visible descendants
+            if (row.KbqAgGridRowGroup.isGroup) {
+                const { path } = row.KbqAgGridRowGroup;
+                api.forEachNode((childNode) => {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                    const childRow = childNode.data as Row | undefined;
+                    if (childRow?.KbqAgGridRowGroup.ancestors.includes(path)) {
+                        this.programmaticallySetNodes.add(childNode);
+                        childNode.setSelected(selected, false);
+                    }
+                });
+            }
+
+            // Bottom-up: recalculate each ancestor group's checked state (deepest first)
+            const { ancestors } = row.KbqAgGridRowGroup;
+            for (let i = ancestors.length - 1; i >= 0; i--) {
+                const ancestorPath = ancestors[i];
+                if (!ancestorPath) continue;
+                const fullySelected = this.isGroupFullySelected(ancestorPath, api);
+                api.forEachNode((ancestorNode) => {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                    const ancestorRow = ancestorNode.data as Row | undefined;
+                    if (ancestorRow?.KbqAgGridRowGroup.isGroup && ancestorRow.KbqAgGridRowGroup.path === ancestorPath) {
+                        this.programmaticallySetNodes.add(ancestorNode);
+                        ancestorNode.setSelected(fullySelected, false);
+                    }
+                });
+            }
         });
     }
 
@@ -447,5 +475,22 @@ export class KbqAgGridRowGroup {
             paths.add(toKey(val));
         }
         return paths;
+    }
+
+    /** Returns `true` when every direct child of `groupPath` is currently selected. */
+    private isGroupFullySelected(groupPath: string, api: GridApi): boolean {
+        let childCount = 0;
+        let selectedCount = 0;
+
+        api.forEachNode((node) => {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const row = node.data as Row | undefined;
+            if (!row?.KbqAgGridRowGroup) return;
+            if (row.KbqAgGridRowGroup.ancestors.at(-1) !== groupPath) return;
+            childCount += 1;
+            if (node.isSelected()) selectedCount += 1;
+        });
+
+        return childCount > 0 && childCount === selectedCount;
     }
 }
