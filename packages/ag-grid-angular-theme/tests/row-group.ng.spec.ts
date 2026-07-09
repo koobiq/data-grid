@@ -162,6 +162,8 @@ describe(KbqAgGridRowGroup.name, () => {
             const { fixture, grid, directive } = await setup(DATA);
             directive.groupCols.set(['country']);
             await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+            directive.expandAll();
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
 
             const usaDataRows = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
@@ -173,8 +175,16 @@ describe(KbqAgGridRowGroup.name, () => {
         it('hides children of collapsed groups', async () => {
             const { fixture, grid, directive } = await setup(DATA);
             directive.groupCols.set(['country']);
-            directive.collapsedPaths.set(new Set(['USA']));
+            // Wait for the groupCols-change reset to run before setting collapsed paths,
+            // otherwise the reset would clear the explicitly set paths.
             await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+            directive.collapsedPaths.set(new Set(['USA']));
+            await waitForNodes(grid, fixture, (nodes) =>
+                nodes.every((n) => {
+                    const meta = getMeta(n.data);
+                    return !meta || meta.isGroup || !meta.ancestors.includes('USA');
+                })
+            );
 
             const usaDataRows = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
@@ -192,6 +202,8 @@ describe(KbqAgGridRowGroup.name, () => {
             const { fixture, grid, directive } = await setup(nestedData);
             directive.groupCols.set(['country', 'sport']);
             await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+            directive.expandAll();
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
 
             // Level-0 headers: USA, GBR
             const level0Headers = grid.mock.nodes.filter((n) => {
@@ -209,24 +221,103 @@ describe(KbqAgGridRowGroup.name, () => {
         });
     });
 
+    describe('initialGroupCols input', () => {
+        @Component({
+            selector: 'test-initial-group-cols',
+            standalone: true,
+            template: `
+                <ag-grid-angular
+                    kbqAgGridRowGroup
+                    [kbqAgGridRowGroupRowData]="data"
+                    [kbqAgGridRowGroupCols]="['country']"
+                />
+            `,
+            imports: [TestAgGridAngularStub, KbqAgGridRowGroup]
+        })
+        class TestInitialGroupCols {
+            readonly data = DATA;
+            readonly grid = viewChild.required(TestAgGridAngularStub);
+            readonly directive = viewChild.required(KbqAgGridRowGroup);
+        }
+
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        const setupInitial = async () => {
+            const { fixture } = await render(TestInitialGroupCols);
+            fixture.componentInstance.grid().emitGridReady();
+            await waitFor(() => {
+                expect(fixture.componentInstance.grid().mock.setGridOption).toHaveBeenCalledWith(
+                    'rowData',
+                    expect.any(Array)
+                );
+            });
+            return fixture.componentInstance;
+        };
+
+        it('applies groupCols on gridReady', async () => {
+            const { directive, grid } = await setupInitial();
+            expect(directive().groupCols()).toContain('country');
+            expect(grid().mock.nodes.some((n) => isGroupHeader(n.data))).toBe(true);
+        });
+
+        it('groups are collapsed by default', async () => {
+            const { directive, grid } = await setupInitial();
+            // collapsedPaths must be non-empty and all visible nodes must be group headers
+            expect(directive().collapsedPaths().size).toBeGreaterThan(0);
+            expect(grid().mock.nodes.every((n) => isGroupHeader(n.data))).toBe(true);
+        });
+
+        it('groups are collapsed even when data arrives after gridReady', async () => {
+            @Component({
+                selector: 'test-initial-group-cols-late-data',
+                standalone: true,
+                template: `
+                    <ag-grid-angular
+                        kbqAgGridRowGroup
+                        [kbqAgGridRowGroupRowData]="rowData()"
+                        [kbqAgGridRowGroupCols]="['country']"
+                    />
+                `,
+                imports: [TestAgGridAngularStub, KbqAgGridRowGroup]
+            })
+            class TestInitialGroupColsLateData {
+                readonly rowData = signal<Record<string, unknown>[]>([]);
+                readonly grid = viewChild.required(TestAgGridAngularStub);
+                readonly directive = viewChild.required(KbqAgGridRowGroup);
+            }
+
+            const { fixture } = await render(TestInitialGroupColsLateData);
+            // Emit gridReady BEFORE data is available — simulates HTTP response arriving later
+            fixture.componentInstance.grid().emitGridReady();
+
+            // Flush the queueMicrotask so the gridReady handler runs with empty data.
+            // This is the critical moment: needsInitialCollapse is set to true, but
+            // collapseAll() is NOT called (data is empty), so groups must stay collapsed
+            // when data eventually arrives.
+            await Promise.resolve();
+
+            // Data arrives after the microtask (simulates HTTP response)
+            fixture.componentInstance.rowData.set(DATA);
+            fixture.detectChanges();
+
+            // Effect must auto-collapse using the now-available data
+            await waitFor(() => {
+                expect(fixture.componentInstance.directive().collapsedPaths().size).toBeGreaterThan(0);
+                expect(fixture.componentInstance.grid().mock.nodes.every((n) => isGroupHeader(n.data))).toBe(true);
+            });
+        });
+    });
+
     describe('groupCols management', () => {
-        it('addGroupColumn appends the field to groupCols', async () => {
+        it('setting groupCols via model adds a field to grouping', async () => {
             const { directive } = await setup(DATA);
-            directive.addGroupColumn('country');
+            directive.groupCols.update((cols) => [...cols, 'country']);
             expect(directive.groupCols()).toContain('country');
         });
 
-        it('addGroupColumn is a no-op when the field is already present', async () => {
+        it('removing a field via groupCols model removes it from grouping', async () => {
             const { directive } = await setup(DATA);
-            directive.addGroupColumn('country');
-            directive.addGroupColumn('country');
-            expect(directive.groupCols().filter((c) => c === 'country')).toHaveLength(1);
-        });
-
-        it('removeGroupColumn removes the field from groupCols', async () => {
-            const { directive } = await setup(DATA);
-            directive.addGroupColumn('country');
-            directive.removeGroupColumn('country');
+            directive.groupCols.set(['country']);
+            directive.groupCols.update((cols) => cols.filter((c) => c !== 'country'));
             expect(directive.groupCols()).not.toContain('country');
         });
 
@@ -235,6 +326,27 @@ describe(KbqAgGridRowGroup.name, () => {
             directive.groupCols.set(['country', 'sport']);
             directive.moveGroupColumn(0, 1);
             expect(directive.groupCols()).toEqual(['sport', 'country']);
+        });
+
+        it('changing groupCols collapses all top-level groups', async () => {
+            const { fixture, grid, directive } = await setup(DATA);
+            directive.groupCols.set(['country']);
+            fixture.detectChanges();
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+
+            // Expand all groups so the state is non-collapsed before the change
+            directive.expandAll();
+            fixture.detectChanges();
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
+
+            // Add another group column — all new top-level groups must be collapsed
+            directive.groupCols.update((cols) => [...cols, 'sport']);
+            fixture.detectChanges();
+
+            await waitFor(() => {
+                expect(directive.collapsedPaths().size).toBeGreaterThan(0);
+                expect(grid.mock.nodes.every((n) => isGroupHeader(n.data))).toBe(true);
+            });
         });
 
         it('clearGroupColumns empties groupCols and collapsedPaths', async () => {
@@ -250,7 +362,7 @@ describe(KbqAgGridRowGroup.name, () => {
     describe('column definitions', () => {
         it('prepends the group column to columnDefs when groupCols becomes non-empty', async () => {
             const { fixture, grid, directive } = await setup(DATA);
-            directive.addGroupColumn('country');
+            directive.groupCols.update((cols) => [...cols, 'country']);
             fixture.detectChanges();
 
             await waitFor(() => {
@@ -262,7 +374,7 @@ describe(KbqAgGridRowGroup.name, () => {
 
         it('restores original columnDefs when groupCols becomes empty', async () => {
             const { fixture, grid, directive } = await setup(DATA);
-            directive.addGroupColumn('country');
+            directive.groupCols.update((cols) => [...cols, 'country']);
             fixture.detectChanges();
             await waitFor(() => {
                 expect(grid.mock.setGridOption).toHaveBeenCalledWith('columnDefs', expect.any(Array));
@@ -358,6 +470,8 @@ describe(KbqAgGridRowGroup.name, () => {
             const result = await setup(DATA);
             result.directive.groupCols.set(['country']);
             await waitForNodes(result.grid, result.fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+            result.directive.expandAll();
+            await waitForNodes(result.grid, result.fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
             return result;
         };
 
@@ -517,6 +631,7 @@ describe(KbqAgGridRowGroup.name, () => {
         it('bottom-up recalculation works recursively through N levels', async () => {
             const { fixture, grid, directive } = await setup(DATA);
             directive.groupCols.set(['country', 'sport']);
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
             directive.expandAll();
             await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
 
@@ -540,6 +655,7 @@ describe(KbqAgGridRowGroup.name, () => {
         it('deselecting one child propagates up through all ancestor levels', async () => {
             const { fixture, grid, directive } = await setup(DATA);
             directive.groupCols.set(['country', 'sport']);
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
             directive.expandAll();
             await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
 
@@ -587,7 +703,7 @@ describe(KbqAgGridRowGroup.name, () => {
     describe('selection restore on rowData change', () => {
         it('re-selects group headers after rowData is replaced on expand', async () => {
             const { fixture, grid, directive } = await setup(DATA);
-            directive.addGroupColumn('country');
+            directive.groupCols.update((cols) => [...cols, 'country']);
             fixture.detectChanges();
             await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
 
@@ -609,9 +725,12 @@ describe(KbqAgGridRowGroup.name, () => {
 
         it('auto-selects children of a restored group after expand', async () => {
             const { fixture, grid, directive } = await setup(DATA);
-            directive.addGroupColumn('country');
-            fixture.detectChanges();
+            directive.groupCols.update((cols) => [...cols, 'country']);
+            fixture.detectChanges(); // let groupCols-change reset run (collapsedPaths → empty)
             await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+            directive.collapseAll(); // collapse after the reset has settled
+            fixture.detectChanges();
+            await waitForNodes(grid, fixture, (nodes) => nodes.every((n) => isGroupHeader(n.data)));
 
             // Select the collapsed USA group header
             const usaGroupNode = grid.mock.nodes.find((n) => isGroupHeader(n.data) && getMeta(n.data)!.key === 'USA')!;
@@ -633,11 +752,33 @@ describe(KbqAgGridRowGroup.name, () => {
             });
         });
 
+        it('adding a group column while a flat row is selected does not throw', async () => {
+            // Regression: row.KbqAgGridRowGroup is undefined for flat rows; accessing .isGroup
+            // without optional chaining threw TypeError → Angular re-scheduled the effect → infinite loop.
+            const { fixture, grid, directive } = await setup(DATA);
+
+            // Verify the current nodes are truly flat (no KbqAgGridRowGroup metadata)
+            const [flatNode] = grid.mock.nodes;
+            expect(getMeta(flatNode.data)).toBeUndefined();
+            flatNode.setSelected(true);
+
+            // Must not throw; effect must complete and populate grouped rows
+            directive.groupCols.update((cols) => [...cols, 'country']);
+            fixture.detectChanges();
+
+            await waitFor(() => {
+                expect(grid.mock.nodes.some((n) => isGroupHeader(n.data))).toBe(true);
+            });
+        });
+
         it('rowSelected events fired after programmatic restoration are suppressed', async () => {
             const { fixture, grid, directive } = await setup(DATA);
-            directive.addGroupColumn('country');
-            fixture.detectChanges();
+            directive.groupCols.update((cols) => [...cols, 'country']);
+            fixture.detectChanges(); // let groupCols-change reset run (collapsedPaths → empty)
             await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+            directive.collapseAll(); // collapse after the reset has settled
+            fixture.detectChanges();
+            await waitForNodes(grid, fixture, (nodes) => nodes.every((n) => isGroupHeader(n.data)));
 
             const usaGroupNode = grid.mock.nodes.find((n) => isGroupHeader(n.data) && getMeta(n.data)!.key === 'USA')!;
             usaGroupNode.setSelected(true);

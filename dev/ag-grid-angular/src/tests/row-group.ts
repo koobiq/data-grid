@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, signal, viewChild } from '@angular/core';
-import { KbqAgGridRowGroup, KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { kbqAgGridRowGroupColOptionsProvider, KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
-import { AllCommunityModule, ColDef, ModuleRegistry } from 'ag-grid-community';
+import { AllCommunityModule, ColDef, ModuleRegistry, SelectionChangedEvent } from 'ag-grid-community';
 import { devInjectRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -32,27 +32,29 @@ const DEFAULT_COL_DEF: ColDef = {
                 <label>
                     <input
                         type="checkbox"
-                        [checked]="selectedFields().includes(col.field!)"
+                        [checked]="groupCols().includes(col.field!)"
                         (change)="onToggle(col.field!, $event)"
                     />
-                    @let index = selectedFields().indexOf(col.field!);
+                    @let index = groupCols().indexOf(col.field!);
                     {{ col.headerName }} {{ index >= 0 ? index : '' }}
                 </label>
             }
         </div>
 
         <ag-grid-angular
-            #group="kbqAgGridRowGroup"
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
             kbqAgGridRowGroup
             [kbqAgGridRowGroupRowData]="rowData()"
             [columnDefs]="columnDefs"
+            [(kbqAgGridRowGroupCols)]="groupCols"
             [defaultColDef]="defaultColDef"
             [rowSelection]="rowSelection"
             [animateRows]="false"
+            (selectionChanged)="onSelectionChanged($event)"
         />
     `,
+    providers: [kbqAgGridRowGroupColOptionsProvider({ headerName: 'Group' })],
     styles: `
         :host {
             display: flex;
@@ -67,22 +69,20 @@ const DEFAULT_COL_DEF: ColDef = {
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DevRowGroup {
-    private readonly group = viewChild.required(KbqAgGridRowGroup);
     readonly rowData = devInjectRowData();
     readonly columnDefs = COLUMN_DEFS;
     readonly defaultColDef = DEFAULT_COL_DEF;
-    protected readonly selectedFields = signal<string[]>([]);
+    protected readonly groupCols = signal<string[]>(['country', 'sport']);
     protected readonly rowSelection = { mode: 'multiRow', checkboxes: true } as const;
 
     protected onToggle(field: string, event: Event): void {
         const { target } = event;
         if (!(target instanceof HTMLInputElement)) return;
         const { checked } = target;
-        this.selectedFields.update((fields) => (checked ? [...fields, field] : fields.filter((f) => f !== field)));
-        if (checked) {
-            this.group().addGroupColumn(field);
-        } else {
-            this.group().removeGroupColumn(field);
-        }
+        this.groupCols.update((cols) => (checked ? [...cols, field] : cols.filter((f) => f !== field)));
+    }
+
+    protected onSelectionChanged(event: SelectionChangedEvent): void {
+        console.debug('SelectionChangedEvent: ', event);
     }
 }

@@ -1420,6 +1420,39 @@
     }
 }
 
+@mixin _ag-group-cell-renderer() {
+    // Based on `KbqAgGridGroupCellRenderer` component
+    .kbq-ag-grid-group-cell-renderer {
+        display: block;
+        width: 100%;
+        height: 100%;
+
+        .kbq-ag-grid-group-cell-renderer__inner {
+            display: flex;
+            align-items: center;
+            gap: var(--kbq-size-xxs);
+            height: 100%;
+        }
+
+        .kbq-ag-grid-group-cell-renderer__icon {
+            cursor: pointer;
+            color: var(--kbq-icon-contrast-fade);
+
+            &:hover {
+                color: var(--kbq-states-icon-contrast-fade-hover);
+            }
+
+            &:active {
+                color: var(--kbq-states-icon-contrast-fade-hover);
+            }
+        }
+
+        .kbq-ag-grid-group-cell-renderer__count {
+            color: var(--kbq-foreground-contrast-secondary);
+        }
+    }
+}
+
 .ag-theme-koobiq {
     --ag-theme-koobiq-active-color: var(--kbq-background-theme);
     --ag-theme-koobiq-border: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
@@ -1452,6 +1485,7 @@
     @include _ag-loading-overlay();
     @include _ag-row-actions-overlay();
     @include _ag-column-menu();
+    @include _ag-group-cell-renderer();
 
     &.ag-theme-koobiq_disable-cell-focus-styles {
         @include _ag-disable-cell-focus();

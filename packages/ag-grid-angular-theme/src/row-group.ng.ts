@@ -6,15 +6,52 @@ import {
     Directive,
     effect,
     inject,
+    InjectionToken,
     input,
+    model,
+    Provider,
     signal
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgGridAngular, ICellRendererAngularComp } from 'ag-grid-angular';
-import { ColDef, ColGroupDef, GridApi, ICellRendererParams } from 'ag-grid-community';
+import { ColDef, ColGroupDef, GridApi, ICellRendererParams, IRowNode } from 'ag-grid-community';
 
 /** A plain input data row — any object with string keys. */
 type RowData = Record<string, unknown>;
+
+const PATH_SEPARATOR = '::';
+
+/** Partial AG Grid `ColDef` overrides applied to the generated group column. */
+export type KbqAgGridRowGroupColOptions = Partial<ColDef>;
+
+/** Default group column options. */
+export const KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS_DEFAULT: KbqAgGridRowGroupColOptions = {
+    headerName: 'Группа'
+};
+
+/**
+ * Injection token for supplying custom ColDef overrides for the generated group column.
+ * Defaults to {@link KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS_DEFAULT}.
+ *
+ * @see kbqAgGridRowGroupColOptionsProvider
+ */
+export const KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS = new InjectionToken<KbqAgGridRowGroupColOptions>(
+    'KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS',
+    { factory: (): KbqAgGridRowGroupColOptions => KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS_DEFAULT }
+);
+
+/**
+ * Creates a provider that overrides the default group column options.
+ *
+ * @example
+ * ```ts
+ * providers: [kbqAgGridRowGroupColOptionsProvider({ headerName: 'Группировка' })]
+ * ```
+ */
+export const kbqAgGridRowGroupColOptionsProvider = (options: KbqAgGridRowGroupColOptions): Provider => ({
+    provide: KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS,
+    useValue: options
+});
 
 /** A group header row rendered as an expand/collapse toggle. Contains no user data. */
 type GroupHeaderRow = {
@@ -22,7 +59,7 @@ type GroupHeaderRow = {
         readonly isGroup: true;
         /** Nesting depth (0 = top level). */
         readonly level: number;
-        /** Unique dot-separated path identifying this group. */
+        /** Unique `PATH_SEPARATOR`- separated path identifying this group. */
         readonly path: string;
         /** Paths of all ancestor groups. */
         readonly ancestors: readonly string[];
@@ -84,7 +121,7 @@ function makeRowGroupData(
     const result: Row[] = [];
 
     for (const [key, rows] of groups) {
-        const path = pathPrefix ? `${pathPrefix}::${key}` : key;
+        const path = pathPrefix ? `${pathPrefix}${PATH_SEPARATOR}${key}` : key;
         const collapsed = collapsedPaths.has(path);
 
         result.push({
@@ -118,39 +155,16 @@ const isGroupHeaderRow = (row: Row | null | undefined): row is GroupHeaderRow =>
     selector: 'kbq-ag-grid-group-cell-renderer',
     changeDetection: ChangeDetectionStrategy.OnPush,
     host: { class: 'kbq-ag-grid-group-cell-renderer' },
-    styles: `
-        :host {
-            display: block;
-            width: 100%;
-            height: 100%;
-            user-select: none;
-        }
-
-        .kbq-ag-grid-group-cell-renderer__inner {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            height: 100%;
-            padding-right: 8px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .kbq-ag-grid-group-cell-renderer__icon {
-            font-size: 10px;
-            flex-shrink: 0;
-        }
-
-        .kbq-ag-grid-group-cell-renderer__count {
-            color: var(--kbq-foreground-secondary, #888);
-            font-weight: 400;
-        }
-    `,
     template: `
         @if (isGroup) {
             <!-- eslint-disable-next-line @angular-eslint/template/no-inline-styles -->
-            <div class="kbq-ag-grid-group-cell-renderer__inner" [style.padding-left.px]="indent" (click)="toggle()">
-                <span class="kbq-ag-grid-group-cell-renderer__icon">{{ collapsed ? '▶' : '▼' }}</span>
+            <div class="kbq-ag-grid-group-cell-renderer__inner" [style.padding-left.px]="indent">
+                <i
+                    class="kbq-ag-grid-group-cell-renderer__icon kbq kbq-icon"
+                    [class.kbq-chevron-down_16]="!collapsed"
+                    [class.kbq-chevron-right_16]="collapsed"
+                    (click)="toggle()"
+                ></i>
                 <span class="kbq-ag-grid-group-cell-renderer__key">{{ row.KbqAgGridRowGroup.key }}</span>
                 <span class="kbq-ag-grid-group-cell-renderer__count">({{ row.KbqAgGridRowGroup.count }})</span>
             </div>
@@ -216,6 +230,7 @@ class KbqAgGridRowGroupCellRenderer implements ICellRendererAngularComp {
  *   kbqAgGridTheme
  *   kbqAgGridRowGroup
  *   [kbqAgGridRowGroupRowData]="rowData()"
+ *   [(kbqAgGridRowGroupCols)]="groupCols"
  *   [columnDefs]="columnDefs"
  * />
  * ```
@@ -233,8 +248,22 @@ export class KbqAgGridRowGroup {
     /** Raw row data. Provide this instead of `[rowData]` on the grid element. */
     readonly data = input<RowData[]>([], { alias: 'kbqAgGridRowGroupRowData' });
 
-    /** Column fields currently used for grouping, in order (first = outermost group). */
-    readonly groupCols = signal<string[]>([]);
+    /**
+     * Column fields to group by, in order (first = outermost group).
+     * Supports two-way binding: `[(kbqAgGridRowGroupCols)]="fields"`.
+     */
+    readonly groupCols = model<string[]>([], { alias: 'kbqAgGridRowGroupCols' });
+
+    /**
+     * ColDef overrides for the generated group column. Takes precedence over
+     * {@link KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS} when both are provided.
+     */
+    readonly groupColOptions = input<KbqAgGridRowGroupColOptions | undefined>(
+        inject(KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS),
+        {
+            alias: 'kbqAgGridRowGroupColOptions'
+        }
+    );
 
     /** Set of group paths that are currently collapsed. */
     readonly collapsedPaths = signal<ReadonlySet<string>>(new Set());
@@ -243,43 +272,72 @@ export class KbqAgGridRowGroup {
     private groupColShown = false;
     /** Nodes whose next `rowSelected` event was caused by our own `setSelected()` call — skip to prevent re-entrant cascades. */
     private readonly programmaticallySetNodes = new WeakSet();
+    /** Deferred collapse: set on gridReady when groupCols is non-empty; cleared once data is available. */
+    private needsInitialCollapse = false;
+    /** Previous groupCols reference — compared by identity to detect structural changes. */
+    private prevGroupCols: string[] | null = null;
 
     constructor() {
         // Reactive: update rowData whenever data, groupCols, or collapsedPaths change
-        effect(() => {
-            const api = this.api();
-            if (!api) return;
+        effect(
+            () => {
+                const api = this.api();
+                if (!api) return;
 
-            // Snapshot selected group paths before rowData is replaced.
-            // Also mark old selected nodes so their async deselect events (fired when
-            // setGridOption replaces rowData) are ignored and don't cascade.
-            const selectedGroupPaths = new Set<string>();
-            api.forEachNode((node) => {
-                if (!node.isSelected()) return;
-                this.programmaticallySetNodes.add(node);
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-                const row = node.data as Row | undefined;
-                if (row?.KbqAgGridRowGroup.isGroup) selectedGroupPaths.add(row.KbqAgGridRowGroup.path);
-            });
+                const groupCols = this.groupCols();
 
-            api.setGridOption('rowData', this.computeGroupedData());
-
-            // Restore group selection and propagate to newly visible children
-            if (selectedGroupPaths.size === 0) return;
-            api.forEachNode((node) => {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-                const row = node.data as Row | undefined;
-                if (!row) return;
-                const meta = row.KbqAgGridRowGroup;
-                const shouldSelect =
-                    (meta.isGroup && selectedGroupPaths.has(meta.path)) ||
-                    meta.ancestors.some((a) => selectedGroupPaths.has(a));
-                if (shouldSelect) {
-                    this.programmaticallySetNodes.add(node);
-                    node.setSelected(true, false);
+                // When the grouping structure changes, collapse all top-level groups (matches AG Grid behavior).
+                // Writing here is picked up immediately by the collapsedPaths() read below, so the render
+                // uses the fresh collapsed set in the same effect run (no extra round-trip needed).
+                if (this.prevGroupCols !== null && this.prevGroupCols !== groupCols) {
+                    this.collapsedPaths.set(this.computeTopLevelPaths());
                 }
-            });
-        });
+                this.prevGroupCols = groupCols;
+
+                // Read collapsedPaths to track it as a dep even on the early-return path below,
+                // so the effect re-runs after the initial-collapse write.
+                this.collapsedPaths();
+                const data = this.data();
+
+                // When groupCols is bound non-empty before data arrives, collapse on first data load.
+                if (this.needsInitialCollapse && data.length > 0) {
+                    this.needsInitialCollapse = false;
+                    this.collapsedPaths.set(this.computeTopLevelPaths());
+                    return;
+                }
+
+                // Snapshot selected group paths before rowData is replaced.
+                // Also mark old selected nodes so their async deselect events (fired when
+                // setGridOption replaces rowData) are ignored and don't cascade.
+                const selectedGroupPaths = new Set<string>();
+                api.forEachNode((node: IRowNode<Partial<Row> | undefined>) => {
+                    if (!node.isSelected()) return;
+                    this.programmaticallySetNodes.add(node);
+                    const row = node.data;
+                    if (row?.KbqAgGridRowGroup?.isGroup) selectedGroupPaths.add(row.KbqAgGridRowGroup.path);
+                });
+
+                api.setGridOption('rowData', this.computeGroupedData());
+
+                // Restore group selection and propagate to newly visible children
+                if (selectedGroupPaths.size === 0) return;
+                api.forEachNode((node: IRowNode<Row>) => {
+                    const row = node.data;
+                    if (!row) return;
+                    const meta = row.KbqAgGridRowGroup;
+                    const shouldSelect =
+                        (meta.isGroup && selectedGroupPaths.has(meta.path)) ||
+                        meta.ancestors.some((a) => selectedGroupPaths.has(a));
+                    if (shouldSelect) {
+                        this.programmaticallySetNodes.add(node);
+                        node.setSelected(true, false);
+                    }
+                });
+                // allowSignalWrites: the initial-collapse branch writes collapsedPaths to trigger a
+                // second run that renders the collapsed groups.
+            },
+            { allowSignalWrites: true }
+        );
 
         // Reactive: add/remove the "Group" column when grouping is activated/deactivated
         effect(() => {
@@ -299,7 +357,12 @@ export class KbqAgGridRowGroup {
             this.originalColDefs = api.getColumnDefs() ?? [];
             // Delay the signal write to avoid triggering effects during the gridReady
             // render cycle (which would cause AG Grid error #252).
-            queueMicrotask(() => this.api.set(api));
+            queueMicrotask(() => {
+                if (this.groupCols().length > 0) {
+                    this.needsInitialCollapse = true;
+                }
+                this.api.set(api);
+            });
         });
 
         this.grid.rowSelected.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ node }) => {
@@ -321,10 +384,8 @@ export class KbqAgGridRowGroup {
             // Top-down: propagate selection to all visible descendants
             if (row.KbqAgGridRowGroup.isGroup) {
                 const { path } = row.KbqAgGridRowGroup;
-                api.forEachNode((childNode) => {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-                    const childRow = childNode.data as Row | undefined;
-                    if (childRow?.KbqAgGridRowGroup.ancestors.includes(path)) {
+                api.forEachNode((childNode: IRowNode<Row>) => {
+                    if (childNode.data?.KbqAgGridRowGroup.ancestors.includes(path)) {
                         this.programmaticallySetNodes.add(childNode);
                         childNode.setSelected(selected, false);
                     }
@@ -337,9 +398,8 @@ export class KbqAgGridRowGroup {
                 const ancestorPath = ancestors[i];
                 if (!ancestorPath) continue;
                 const fullySelected = this.isGroupFullySelected(ancestorPath, api);
-                api.forEachNode((ancestorNode) => {
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-                    const ancestorRow = ancestorNode.data as Row | undefined;
+                api.forEachNode((ancestorNode: IRowNode<Row>) => {
+                    const ancestorRow = ancestorNode.data;
                     if (ancestorRow?.KbqAgGridRowGroup.isGroup && ancestorRow.KbqAgGridRowGroup.path === ancestorPath) {
                         this.programmaticallySetNodes.add(ancestorNode);
                         ancestorNode.setSelected(fullySelected, false);
@@ -396,26 +456,12 @@ export class KbqAgGridRowGroup {
         this.collapsedPaths.set(this.computeTopLevelPaths());
     }
 
-    /** Appends `field` to the list of group columns. No-op if already present. */
-    addGroupColumn(field: string): void {
-        if (this.groupCols().includes(field)) return;
-        this.groupCols.update((cols) => [...cols, field]);
-        this.collapseAll();
-    }
-
-    /** Removes `field` from the list of group columns. */
-    removeGroupColumn(field: string): void {
-        this.groupCols.update((cols) => cols.filter((c) => c !== field));
-        this.collapseAll();
-    }
-
-    /** Moves the group column at `fromIndex` to `toIndex`. */
+    /** Moves the group column at `fromIndex` to `toIndex`. Top-level groups collapse after reorder. */
     moveGroupColumn(fromIndex: number, toIndex: number): void {
         const cols = [...this.groupCols()];
         const [item] = cols.splice(fromIndex, 1);
         cols.splice(toIndex, 0, item);
         this.groupCols.set(cols);
-        this.collapseAll();
     }
 
     /** Removes all group columns, returning the grid to a flat (ungrouped) view. */
@@ -426,8 +472,12 @@ export class KbqAgGridRowGroup {
 
     private makeGroupColDef(): ColDef {
         return {
+            ...this.groupColOptions(),
+            sortable: false,
+            filter: false,
+            suppressHeaderMenuButton: true,
+            suppressHeaderFilterButton: true,
             colId: KbqAgGridRowGroup.name,
-            headerName: 'Group',
             cellRenderer: KbqAgGridRowGroupCellRenderer,
             cellRendererParams: { rowGroup: this } satisfies Pick<KbqAgGridRowGroupCellRendererParams, 'rowGroup'>
         };
@@ -443,7 +493,7 @@ export class KbqAgGridRowGroup {
 
     private computeSubGroupPaths(expandedPath: string): ReadonlySet<string> {
         const fields = this.groupCols();
-        const pathParts = expandedPath.split('::');
+        const pathParts = expandedPath.split(PATH_SEPARATOR);
         const subField = fields[pathParts.length];
         if (!subField) return new Set<string>();
 
@@ -461,7 +511,7 @@ export class KbqAgGridRowGroup {
         const paths = new Set<string>();
         for (const row of filteredData) {
             const val = row[subField];
-            paths.add(`${expandedPath}::${toKey(val)}`);
+            paths.add(`${expandedPath}${PATH_SEPARATOR}${toKey(val)}`);
         }
         return paths;
     }
@@ -482,9 +532,8 @@ export class KbqAgGridRowGroup {
         let childCount = 0;
         let selectedCount = 0;
 
-        api.forEachNode((node) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const row = node.data as Row | undefined;
+        api.forEachNode((node: IRowNode<Row>) => {
+            const row = node.data;
             if (!row?.KbqAgGridRowGroup) return;
             if (row.KbqAgGridRowGroup.ancestors.at(-1) !== groupPath) return;
             childCount += 1;

@@ -41,11 +41,14 @@ test.describe('KbqAgGridRowGroup', () => {
     //     await expect(getScreenshotTarget(page)).toHaveScreenshot('row-group-dark.png');
     // });
 
-    test('initial state shows flat data without group headers', async ({ page }) => {
+    test('initial state shows grouped and collapsed rows from kbqAgGridRowGroupCols', async ({ page }) => {
         await page.goto('/e2e/row-group');
-        await waitForDataLoaded(page);
+        await waitForGroupsVisible(page);
 
-        await expect(getGroupCellInner(page, 0)).toHaveCount(0);
+        // All visible rows must be group headers — groups are collapsed by default
+        const totalRows = await page.locator('.ag-row').count();
+        const groupRows = page.locator('.kbq-ag-grid-group-cell-renderer__inner');
+        await expect(groupRows).toHaveCount(totalRows);
     });
 
     test('checking a column checkbox groups rows by that column', async ({ page }) => {
@@ -270,14 +273,15 @@ test.describe('KbqAgGridRowGroup', () => {
         await waitForRowSelected(page, 3);
     });
 
-    test('unchecking a column checkbox removes grouping', async ({ page }) => {
+    test('unchecking all column checkboxes removes grouping', async ({ page }) => {
         await page.goto('/e2e/row-group');
-        await waitForDataLoaded(page);
-
-        await getGroupCheckbox(page, 'Country').click();
         await waitForGroupsVisible(page);
 
+        // Check all currently-grouped columns so the UI tracks them, then uncheck each
         await getGroupCheckbox(page, 'Country').click();
+        await getGroupCheckbox(page, 'Sport').click();
+        await getGroupCheckbox(page, 'Country').click();
+        await getGroupCheckbox(page, 'Sport').click();
 
         // Group cell renderers should no longer be present
         await expect(page.locator('.kbq-ag-grid-group-cell-renderer__inner')).toHaveCount(0, { timeout: 5_000 });
