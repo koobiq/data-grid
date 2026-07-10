@@ -1,5 +1,9 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { kbqAgGridRowGroupColOptionsProvider, KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
+import {
+    kbqAgGridRowGroupColOptionsProvider,
+    KbqAgGridRowGroupRowId,
+    KbqAgGridThemeModule
+} from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry, SelectionChangedEvent } from 'ag-grid-community';
 import { devInjectRowData } from '../row-data';
@@ -28,6 +32,7 @@ const DEFAULT_COL_DEF: ColDef = {
     selector: 'dev-row-group',
     template: `
         <div>
+            Group by:
             @for (col of columnDefs; track col.field) {
                 <label>
                     <input
@@ -41,17 +46,24 @@ const DEFAULT_COL_DEF: ColDef = {
             }
         </div>
 
+        <div>
+            Selected rows:
+            <span data-testid="selectedCount">{{ selectedRows().length }}</span>
+        </div>
+
         <ag-grid-angular
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
             kbqAgGridRowGroup
             [kbqAgGridRowGroupRowData]="rowData()"
+            [kbqAgGridRowGroupRowId]="rowId"
             [columnDefs]="columnDefs"
             [(kbqAgGridRowGroupCols)]="groupCols"
             [defaultColDef]="defaultColDef"
             [rowSelection]="rowSelection"
             [animateRows]="false"
             (selectionChanged)="onSelectionChanged($event)"
+            (kbqAgGridRowGroupSelectionChanged)="onRowSelectionChanged($event)"
         />
     `,
     providers: [kbqAgGridRowGroupColOptionsProvider({ headerName: 'Group' })],
@@ -72,8 +84,10 @@ export class DevRowGroup {
     readonly rowData = devInjectRowData();
     readonly columnDefs = COLUMN_DEFS;
     readonly defaultColDef = DEFAULT_COL_DEF;
+    protected readonly rowId: KbqAgGridRowGroupRowId = (row) => String(row.id);
     protected readonly groupCols = signal<string[]>(['country', 'sport']);
     protected readonly rowSelection = { mode: 'multiRow', checkboxes: true } as const;
+    protected readonly selectedRows = signal<Record<string, unknown>[]>([]);
 
     protected onToggle(field: string, event: Event): void {
         const { target } = event;
@@ -84,5 +98,9 @@ export class DevRowGroup {
 
     protected onSelectionChanged(event: SelectionChangedEvent): void {
         console.debug('SelectionChangedEvent: ', event);
+    }
+
+    protected onRowSelectionChanged(rows: Record<string, unknown>[]): void {
+        this.selectedRows.set(rows);
     }
 }

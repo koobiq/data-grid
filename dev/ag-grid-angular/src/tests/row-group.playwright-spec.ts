@@ -1,7 +1,8 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 import { isRowSelected, waitForRowSelected } from './utils/helpers';
+import { enableDarkTheme } from './utils/theme';
 
-// const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
+const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
 
 const getGroupCheckbox = (page: Page, headerName: string): Locator =>
     page.locator('label').filter({ hasText: headerName }).locator('input[type="checkbox"]');
@@ -9,8 +10,11 @@ const getGroupCheckbox = (page: Page, headerName: string): Locator =>
 const getGroupCellInner = (page: Page, rowIndex: number): Locator =>
     page.locator(`.ag-row[row-index="${rowIndex}"] .kbq-ag-grid-group-cell-renderer__inner`);
 
+// Group rows render a custom checkbox (not AG's `.ag-checkbox-input`) in the selection column;
+// AG Grid still emits its own native checkbox markup there too, permanently hidden via CSS.
+// Matching on visibility picks whichever one is actually shown for the row.
 const getRowCheckbox = (page: Page, rowIndex: number): Locator =>
-    page.locator(`.ag-row[row-index="${rowIndex}"] .ag-checkbox-input`);
+    page.locator(`.ag-row[row-index="${rowIndex}"] input[type="checkbox"]:visible`);
 
 const waitForDataLoaded = async (page: Page): Promise<void> => {
     await expect(page.locator('.ag-row[row-index="0"]')).toBeVisible({ timeout: 10_000 });
@@ -20,26 +24,40 @@ const waitForGroupsVisible = async (page: Page): Promise<void> => {
     await expect(getGroupCellInner(page, 0)).toBeVisible({ timeout: 5_000 });
 };
 
+// Locates a group header row by its rendered key (e.g. "Russia" for a "Russia (706)" label).
+const getGroupRowByKey = (page: Page, key: string): Locator =>
+    page.locator('.ag-row').filter({ has: page.locator('.kbq-ag-grid-group-cell-renderer__key', { hasText: key }) });
+
+// Locates a data (non-group) row containing the given text.
+const getDataRowByText = (page: Page, text: string): Locator =>
+    page
+        .locator('.ag-row')
+        .filter({ hasText: text })
+        .filter({ hasNot: page.locator('.kbq-ag-grid-group-cell-renderer__inner') });
+
 test.describe('KbqAgGridRowGroup', () => {
     // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
-    // test('screenshot — grouped, expanded, and with selection', async ({ page }) => {
-    //     await page.goto('/e2e/row-group');
-    //     await waitForDataLoaded(page);
+    test('screenshot — grouped, expanded, and with selection', async ({ page }) => {
+        // Both Country and Sport are grouped by default (see DevRowGroup.groupCols).
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
 
-    //     await getGroupCheckbox(page, 'Country').click();
-    //     await waitForGroupsVisible(page);
+        // Expand Russia, then its Diving sub-group.
+        await getGroupRowByKey(page, 'Russia').locator('.kbq-ag-grid-group-cell-renderer__inner').click();
+        const divingGroup = getGroupRowByKey(page, 'Diving');
+        await expect(divingGroup).toBeVisible();
+        await divingGroup.locator('.kbq-ag-grid-group-cell-renderer__inner').click();
 
-    //     // Expand the first group
-    //     await getGroupCellInner(page, 0).click();
-    //     await expect(page.locator('.ag-row[row-index="1"]')).toBeVisible();
+        // Select Ilya Zakharov's row.
+        const athleteRow = getDataRowByText(page, 'Ilya Zakharov');
+        await expect(athleteRow).toBeVisible();
+        await athleteRow.locator('input[type="checkbox"]:visible').click();
+        await expect(athleteRow).toHaveClass(/ag-row-selected/);
 
-    //     // Select the first group header
-    //     await getRowCheckbox(page, 0).click();
-
-    //     await expect(getScreenshotTarget(page)).toHaveScreenshot('row-group-light.png');
-    //     await enableDarkTheme(page);
-    //     await expect(getScreenshotTarget(page)).toHaveScreenshot('row-group-dark.png');
-    // });
+        await expect(getScreenshotTarget(page)).toHaveScreenshot('row-group-light.png');
+        await enableDarkTheme(page);
+        await expect(getScreenshotTarget(page)).toHaveScreenshot('row-group-dark.png');
+    });
 
     test('initial state shows grouped and collapsed rows from kbqAgGridRowGroupCols', async ({ page }) => {
         await page.goto('/e2e/row-group');
@@ -102,13 +120,9 @@ test.describe('KbqAgGridRowGroup', () => {
     });
 
     test('two group columns produce a nested group structure', async ({ page }) => {
+        // Both Country and Sport are grouped by default (see DevRowGroup.groupCols).
         await page.goto('/e2e/row-group');
-        await waitForDataLoaded(page);
-
-        await getGroupCheckbox(page, 'Country').click();
         await waitForGroupsVisible(page);
-
-        await getGroupCheckbox(page, 'Sport').click();
 
         // Expand the first top-level group
         await getGroupCellInner(page, 0).click();
@@ -241,16 +255,39 @@ test.describe('KbqAgGridRowGroup', () => {
         await expect(selectedRows).toHaveCount(totalRows);
     });
 
-    test('two group levels: deselecting one sub-group unchecks parent but keeps siblings selected', async ({
-        page
-    }) => {
+    test('preserves a partial selection when the group is collapsed and re-expanded', async ({ page }) => {
         await page.goto('/e2e/row-group');
         await waitForDataLoaded(page);
 
         await getGroupCheckbox(page, 'Country').click();
         await waitForGroupsVisible(page);
 
-        await getGroupCheckbox(page, 'Sport').click();
+        // Expand the first group so children are visible
+        await getGroupCellInner(page, 0).click();
+        await expect(page.locator('.ag-row[row-index="1"]')).toBeVisible();
+
+        // Select only the first child — group ends up indeterminate, not itself selected
+        await getRowCheckbox(page, 1).click();
+        await waitForRowSelected(page, 1);
+        await expect(page.locator('.ag-row[row-index="0"]')).not.toHaveClass(/ag-row-selected/);
+
+        // Collapse the group — row 1 becomes the next group header again
+        await getGroupCellInner(page, 0).click();
+        await expect(getGroupCellInner(page, 1)).toBeVisible();
+
+        // Re-expand — the same single child must still be selected, group still not fully checked
+        await getGroupCellInner(page, 0).click();
+        await expect(page.locator('.ag-row[row-index="1"]')).toBeVisible();
+        await waitForRowSelected(page, 1);
+        await expect(page.locator('.ag-row[row-index="0"]')).not.toHaveClass(/ag-row-selected/);
+    });
+
+    test('two group levels: deselecting one sub-group unchecks parent but keeps siblings selected', async ({
+        page
+    }) => {
+        // Both Country and Sport are grouped by default (see DevRowGroup.groupCols).
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
 
         // Expand the first top-level group
         await getGroupCellInner(page, 0).click();
@@ -273,13 +310,41 @@ test.describe('KbqAgGridRowGroup', () => {
         await waitForRowSelected(page, 3);
     });
 
+    test('kbqAgGridRowGroupSelectionChanged reports the full selection across collapsed groups, not just visible rows', async ({
+        page
+    }) => {
+        // Both Country and Sport are grouped by default (see DevRowGroup.groupCols).
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
+
+        // Read the first top-level group's total descendant count from its own label.
+        const countText = await page.locator('.kbq-ag-grid-group-cell-renderer__count').first().textContent();
+        const total = Number(countText!.replace(/[()]/g, ''));
+
+        // Select the whole top-level group while it — and all its nested sub-groups — are
+        // still collapsed, i.e. none of its descendant rows are loaded into AG's row model.
+        await getRowCheckbox(page, 0).click();
+        await expect(page.getByTestId('selectedCount')).toHaveText(String(total));
+
+        // Expand the top-level group, then its first nested sub-group.
+        await getGroupCellInner(page, 0).click();
+        await expect(page.locator('.ag-row[row-index="1"]')).toBeVisible();
+        await getGroupCellInner(page, 1).click();
+        await expect(page.locator('.ag-row[row-index="2"]')).toBeVisible();
+
+        // Deselect a single visible child row inside the now-expanded sub-group.
+        await getRowCheckbox(page, 2).click();
+
+        // The reported selection must drop by exactly one across the whole dataset — not
+        // collapse down to only the small sub-group's own visible count.
+        await expect(page.getByTestId('selectedCount')).toHaveText(String(total - 1));
+    });
+
     test('unchecking all column checkboxes removes grouping', async ({ page }) => {
         await page.goto('/e2e/row-group');
         await waitForGroupsVisible(page);
 
-        // Check all currently-grouped columns so the UI tracks them, then uncheck each
-        await getGroupCheckbox(page, 'Country').click();
-        await getGroupCheckbox(page, 'Sport').click();
+        // Both columns are grouped by default (see DevRowGroup.groupCols) — uncheck each
         await getGroupCheckbox(page, 'Country').click();
         await getGroupCheckbox(page, 'Sport').click();
 
