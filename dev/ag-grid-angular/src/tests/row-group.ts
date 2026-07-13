@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal, viewChild } from '@angular/core';
 import {
+    KbqAgGridRowGroup,
     kbqAgGridRowGroupColOptionsProvider,
     KbqAgGridRowGroupRowId,
     KbqAgGridThemeModule
@@ -51,9 +52,27 @@ const DEFAULT_COL_DEF: ColDef = {
             <span data-testid="selectedCount">{{ selectedRows().length }}</span>
         </div>
 
+        <div>
+            <button type="button" data-testid="expandAllBtn" (click)="expandAll()">Expand all</button>
+            <button type="button" data-testid="collapseAllBtn" (click)="collapseAll()">Collapse all</button>
+            <button type="button" data-testid="expandRussiaDivingBtn" (click)="expandRussiaDiving()">
+                Expand Russia &gt; Diving
+            </button>
+            <button type="button" data-testid="collapseRussiaDivingBtn" (click)="collapseRussiaDiving()">
+                Collapse Russia &gt; Diving
+            </button>
+            <button type="button" data-testid="selectIlyaZakharovBtn" (click)="setIlyaZakharovSelected(true)">
+                Select Ilya Zakharov
+            </button>
+            <button type="button" data-testid="deselectIlyaZakharovBtn" (click)="setIlyaZakharovSelected(false)">
+                Deselect Ilya Zakharov
+            </button>
+        </div>
+
         <ag-grid-angular
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
+            kbqAgGridThemeDisableCellFocusStyles
             kbqAgGridRowGroup
             [kbqAgGridRowGroupRowData]="rowData()"
             [kbqAgGridRowGroupRowId]="rowId"
@@ -68,14 +87,8 @@ const DEFAULT_COL_DEF: ColDef = {
     `,
     providers: [kbqAgGridRowGroupColOptionsProvider({ headerName: 'Group' })],
     styles: `
-        :host {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
         ag-grid-angular {
-            flex: 1;
+            height: 500px;
         }
     `,
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -88,6 +101,28 @@ export class DevRowGroup {
     protected readonly groupCols = signal<string[]>(['country', 'sport']);
     protected readonly rowSelection = { mode: 'multiRow', checkboxes: true } as const;
     protected readonly selectedRows = signal<Record<string, unknown>[]>([]);
+    private readonly group = viewChild.required(KbqAgGridRowGroup);
+
+    protected expandAll(): void {
+        this.group().expandAll();
+    }
+
+    protected collapseAll(): void {
+        this.group().collapseAll();
+    }
+
+    protected expandRussiaDiving(): void {
+        this.group().setExpanded(['Russia', 'Diving'], true);
+    }
+
+    protected collapseRussiaDiving(): void {
+        this.group().setExpanded(['Russia', 'Diving'], false);
+    }
+
+    protected setIlyaZakharovSelected(selected: boolean): void {
+        const row = this.rowData().find((r) => r.athlete === 'Ilya Zakharov');
+        if (row) this.group().setRowSelected(row.id, selected);
+    }
 
     protected onToggle(field: string, event: Event): void {
         const { target } = event;

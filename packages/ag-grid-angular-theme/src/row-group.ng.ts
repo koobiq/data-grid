@@ -9,6 +9,7 @@ import {
     inject,
     InjectionToken,
     input,
+    isDevMode,
     model,
     output,
     Provider,
@@ -37,6 +38,16 @@ type RowData = Record<string, unknown>;
 /** Extracts a stable unique identifier from a data row, used to track selection across
  * collapse/expand cycles. See `KbqAgGridRowGroup`'s `rowId` input. */
 export type KbqAgGridRowGroupRowId = (row: RowData) => string | number;
+
+/** Selection state of a row group or of the full dataset (see `overallSelectionState`). */
+export type KbqAgGridRowGroupSelectionState = 'checked' | 'unchecked' | 'indeterminate';
+
+/**
+ * Ordered raw field values identifying a group and its ancestors — one value per active
+ * `kbqAgGridRowGroupCols` level, outermost first — e.g. `['Russia', 'Diving']` for
+ * `kbqAgGridRowGroupCols` `['country', 'sport']`. Passed to `KbqAgGridRowGroup.setExpanded`.
+ */
+export type KbqAgGridRowGroupPath = readonly unknown[];
 
 const PATH_SEPARATOR = '::';
 
@@ -334,7 +345,7 @@ class KbqAgGridRowGroupSelectionCellRenderer implements ICellRendererAngularComp
 
     protected readonly isGroup = signal(false);
     protected readonly key = signal('');
-    protected readonly selectionState = signal<'checked' | 'unchecked' | 'indeterminate'>('unchecked');
+    protected readonly selectionState = signal<KbqAgGridRowGroupSelectionState>('unchecked');
     private path = '';
 
     constructor() {
@@ -421,7 +432,7 @@ class KbqAgGridRowGroupSelectAllHeaderCellRenderer implements IHeaderAngularComp
     private rowGroup: KbqAgGridRowGroup | null = null;
     private readonly checkboxRef = viewChild<ElementRef<HTMLInputElement>>('checkbox');
 
-    protected readonly selectionState = signal<'checked' | 'unchecked' | 'indeterminate'>('unchecked');
+    protected readonly selectionState = signal<KbqAgGridRowGroupSelectionState>('unchecked');
 
     constructor() {
         effect(() => {
@@ -545,7 +556,7 @@ export class KbqAgGridRowGroup {
      * missing `rowId` while grouping is active, and (once per id) on duplicate ids. */
     private readonly rowIdMap = computed((): RowIdMap => {
         const rowId = this.rowId();
-        if (!rowId && this.groupCols().length > 0 && !this.warnedMissingRowId) {
+        if (isDevMode() && !rowId && this.groupCols().length > 0 && !this.warnedMissingRowId) {
             this.warnedMissingRowId = true;
             console.warn(
                 'KbqAgGridRowGroup: no [kbqAgGridRowGroupRowId] configured — falling back to ' +
@@ -556,13 +567,15 @@ export class KbqAgGridRowGroup {
         }
 
         const { ids, duplicateIds } = resolveRowIds(this.data(), rowId);
-        for (const id of duplicateIds) {
-            if (this.warnedDuplicateRowIds.has(id)) continue;
-            this.warnedDuplicateRowIds.add(id);
-            console.warn(
-                `KbqAgGridRowGroup: duplicate row id "${id}" from [kbqAgGridRowGroupRowId] — ` +
-                    'selection tracking may be incorrect for the affected rows.'
-            );
+        if (isDevMode()) {
+            for (const id of duplicateIds) {
+                if (this.warnedDuplicateRowIds.has(id)) continue;
+                this.warnedDuplicateRowIds.add(id);
+                console.warn(
+                    `KbqAgGridRowGroup: duplicate row id "${id}" from [kbqAgGridRowGroupRowId] — ` +
+                        'selection tracking may be incorrect for the affected rows.'
+                );
+            }
         }
         return ids;
     });
@@ -596,7 +609,7 @@ export class KbqAgGridRowGroup {
      * which rows AG Grid currently has visible/instantiated.
      */
     readonly groupSelectionState = computed(
-        (): ReadonlyMap<string, 'checked' | 'indeterminate'> => {
+        (): ReadonlyMap<string, Exclude<KbqAgGridRowGroupSelectionState, 'unchecked'>> => {
             const index = this.rowIndex();
             const selected = this.selectedRowIds();
             const totals = this.pathTotals();
@@ -611,7 +624,7 @@ export class KbqAgGridRowGroup {
                 }
             }
 
-            const result = new Map<string, 'checked' | 'indeterminate'>();
+            const result = new Map<string, Exclude<KbqAgGridRowGroupSelectionState, 'unchecked'>>();
             for (const [path, total] of totals) {
                 const count = selectedCounts.get(path) ?? 0;
                 if (count === 0) continue;
@@ -626,7 +639,7 @@ export class KbqAgGridRowGroup {
      * Selection state across the full dataset, regardless of grouping/collapse state — drives
      * the custom "select all" header checkbox (see `KbqAgGridRowGroupSelectAllHeaderCellRenderer`).
      */
-    readonly overallSelectionState = computed((): 'checked' | 'unchecked' | 'indeterminate' => {
+    readonly overallSelectionState = computed((): KbqAgGridRowGroupSelectionState => {
         const index = this.rowIndex();
         const total = index.size;
         if (total === 0) return 'unchecked';
@@ -749,8 +762,8 @@ export class KbqAgGridRowGroup {
             // Group rows are non-selectable — their state lives in groupSelectionState.
             // Prefer the non-deprecated rowSelection object form when available; fall back
             // to the legacy setGridOption('isRowSelectable') only for string / absent config.
-            const sel = api.getGridOption('rowSelection');
-            if (sel && typeof sel !== 'string') {
+            const rowSelection = api.getGridOption('rowSelection');
+            if (rowSelection && typeof rowSelection !== 'string') {
                 // Merge into the existing rowSelection object so user-supplied options are preserved.
                 // checkboxes:false for group rows suppresses AG Grid's own native selection-column
                 // checkbox entirely (rather than just disabling it), so only our custom
@@ -758,20 +771,20 @@ export class KbqAgGridRowGroup {
                 // same for the header "select all" checkbox — AG's own only knows about currently
                 // visible rows and disables itself while any group is collapsed; our own custom one
                 // (see makeSelectionColumnDef) accounts for the full, uncollapsed dataset instead.
-                const originalCheckboxes = sel.checkboxes;
+                const originalCheckboxes = rowSelection.checkboxes;
                 const mergedSelection = {
-                    ...sel,
+                    ...rowSelection,
                     isRowSelectable: ((node: IRowNode<Row>) =>
-                        !isGroupHeaderRow(node.data)) as typeof sel.isRowSelectable,
+                        !isGroupHeaderRow(node.data)) as typeof rowSelection.isRowSelectable,
                     checkboxes: ((params: CheckboxSelectionCallbackParams<Row>) => {
                         if (isGroupHeaderRow(params.data)) return false;
                         return typeof originalCheckboxes === 'function'
                             ? originalCheckboxes(params)
                             : (originalCheckboxes ?? true);
-                    }) as typeof sel.checkboxes,
+                    }) as typeof rowSelection.checkboxes,
                     hideDisabledCheckboxes: true,
                     // headerCheckbox only exists on multiRow selection options.
-                    ...(sel.mode === 'multiRow' ? { headerCheckbox: false } : {})
+                    ...(rowSelection.mode === 'multiRow' ? { headerCheckbox: false } : {})
                 };
                 api.setGridOption('rowSelection', mergedSelection);
             } else {
@@ -820,7 +833,7 @@ export class KbqAgGridRowGroup {
     }
 
     /** Returns the selection state of the group at `path`. */
-    getGroupSelectionState(path: string): 'checked' | 'unchecked' | 'indeterminate' {
+    getGroupSelectionState(path: string): KbqAgGridRowGroupSelectionState {
         return this.groupSelectionState().get(path) ?? 'unchecked';
     }
 
@@ -886,6 +899,37 @@ export class KbqAgGridRowGroup {
         });
     }
 
+    /**
+     * Sets the selection state of a single data row identified by `id` (see
+     * `kbqAgGridRowGroupRowId`) — including a row currently hidden inside a collapsed group,
+     * which AG Grid's own selection API cannot reach at all since it has no row node for it.
+     * Group rows are never selectable this way; use `onGroupCheckboxClick` /
+     * `onSelectAllCheckboxClick` to change a whole group's or the whole dataset's selection.
+     */
+    setRowSelected(id: string | number, selected: boolean): void {
+        const key = String(id);
+        this.selectedRowIds.update((set) => {
+            const next = new Set(set);
+            if (selected) next.add(key);
+            else next.delete(key);
+            return next;
+        });
+        this.emitSelectionChanged();
+
+        // Sync AG's live node selection if this row happens to be currently visible — if it's
+        // hidden inside a collapsed group, the "update rowData" effect restores it on expand.
+        const api = this.api();
+        if (!api) return;
+        api.forEachNode((node: IRowNode<Row>) => {
+            const row = node.data;
+            if (!row?.KbqAgGridRowGroup || isGroupHeaderRow(row)) return;
+            if (row.KbqAgGridRowGroup.id === key) {
+                this.programmaticallySetNodes.add(node);
+                node.setSelected(selected, false);
+            }
+        });
+    }
+
     /** Toggles the collapsed / expanded state of the group at `path`. */
     toggleCollapse(path: string): void {
         const next = new Set(this.collapsedPaths());
@@ -902,19 +946,36 @@ export class KbqAgGridRowGroup {
     }
 
     /**
-     * Sets the expanded / collapsed state of the group at `path`.
-     * Pass `true` to expand, `false` to collapse.
+     * Sets the expanded / collapsed state of the group at `groupPath` — an ordered array of raw
+     * field *values* (not field names), outermost group first, e.g. `['Russia', 'Diving']` to
+     * address the "Diving" sub-group under "Russia". Pass `true` to expand: every ancestor along
+     * the way is expanded too, so the target group becomes visible without calling this once per
+     * level in the right order yourself. Pass `false` to collapse just the target group.
+     *
+     * @example
+     * ```ts
+     * group.setExpanded(['Russia', 'Diving'], true);
+     * ```
      */
-    setExpanded(path: string, expanded: boolean): void {
+    setExpanded(groupPath: KbqAgGridRowGroupPath, expanded: boolean): void {
+        if (groupPath.length === 0) return;
+
         const next = new Set(this.collapsedPaths());
-        if (expanded) {
-            next.delete(path);
-            for (const subPath of this.computeSubGroupPaths(path)) {
-                next.add(subPath);
+        let leafPath = '';
+        for (const value of groupPath) {
+            const segment = toKey(value);
+            leafPath = leafPath ? `${leafPath}${PATH_SEPARATOR}${segment}` : segment;
+            if (expanded) {
+                // Expanding: reveal children, but start them collapsed — walking the chain from
+                // the root down means this also auto-expands every ancestor of the target group.
+                next.delete(leafPath);
+                for (const subPath of this.computeSubGroupPaths(leafPath)) {
+                    next.add(subPath);
+                }
             }
-        } else {
-            next.add(path);
         }
+        if (!expanded) next.add(leafPath);
+
         this.collapsedPaths.set(next);
     }
 

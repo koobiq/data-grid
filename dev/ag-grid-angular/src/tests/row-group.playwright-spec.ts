@@ -340,6 +340,103 @@ test.describe('KbqAgGridRowGroup', () => {
         await expect(page.getByTestId('selectedCount')).toHaveText(String(total - 1));
     });
 
+    test('expandAll expands every group at every level', async ({ page }) => {
+        // Both Country and Sport are grouped by default (see DevRowGroup.groupCols).
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
+
+        await page.getByTestId('expandAllBtn').click();
+
+        // Row 0: top-level group header. Row 1: nested group header — both levels are
+        // expanded by a single call, without expanding each chevron by hand.
+        await expect(getGroupCellInner(page, 0)).toBeVisible();
+        await expect(getGroupCellInner(page, 1)).toBeVisible();
+        // Row 2: a plain data row — the deepest level has no further grouping.
+        await expect(page.locator('.ag-row[row-index="2"]')).toBeVisible();
+        await expect(getGroupCellInner(page, 2)).toHaveCount(0);
+    });
+
+    test('collapseAll collapses every group back down to the top level', async ({ page }) => {
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
+
+        await page.getByTestId('expandAllBtn').click();
+        await expect(page.locator('.ag-row[row-index="2"]')).toBeVisible();
+
+        await page.getByTestId('collapseAllBtn').click();
+
+        // Back to the initial state: every currently visible row is a collapsed group header.
+        const totalRows = await page.locator('.ag-row').count();
+        await expect(page.locator('.kbq-ag-grid-group-cell-renderer__inner')).toHaveCount(totalRows);
+    });
+
+    test('setExpanded(groupPath, true) auto-expands every ancestor of a nested group', async ({ page }) => {
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
+
+        await page.getByTestId('expandRussiaDivingBtn').click();
+
+        // Russia and its Diving sub-group are both expanded by one call — an athlete two
+        // levels deep becomes visible with no manual chevron clicks at all.
+        await expect(getDataRowByText(page, 'Ilya Zakharov')).toBeVisible();
+
+        // A sibling sport under Russia must stay collapsed — only the addressed path expands.
+        const gymnasticsGroup = getGroupRowByKey(page, 'Gymnastics');
+        await expect(gymnasticsGroup).toBeVisible();
+        await expect(gymnasticsGroup.locator('.kbq-chevron-right_16')).toBeVisible();
+    });
+
+    test('setExpanded(groupPath, false) collapses only the target group, ancestors stay expanded', async ({ page }) => {
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
+
+        await page.getByTestId('expandRussiaDivingBtn').click();
+        await expect(getDataRowByText(page, 'Ilya Zakharov')).toBeVisible();
+
+        await page.getByTestId('collapseRussiaDivingBtn').click();
+
+        // Diving's own children are hidden again...
+        await expect(getDataRowByText(page, 'Ilya Zakharov')).toHaveCount(0);
+        // ...but Russia itself is still expanded, and the Diving group header is still shown.
+        await expect(getGroupRowByKey(page, 'Diving')).toBeVisible();
+    });
+
+    test('setRowSelected selects a row hidden inside a collapsed group, and it shows selected once expanded', async ({
+        page
+    }) => {
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
+
+        // Russia > Diving is still fully collapsed — no AG row node exists yet for this row.
+        await page.getByTestId('selectIlyaZakharovBtn').click();
+
+        // The selection is already reflected in the full-dataset count even though the row
+        // itself isn't loaded into AG's row model.
+        await expect(page.getByTestId('selectedCount')).toHaveText('1');
+
+        // Expand down to the row — it comes back selected.
+        await page.getByTestId('expandRussiaDivingBtn').click();
+        const athleteRow = getDataRowByText(page, 'Ilya Zakharov');
+        await expect(athleteRow).toBeVisible();
+        await expect(athleteRow).toHaveClass(/ag-row-selected/);
+    });
+
+    test('setRowSelected(id, false) deselects a row', async ({ page }) => {
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
+
+        await page.getByTestId('selectIlyaZakharovBtn').click();
+        await expect(page.getByTestId('selectedCount')).toHaveText('1');
+
+        await page.getByTestId('deselectIlyaZakharovBtn').click();
+        await expect(page.getByTestId('selectedCount')).toHaveText('0');
+
+        await page.getByTestId('expandRussiaDivingBtn').click();
+        const athleteRow = getDataRowByText(page, 'Ilya Zakharov');
+        await expect(athleteRow).toBeVisible();
+        await expect(athleteRow).not.toHaveClass(/ag-row-selected/);
+    });
+
     test('unchecking all column checkboxes removes grouping', async ({ page }) => {
         await page.goto('/e2e/row-group');
         await waitForGroupsVisible(page);
