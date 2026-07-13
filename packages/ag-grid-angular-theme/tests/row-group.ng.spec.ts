@@ -233,10 +233,9 @@ describe(KbqAgGridRowGroup.name, () => {
         it('hides children of collapsed groups', async () => {
             const { fixture, grid, directive } = await setup(DATA);
             directive.groupCols.set(['country']);
-            // Wait for the groupCols-change reset to run before setting collapsed paths,
-            // otherwise the reset would clear the explicitly set paths.
+            // Groups are collapsed by default as soon as grouping activates — no need to
+            // explicitly collapse USA.
             await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
-            directive.collapsedPaths.set(new Set(['USA']));
             await waitForNodes(grid, fixture, (nodes) =>
                 nodes.every((n) => {
                     const meta = getMeta(n.data);
@@ -411,10 +410,27 @@ describe(KbqAgGridRowGroup.name, () => {
             });
         });
 
+        it('rebuilds the grid exactly once when the grouping structure changes, not twice', async () => {
+            const { fixture, grid, directive } = await setup(DATA);
+            directive.groupCols.set(['country']);
+            fixture.detectChanges();
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+
+            grid.mock.setGridOption.mockClear();
+
+            // Structural change: 'country' -> 'sport' produces 3 top-level groups instead of 2.
+            directive.groupCols.set(['sport']);
+            fixture.detectChanges();
+            await waitForNodes(grid, fixture, (nodes) => nodes.length === 3);
+
+            const rowDataCalls = grid.mock.setGridOption.mock.calls.filter(([key]) => key === 'rowData');
+            expect(rowDataCalls).toHaveLength(1);
+        });
+
         it('clearGroupColumns empties groupCols and collapsedPaths', async () => {
             const { directive } = await setup(DATA);
             directive.groupCols.set(['country']);
-            directive.collapsedPaths.set(new Set(['USA']));
+            directive.toggleCollapse('USA');
             directive.clearGroupColumns();
             expect(directive.groupCols()).toHaveLength(0);
             expect(directive.collapsedPaths().size).toBe(0);
@@ -583,24 +599,40 @@ describe(KbqAgGridRowGroup.name, () => {
                 expect(headers.map((h) => getMeta(h.data)!.key)).toEqual(['USA', 'GBR']);
             });
         });
+
+        it('setGroupColSort warns and is a no-op when called before the grid is ready', async () => {
+            const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+            try {
+                const { fixture } = await render(TestRowGroupGrid);
+                const directive = fixture.componentInstance.directive();
+
+                directive.setGroupColSort('asc');
+
+                expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('setGroupColSort'));
+                expect(directive.groupColSort()).toBeNull();
+            } finally {
+                warnSpy.mockRestore();
+            }
+        });
     });
 
     describe('collapse and expand', () => {
         it('isCollapsed returns true for a collapsed path', async () => {
             const { directive } = await setup(DATA);
-            directive.collapsedPaths.set(new Set(['USA']));
+            directive.toggleCollapse('USA');
             expect(directive.isCollapsed('USA')).toBe(true);
         });
 
         it('isCollapsed returns false for a path not in collapsedPaths', async () => {
             const { directive } = await setup(DATA);
-            directive.collapsedPaths.set(new Set(['GBR']));
+            directive.toggleCollapse('GBR');
             expect(directive.isCollapsed('USA')).toBe(false);
         });
 
         it('expandAll clears all collapsed paths', async () => {
             const { directive } = await setup(DATA);
-            directive.collapsedPaths.set(new Set(['USA', 'GBR']));
+            directive.toggleCollapse('USA');
+            directive.toggleCollapse('GBR');
             directive.expandAll();
             expect(directive.collapsedPaths().size).toBe(0);
         });
@@ -623,7 +655,7 @@ describe(KbqAgGridRowGroup.name, () => {
         it('toggleCollapse expands a collapsed group', async () => {
             const { directive } = await setup(DATA);
             directive.groupCols.set(['country']);
-            directive.collapsedPaths.set(new Set(['USA']));
+            directive.toggleCollapse('USA'); // start collapsed
             directive.toggleCollapse('USA');
             expect(directive.isCollapsed('USA')).toBe(false);
         });
@@ -635,7 +667,7 @@ describe(KbqAgGridRowGroup.name, () => {
             ];
             const { directive } = await setup(nestedData);
             directive.groupCols.set(['country', 'sport']);
-            directive.collapsedPaths.set(new Set(['USA']));
+            directive.toggleCollapse('USA'); // start collapsed
             directive.toggleCollapse('USA');
             // Sub-group paths should now be collapsed
             expect(directive.isCollapsed('USA::Swimming')).toBe(true);
@@ -652,7 +684,7 @@ describe(KbqAgGridRowGroup.name, () => {
         it('setExpanded(groupPath, true) expands the group', async () => {
             const { directive } = await setup(DATA);
             directive.groupCols.set(['country']);
-            directive.collapsedPaths.set(new Set(['USA']));
+            directive.toggleCollapse('USA');
             directive.setExpanded(['USA'], true);
             expect(directive.isCollapsed('USA')).toBe(false);
         });
@@ -695,6 +727,20 @@ describe(KbqAgGridRowGroup.name, () => {
             expect(directive.isCollapsed('USA::Swimming')).toBe(true);
             expect(directive.isCollapsed('USA')).toBe(false);
         });
+
+        it('does not scan grid nodes on a rebuild when nothing is selected', async () => {
+            const { grid, directive, fixture } = await setupWithGroups();
+            grid.mock.forEachNode.mockClear();
+            grid.mock.setGridOption.mockClear();
+
+            directive.toggleCollapse('USA');
+            fixture.detectChanges();
+            await waitFor(() => {
+                expect(grid.mock.setGridOption).toHaveBeenCalledWith('rowData', expect.any(Array));
+            });
+
+            expect(grid.mock.forEachNode).not.toHaveBeenCalled();
+        });
     });
 
     describe('groupSelectsChildren', () => {
@@ -728,6 +774,38 @@ describe(KbqAgGridRowGroup.name, () => {
                 expect(child.setSelected).toHaveBeenLastCalledWith(false, false);
             }
             expect(directive.groupSelectionState().get('USA')).toBeUndefined();
+        });
+
+        it('does not swallow a real deselect on a child that was already selected before the group checkbox click', async () => {
+            const { grid, directive } = await setupWithGroups();
+
+            const usaChildren = grid.mock.nodes.filter((n) => {
+                const meta = getMeta(n.data);
+                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+            });
+            expect(usaChildren.length).toBeGreaterThanOrEqual(2);
+            const [alreadySelected, ...rest] = usaChildren;
+
+            // Select one child individually first (a real user selection).
+            alreadySelected.setSelected(true);
+            grid.emitRowSelected(alreadySelected);
+            expect(directive.groupSelectionState().get('USA')).toBe('indeterminate');
+
+            // Click the group checkbox — this re-selects every child, including the one already
+            // selected above. AG Grid's real setSelected() is a no-op (no event) for a node
+            // already at the target value, so the already-selected child must NOT be marked
+            // "programmatic" here, or a later real deselect on it would be silently swallowed.
+            directive.onGroupCheckboxClick('USA');
+            expect(directive.groupSelectionState().get('USA')).toBe('checked');
+
+            // The user now manually deselects the child that was already selected before the
+            // group click (never touched by setSelected during that click).
+            alreadySelected.setSelected(false);
+            grid.emitRowSelected(alreadySelected);
+
+            // This must be treated as a real, un-swallowed deselect.
+            expect(directive.groupSelectionState().get('USA')).toBe('indeterminate');
+            expect(rest.every((child) => child.isSelected())).toBe(true);
         });
 
         it('selecting a data row does not propagate to sibling data rows', async () => {

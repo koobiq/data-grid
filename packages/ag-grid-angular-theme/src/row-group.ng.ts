@@ -292,9 +292,9 @@ class KbqAgGridRowGroupCellRenderer implements ICellRendererAngularComp {
     protected readonly collapsed = signal(false);
 
     agInit(params: KbqAgGridRowGroupCellRendererParams): void {
+        this.groupState = params.rowGroup;
         const { data } = params;
         const isGroup = isGroupHeaderRow(data);
-        if (isGroup) this.groupState = params.rowGroup;
         // untracked: this method may be called from within an Angular effect context
         // (e.g. when refreshCells is triggered from the refreshCells effect). Signal
         // writes are not allowed inside effects without allowSignalWrites; untracked
@@ -306,6 +306,7 @@ class KbqAgGridRowGroupCellRenderer implements ICellRendererAngularComp {
     }
 
     refresh(params: KbqAgGridRowGroupCellRendererParams): boolean {
+        this.groupState = params.rowGroup;
         const { data } = params;
         const isGroup = isGroupHeaderRow(data);
         untracked(() => {
@@ -377,9 +378,9 @@ class KbqAgGridRowGroupSelectionCellRenderer implements ICellRendererAngularComp
     }
 
     agInit(params: KbqAgGridRowGroupCellRendererParams): void {
+        this.groupState = params.rowGroup;
         const { data } = params;
         const isGroup = isGroupHeaderRow(data);
-        if (isGroup) this.groupState = params.rowGroup;
         // untracked: see KbqAgGridRowGroupCellRenderer.agInit
         untracked(() => {
             this.isGroup.set(isGroup);
@@ -388,6 +389,7 @@ class KbqAgGridRowGroupSelectionCellRenderer implements ICellRendererAngularComp
     }
 
     refresh(params: KbqAgGridRowGroupCellRendererParams): boolean {
+        this.groupState = params.rowGroup;
         const { data } = params;
         const isGroup = isGroupHeaderRow(data);
         untracked(() => {
@@ -556,8 +558,15 @@ export class KbqAgGridRowGroup {
         }
     );
 
-    /** Set of group paths that are currently collapsed. */
-    readonly collapsedPaths = signal<ReadonlySet<string>>(new Set());
+    private readonly _collapsedPaths = signal<ReadonlySet<string>>(new Set());
+    /**
+     * Set of group paths that are currently collapsed. Read-only — mutate it only through
+     * `toggleCollapse`/`setExpanded`/`expandAll`/`collapseAll`/`clearGroupColumns`, which
+     * enforce the "revealing a group starts its children collapsed" invariant (see
+     * `computeSubGroupPaths`); writing directly here would bypass that and could reveal an
+     * entire subtree at once instead of one level at a time.
+     */
+    readonly collapsedPaths = this._collapsedPaths.asReadonly();
 
     private readonly _groupColSort = signal<SortDirection>(null);
     /**
@@ -693,9 +702,18 @@ export class KbqAgGridRowGroup {
     private prevGroupCols: string[] | null = null;
     private warnedMissingRowId = false;
     private readonly warnedDuplicateRowIds = new Set<string>();
+    /** Last (data, groupCols, collapsedPaths, sort) combination actually applied to the grid —
+     * lets the "update rowData" effect detect and skip the redundant extra run Angular
+     * schedules whenever it writes `collapsedPaths` (a signal it also reads) in the same run. */
+    private lastRebuildInputs: {
+        data: RowData[];
+        groupCols: string[];
+        collapsedPaths: ReadonlySet<string>;
+        sort: SortDirection;
+    } | null = null;
 
     constructor() {
-        // Reactive: update rowData whenever data, groupCols, or collapsedPaths change
+        // Reactive: update rowData whenever data, groupCols, collapsedPaths, or groupColSort change
         effect(
             () => {
                 const api = this.api();
@@ -705,43 +723,62 @@ export class KbqAgGridRowGroup {
 
                 // When the grouping structure changes, collapse all top-level groups.
                 if (this.prevGroupCols !== null && this.prevGroupCols !== groupCols) {
-                    this.collapsedPaths.set(this.computeTopLevelPaths());
+                    this._collapsedPaths.set(this.computeTopLevelPaths());
                 }
                 this.prevGroupCols = groupCols;
 
                 // Track collapsedPaths so the effect re-runs after the collapse write.
-                this.collapsedPaths();
+                const collapsedPaths = this.collapsedPaths();
                 const data = this.data();
+                const sort = this._groupColSort();
 
                 // When groupCols is bound non-empty before data arrives, collapse on first data load.
                 if (this.needsInitialCollapse && data.length > 0) {
                     this.needsInitialCollapse = false;
-                    this.collapsedPaths.set(this.computeTopLevelPaths());
+                    this._collapsedPaths.set(this.computeTopLevelPaths());
                     return;
                 }
 
-                // Mark all current nodes as programmatic so their async deselect events
-                // (fired by AG Grid when rowData is replaced) are suppressed.
-                api.forEachNode((node: IRowNode<Partial<Row> | undefined>) => {
-                    this.programmaticallySetNodes.add(node);
-                });
-
-                api.setGridOption('rowData', this.computeGroupedData());
+                // Writing collapsedPaths above (when the grouping structure changed) makes this
+                // same effect a dependent of its own write, so Angular schedules one more run of
+                // it — skip that redundant run instead of rebuilding an identical grid twice.
+                const last = this.lastRebuildInputs;
+                if (
+                    last !== null &&
+                    last.data === data &&
+                    last.groupCols === groupCols &&
+                    last.collapsedPaths === collapsedPaths &&
+                    last.sort === sort
+                ) {
+                    return;
+                }
+                this.lastRebuildInputs = { data, groupCols, collapsedPaths, sort };
 
                 // Restore native AG selection for every visible data row from selectedRowIds —
                 // the definitive source of truth, independent of collapse state. Read untracked:
-                // this effect must only re-run on data/groupCols/collapsedPaths changes, not on
-                // every selection change (which would rebuild rowData on every checkbox click).
+                // this effect must only re-run on data/groupCols/collapsedPaths/groupColSort
+                // changes, not on every selection change (which would rebuild rowData on every
+                // checkbox click).
                 const selected = untracked(() => this.selectedRowIds());
+
+                // Mark all current nodes as programmatic so their async deselect events (fired by
+                // AG Grid when rowData is replaced) are suppressed — skip when nothing is
+                // selected, since no deselect event could possibly fire in that case.
                 if (selected.size > 0) {
-                    api.forEachNode((node: IRowNode<Row>) => {
-                        const row = node.data;
-                        if (!row?.KbqAgGridRowGroup || isGroupHeaderRow(row)) return;
-                        if (selected.has(row.KbqAgGridRowGroup.id)) {
-                            this.programmaticallySetNodes.add(node);
-                            node.setSelected(true, false);
-                        }
+                    api.forEachNode((node: IRowNode<Partial<Row> | undefined>) => {
+                        this.programmaticallySetNodes.add(node);
                     });
+                }
+
+                api.setGridOption('rowData', this.computeGroupedData());
+
+                if (selected.size > 0) {
+                    this.syncNodeSelection(
+                        api,
+                        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+                        (row) => !!row.KbqAgGridRowGroup && selected.has(row.KbqAgGridRowGroup.id),
+                        true
+                    );
                 }
             },
             { allowSignalWrites: true }
@@ -907,14 +944,12 @@ export class KbqAgGridRowGroup {
         // Sync AG's live node selection for any of these rows that are currently visible, so
         // the checkbox / ag-row-selected class update immediately without waiting for the
         // rowData-rebuild effect (which only reruns on data/groupCols/collapsedPaths changes).
-        api.forEachNode((node: IRowNode<Row>) => {
-            const row = node.data;
-            if (!row?.KbqAgGridRowGroup || isGroupHeaderRow(row)) return;
-            if (row.KbqAgGridRowGroup.ancestors.includes(path)) {
-                this.programmaticallySetNodes.add(node);
-                node.setSelected(shouldSelect, false);
-            }
-        });
+        this.syncNodeSelection(
+            api,
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            (row) => !!row.KbqAgGridRowGroup && row.KbqAgGridRowGroup.ancestors.includes(path),
+            shouldSelect
+        );
     }
 
     /**
@@ -932,12 +967,9 @@ export class KbqAgGridRowGroup {
 
         // Sync AG's live node selection for every currently-visible data row. Flat (ungrouped)
         // rows carry no KbqAgGridRowGroup metadata at all — only group headers do, and those
-        // stay unselectable, so skipping on isGroupHeaderRow alone is correct in both modes.
-        api.forEachNode((node: IRowNode<Row>) => {
-            if (isGroupHeaderRow(node.data)) return;
-            this.programmaticallySetNodes.add(node);
-            node.setSelected(shouldSelect, false);
-        });
+        // stay unselectable, so matching every non-group row (no further predicate) is correct
+        // in both modes.
+        this.syncNodeSelection(api, () => true, shouldSelect);
     }
 
     /**
@@ -961,14 +993,12 @@ export class KbqAgGridRowGroup {
         // hidden inside a collapsed group, the "update rowData" effect restores it on expand.
         const api = this.api();
         if (!api) return;
-        api.forEachNode((node: IRowNode<Row>) => {
-            const row = node.data;
-            if (!row?.KbqAgGridRowGroup || isGroupHeaderRow(row)) return;
-            if (row.KbqAgGridRowGroup.id === key) {
-                this.programmaticallySetNodes.add(node);
-                node.setSelected(selected, false);
-            }
-        });
+        this.syncNodeSelection(
+            api,
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+            (row) => !!row.KbqAgGridRowGroup && row.KbqAgGridRowGroup.id === key,
+            selected
+        );
     }
 
     /**
@@ -980,7 +1010,16 @@ export class KbqAgGridRowGroup {
      */
     setGroupColSort(sort: SortDirection): void {
         const api = this.api();
-        if (!api) return;
+        if (!api) {
+            if (isDevMode()) {
+                console.warn(
+                    'KbqAgGridRowGroup: setGroupColSort() called before the grid is ready — this ' +
+                        'call is not deferred or replayed, unlike groupCols/collapsedPaths. Call it ' +
+                        'after gridReady (e.g. from a click handler), not from ngOnInit.'
+                );
+            }
+            return;
+        }
         api.applyColumnState({ state: [{ colId: GROUP_COL_ID, sort }] });
     }
 
@@ -996,7 +1035,7 @@ export class KbqAgGridRowGroup {
         } else {
             next.add(path);
         }
-        this.collapsedPaths.set(next);
+        this._collapsedPaths.set(next);
     }
 
     /**
@@ -1030,17 +1069,17 @@ export class KbqAgGridRowGroup {
         }
         if (!expanded) next.add(leafPath);
 
-        this.collapsedPaths.set(next);
+        this._collapsedPaths.set(next);
     }
 
     /** Expands all groups. */
     expandAll(): void {
-        this.collapsedPaths.set(new Set());
+        this._collapsedPaths.set(new Set());
     }
 
     /** Collapses all top-level groups. */
     collapseAll(): void {
-        this.collapsedPaths.set(this.computeTopLevelPaths());
+        this._collapsedPaths.set(this.computeTopLevelPaths());
     }
 
     /** Moves the group column at `fromIndex` to `toIndex`. Top-level groups collapse after reorder. */
@@ -1054,7 +1093,7 @@ export class KbqAgGridRowGroup {
     /** Removes all group columns, returning the grid to a flat (ungrouped) view. */
     clearGroupColumns(): void {
         this.groupCols.set([]);
-        this.collapsedPaths.set(new Set());
+        this._collapsedPaths.set(new Set());
     }
 
     private makeGroupColDef(): ColDef {
@@ -1122,6 +1161,24 @@ export class KbqAgGridRowGroup {
                     return this.getGroupSelectionState(row.KbqAgGridRowGroup.path) === 'checked';
                 })
         };
+    }
+
+    /**
+     * Marks matching, currently-loaded data-row nodes as programmatic and applies `selected` via
+     * AG's own `setSelected()`. Group rows are always skipped (never independently selectable).
+     * Skips nodes already at the target value — `setSelected()` is a no-op with no event for
+     * those, so marking them anyway would leave a stale `programmaticallySetNodes` entry that
+     * later swallows a real user selection event for that same node.
+     */
+    private syncNodeSelection(api: GridApi, matches: (row: DataRow) => boolean, selected: boolean): void {
+        api.forEachNode((node: IRowNode<Row>) => {
+            const row = node.data;
+            if (!row || isGroupHeaderRow(row)) return;
+            if (!matches(row)) return;
+            if (node.isSelected() === selected) return;
+            this.programmaticallySetNodes.add(node);
+            node.setSelected(selected, false);
+        });
     }
 
     /** Resolves `selectedRowIds` back to full `RowData` objects and emits `rowSelectionChanged`. */
