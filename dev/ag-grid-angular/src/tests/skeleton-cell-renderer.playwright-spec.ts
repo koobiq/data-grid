@@ -20,9 +20,14 @@ test.describe('DevSkeletonCellRenderer', () => {
     test('data rows appear after block loads', async ({ page }) => {
         await page.goto('/e2e/skeleton-cell-renderer');
         await expect(getDataRows(page).first()).toBeVisible();
-        // Global check fails — next unloaded block already renders skeleton cells.
-        // Scope to loaded rows only: skeleton cells inside rows with row-index must be gone.
-        await expect(page.locator('.ag-row[row-index] .kbq-ag-grid-skeleton-cell')).toHaveCount(0, { timeout: 5_000 });
+        // The grid's viewport + row buffer renders more rows than a single cache block (9 rows),
+        // so later blocks' stub rows also carry `row-index` before their data arrives.
+        // Scope the check to block 0's rows (row-index 0-8), which are guaranteed loaded by now.
+        const firstBlockSkeletons = Array.from(
+            { length: 9 },
+            (_, rowIndex) => `.ag-row[row-index="${rowIndex}"] .kbq-ag-grid-skeleton-cell`
+        ).join(', ');
+        await expect(page.locator(firstBlockSkeletons)).toHaveCount(0, { timeout: 5_000 });
     });
 
     test('subsequent blocks show skeletons while scrolling', async ({ page }) => {
