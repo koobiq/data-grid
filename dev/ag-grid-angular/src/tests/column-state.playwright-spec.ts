@@ -287,6 +287,16 @@ test.describe('KbqAgGridColumnState', () => {
                 .locator('.ag-header-cell[col-id="athlete"]')
                 .evaluate((el: Element) => Math.round(el.getBoundingClientRect().width));
 
+            // The store persists to the URL asynchronously (router navigation) and isn't awaited
+            // by the resize handler — wait for it to land before reloading, or the reload can race
+            // ahead of the navigation and pick up the pre-resize width.
+            await expect
+                .poll(async () => {
+                    const state = await getColumnStateFromUrl(page);
+                    return state?.find((s) => s.colId === 'athlete')?.width;
+                })
+                .toBe(widthBeforeReload);
+
             await page.reload();
 
             await expect
