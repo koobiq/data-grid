@@ -35,6 +35,10 @@ const getDataRowByText = (page: Page, text: string): Locator =>
         .filter({ hasText: text })
         .filter({ hasNot: page.locator('.kbq-ag-grid-group-cell-renderer__inner') });
 
+const getGroupHeaderCell = (page: Page): Locator => page.locator('.ag-header-cell[col-id="KbqAgGridRowGroup"]');
+
+const naturalCompare = (a: string, b: string): number => a.localeCompare(b, undefined, { numeric: true });
+
 test.describe('KbqAgGridRowGroup', () => {
     // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('screenshot — grouped, expanded, and with selection', async ({ page }) => {
@@ -435,6 +439,60 @@ test.describe('KbqAgGridRowGroup', () => {
         const athleteRow = getDataRowByText(page, 'Ilya Zakharov');
         await expect(athleteRow).toBeVisible();
         await expect(athleteRow).not.toHaveClass(/ag-row-selected/);
+    });
+
+    test('clicking the group column header cycles asc/desc/none, reordering top-level groups', async ({ page }) => {
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
+
+        const headerCell = getGroupHeaderCell(page);
+        const headerLabel = headerCell.locator('.ag-header-cell-label');
+        const firstGroupKey = page.locator('.kbq-ag-grid-group-cell-renderer__key').first();
+
+        const initialFirstKey = (await firstGroupKey.textContent()) ?? '';
+
+        // Ascending. AG's own header state (aria-sort) updates synchronously on click, but the
+        // actual row reorder happens asynchronously (via the directive's `sortChanged`
+        // subscription → signal write → effect) — wait for the row content itself to change
+        // before reading it, not just the header attribute, to avoid a race between the two.
+        await headerLabel.click();
+        await expect(headerCell).toHaveAttribute('aria-sort', 'ascending');
+        await expect(firstGroupKey).not.toHaveText(initialFirstKey);
+        const ascFirstKey = (await firstGroupKey.textContent()) ?? '';
+
+        // Descending — the previous (ascending) first key must now sort strictly before the new
+        // first key, proving the whole order actually reversed rather than staying put.
+        await headerLabel.click();
+        await expect(headerCell).toHaveAttribute('aria-sort', 'descending');
+        await expect(firstGroupKey).not.toHaveText(ascFirstKey);
+        const descFirstKey = (await firstGroupKey.textContent()) ?? '';
+        expect(naturalCompare(ascFirstKey, descFirstKey)).toBeLessThan(0);
+
+        // Back to unsorted — original insertion order is restored.
+        await headerLabel.click();
+        await expect(headerCell).toHaveAttribute('aria-sort', 'none');
+        await expect(firstGroupKey).toHaveText(initialFirstKey);
+    });
+
+    test('setGroupColSort applies sort through AG Grid, keeping the header arrow in sync', async ({ page }) => {
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
+
+        const headerCell = getGroupHeaderCell(page);
+        const firstGroupKey = page.locator('.kbq-ag-grid-group-cell-renderer__key').first();
+        const initialFirstKey = (await firstGroupKey.textContent()) ?? '';
+
+        await page.getByTestId('sortGroupColAscBtn').click();
+
+        // The header's own sort arrow reflects the programmatic change exactly as it would a
+        // real click, and the rows are reordered ascending.
+        await expect(headerCell).toHaveAttribute('aria-sort', 'ascending');
+        await expect(firstGroupKey).not.toHaveText(initialFirstKey);
+
+        await page.getByTestId('clearGroupColSortBtn').click();
+
+        await expect(headerCell).toHaveAttribute('aria-sort', 'none');
+        await expect(firstGroupKey).toHaveText(initialFirstKey);
     });
 
     test('unchecking all column checkboxes removes grouping', async ({ page }) => {

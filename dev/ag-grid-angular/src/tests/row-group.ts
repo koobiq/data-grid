@@ -67,6 +67,12 @@ const DEFAULT_COL_DEF: ColDef = {
             <button type="button" data-testid="deselectIlyaZakharovBtn" (click)="setIlyaZakharovSelected(false)">
                 Deselect Ilya Zakharov
             </button>
+            <button type="button" data-testid="sortGroupColAscBtn" (click)="sortGroupColAsc()">
+                Sort group column asc
+            </button>
+            <button type="button" data-testid="clearGroupColSortBtn" (click)="clearGroupColSort()">
+                Clear group column sort
+            </button>
         </div>
 
         <ag-grid-angular
@@ -122,6 +128,14 @@ export class DevRowGroup {
     protected setIlyaZakharovSelected(selected: boolean): void {
         const row = this.rowData().find((r) => r.athlete === 'Ilya Zakharov');
         if (row) this.group().setRowSelected(row.id, selected);
+    }
+
+    protected sortGroupColAsc(): void {
+        this.group().setGroupColSort('asc');
+    }
+
+    protected clearGroupColSort(): void {
+        this.group().setGroupColSort(null);
     }
 
     protected onToggle(field: string, event: Event): void {

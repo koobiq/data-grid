@@ -27,13 +27,33 @@ const makeMockNode = (data: Record<string, unknown>, selected = false): MockNode
 
 const INITIAL_COL_DEFS: ColDef[] = [{ field: 'country' }, { field: 'sport' }];
 
+type MockColumnState = { colId: string; sort: 'asc' | 'desc' | null };
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const createApiMock = (onNodeRemoved: (node: MockNode) => void) => {
+const createApiMock = (onNodeRemoved: (node: MockNode) => void, onSortStateApplied: () => void) => {
     const _nodes: MockNode[] = [];
     let _colDefs: (ColDef | ColGroupDef)[] = [...INITIAL_COL_DEFS];
+    let _columnState: MockColumnState[] = [];
 
     return {
         getColumnDefs: jest.fn(() => _colDefs),
+        getColumnState: jest.fn((): MockColumnState[] => _columnState),
+        setColumnState: (state: MockColumnState[]): void => {
+            _columnState = state;
+        },
+        // Simulates real AG Grid: applyColumnState updates the column's sort state and fires
+        // sortChanged, same as a real header click (see KbqAgGridRowGroup.setGroupColSort).
+        applyColumnState: jest.fn(({ state }: { state: MockColumnState[] }) => {
+            for (const entry of state) {
+                const existing = _columnState.find((s) => s.colId === entry.colId);
+                if (existing) {
+                    existing.sort = entry.sort;
+                } else {
+                    _columnState.push(entry);
+                }
+            }
+            onSortStateApplied();
+        }),
         setGridOption: jest.fn((key: string, value: unknown) => {
             if (key === 'rowData') {
                 // Simulate real AG Grid: replacing rowData destroys the old nodes, firing an
@@ -76,7 +96,10 @@ type ApiMock = ReturnType<typeof createApiMock>;
     providers: [{ provide: AgGridAngular, useExisting: forwardRef(() => TestAgGridAngularStub) }]
 })
 class TestAgGridAngularStub {
-    readonly mock = createApiMock((node) => this.emitRowSelected(node));
+    readonly mock = createApiMock(
+        (node) => this.emitRowSelected(node),
+        () => this.emitSortChanged()
+    );
 
     get api(): GridApi {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
@@ -85,6 +108,7 @@ class TestAgGridAngularStub {
 
     readonly gridReady = new Subject<{ api: GridApi }>();
     readonly rowSelected = new Subject<{ node: IRowNode }>();
+    readonly sortChanged = new Subject<void>();
 
     emitGridReady(): void {
         this.gridReady.next({ api: this.api });
@@ -93,6 +117,10 @@ class TestAgGridAngularStub {
     emitRowSelected(node: MockNode): void {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         this.rowSelected.next({ node: node as unknown as IRowNode });
+    }
+
+    emitSortChanged(): void {
+        this.sortChanged.next();
     }
 }
 
@@ -422,6 +450,138 @@ describe(KbqAgGridRowGroup.name, () => {
             });
 
             expect(grid.mock.colDefs).toHaveLength(INITIAL_COL_DEFS.length);
+        });
+
+        it('the group column is sortable with a no-op comparator — AG never reorders rowData itself', async () => {
+            const { fixture, grid, directive } = await setup(DATA);
+            directive.groupCols.update((cols) => [...cols, 'country']);
+            fixture.detectChanges();
+            await waitFor(() => {
+                expect(grid.mock.setGridOption).toHaveBeenCalledWith('columnDefs', expect.any(Array));
+            });
+
+            const groupColDef = grid.mock.colDefs[0] as ColDef;
+            expect(groupColDef.sortable).toBe(true);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const dummyNode = {} as unknown as IRowNode;
+            expect(groupColDef.comparator?.(null, null, dummyNode, dummyNode, false)).toBe(0);
+        });
+    });
+
+    describe('group column sorting', () => {
+        it('sorting ascending orders top-level groups by key', async () => {
+            const { grid } = await setupWithGroups();
+
+            grid.mock.setColumnState([{ colId: 'KbqAgGridRowGroup', sort: 'asc' }]);
+            grid.emitSortChanged();
+
+            await waitFor(() => {
+                const headers = grid.mock.nodes.filter((n) => isGroupHeader(n.data) && getMeta(n.data)!.level === 0);
+                expect(headers.map((h) => getMeta(h.data)!.key)).toEqual(['GBR', 'USA']);
+            });
+        });
+
+        it('sorting descending reverses the order', async () => {
+            const { grid } = await setupWithGroups();
+
+            grid.mock.setColumnState([{ colId: 'KbqAgGridRowGroup', sort: 'desc' }]);
+            grid.emitSortChanged();
+
+            await waitFor(() => {
+                const headers = grid.mock.nodes.filter((n) => isGroupHeader(n.data) && getMeta(n.data)!.level === 0);
+                expect(headers.map((h) => getMeta(h.data)!.key)).toEqual(['USA', 'GBR']);
+            });
+        });
+
+        it('clearing the sort restores the original insertion order', async () => {
+            const { grid } = await setupWithGroups();
+
+            grid.mock.setColumnState([{ colId: 'KbqAgGridRowGroup', sort: 'asc' }]);
+            grid.emitSortChanged();
+            await waitFor(() => {
+                const headers = grid.mock.nodes.filter((n) => isGroupHeader(n.data) && getMeta(n.data)!.level === 0);
+                expect(headers.map((h) => getMeta(h.data)!.key)).toEqual(['GBR', 'USA']);
+            });
+
+            grid.mock.setColumnState([{ colId: 'KbqAgGridRowGroup', sort: null }]);
+            grid.emitSortChanged();
+            await waitFor(() => {
+                const headers = grid.mock.nodes.filter((n) => isGroupHeader(n.data) && getMeta(n.data)!.level === 0);
+                expect(headers.map((h) => getMeta(h.data)!.key)).toEqual(['USA', 'GBR']);
+            });
+        });
+
+        it('sorts group-header siblings independently at every nesting level', async () => {
+            const nestedData = [
+                { id: '1', country: 'USA', sport: 'Swimming' },
+                { id: '2', country: 'USA', sport: 'Athletics' },
+                { id: '3', country: 'GBR', sport: 'Cycling' },
+                { id: '4', country: 'GBR', sport: 'Athletics' }
+            ];
+            const { fixture, grid, directive } = await setup(nestedData);
+            directive.groupCols.set(['country', 'sport']);
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+            directive.expandAll();
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
+
+            grid.mock.setColumnState([{ colId: 'KbqAgGridRowGroup', sort: 'asc' }]);
+            grid.emitSortChanged();
+
+            await waitFor(() => {
+                const sportsUnderGbr = grid.mock.nodes.filter((n) => {
+                    const meta = getMeta(n.data);
+                    return meta?.isGroup && meta.level === 1 && meta.ancestors.includes('GBR');
+                });
+                expect(sportsUnderGbr.map((h) => getMeta(h.data)!.key)).toEqual(['Athletics', 'Cycling']);
+            });
+        });
+
+        it('sorts numeric-looking keys numerically, not lexicographically', async () => {
+            const yearData = [
+                { id: '1', year: 2 },
+                { id: '2', year: 10 },
+                { id: '3', year: 9 }
+            ];
+            const { fixture, grid, directive } = await setup(yearData);
+            directive.groupCols.set(['year']);
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+
+            grid.mock.setColumnState([{ colId: 'KbqAgGridRowGroup', sort: 'asc' }]);
+            grid.emitSortChanged();
+
+            await waitFor(() => {
+                const headers = grid.mock.nodes.filter((n) => isGroupHeader(n.data));
+                expect(headers.map((h) => getMeta(h.data)!.key)).toEqual(['2', '9', '10']);
+            });
+        });
+
+        it("setGroupColSort applies sort via AG Grid's own column state API, not by writing a signal directly", async () => {
+            const { grid, directive } = await setupWithGroups();
+
+            directive.setGroupColSort('asc');
+
+            expect(grid.mock.applyColumnState).toHaveBeenCalledWith({
+                state: [{ colId: 'KbqAgGridRowGroup', sort: 'asc' }]
+            });
+            await waitFor(() => {
+                const headers = grid.mock.nodes.filter((n) => isGroupHeader(n.data) && getMeta(n.data)!.level === 0);
+                expect(headers.map((h) => getMeta(h.data)!.key)).toEqual(['GBR', 'USA']);
+            });
+            expect(directive.groupColSort()).toBe('asc');
+        });
+
+        it('setGroupColSort(null) clears the sort', async () => {
+            const { grid, directive } = await setupWithGroups();
+            directive.setGroupColSort('asc');
+            await waitFor(() => expect(directive.groupColSort()).toBe('asc'));
+
+            directive.setGroupColSort(null);
+
+            await waitFor(() => {
+                expect(directive.groupColSort()).toBeNull();
+                const headers = grid.mock.nodes.filter((n) => isGroupHeader(n.data) && getMeta(n.data)!.level === 0);
+                expect(headers.map((h) => getMeta(h.data)!.key)).toEqual(['USA', 'GBR']);
+            });
         });
     });
 

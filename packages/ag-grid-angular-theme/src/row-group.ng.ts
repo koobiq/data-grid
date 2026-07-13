@@ -29,7 +29,8 @@ import {
     IHeaderParams,
     IRowNode,
     RowClassRules,
-    SelectionColumnDef
+    SelectionColumnDef,
+    SortDirection
 } from 'ag-grid-community';
 
 /** A plain input data row — any object with string keys. */
@@ -50,6 +51,9 @@ export type KbqAgGridRowGroupSelectionState = 'checked' | 'unchecked' | 'indeter
 export type KbqAgGridRowGroupPath = readonly unknown[];
 
 const PATH_SEPARATOR = '::';
+
+/** `colId` of the generated group column, used to find it again in AG Grid's column state. */
+const GROUP_COL_ID = 'KbqAgGridRowGroup';
 
 /** Partial AG Grid `ColDef` overrides applied to the generated group column. */
 export type KbqAgGridRowGroupColOptions = Partial<ColDef>;
@@ -167,12 +171,25 @@ function mapsEqual<K, V>(a: ReadonlyMap<K, V>, b: ReadonlyMap<K, V>): boolean {
     return true;
 }
 
+/**
+ * Sorts group `[key, rows]` entries by key — numeric-aware (via `Intl`-backed
+ * `localeCompare`), so a field like "year" orders `2 < 10` rather than lexicographically
+ * (`"10" < "2"`), matching what a user comparing displayed group labels would expect.
+ */
+function sortGroupEntries(groups: ReadonlyMap<string, RowData[]>, sort: 'asc' | 'desc'): [string, RowData[]][] {
+    const direction = sort === 'asc' ? 1 : -1;
+    return [...groups].sort(
+        ([a], [b]) => direction * a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
+    );
+}
+
 // eslint-disable-next-line @typescript-eslint/max-params
 function makeRowGroupData(
     data: RowData[],
     groupFields: readonly string[],
     rowIdMap: RowIdMap,
     collapsedPaths: ReadonlySet<string> = new Set(),
+    sort: SortDirection = null,
     level = 0,
     ancestors: readonly string[] = [],
     pathPrefix = ''
@@ -198,8 +215,12 @@ function makeRowGroupData(
     }
 
     const result: Row[] = [];
+    // Sorting only ever reorders group-header siblings at each level — leaf data rows within
+    // the deepest group keep their original relative order (the `groupFields.length === 0`
+    // base case above never touches `sort`).
+    const entries = sort ? sortGroupEntries(groups, sort) : groups;
 
-    for (const [key, rows] of groups) {
+    for (const [key, rows] of entries) {
         const path = pathPrefix ? `${pathPrefix}${PATH_SEPARATOR}${key}` : key;
         const collapsed = collapsedPaths.has(path);
 
@@ -222,6 +243,7 @@ function makeRowGroupData(
                     remainingFields,
                     rowIdMap,
                     collapsedPaths,
+                    sort,
                     level + 1,
                     [...ancestors, path],
                     path
@@ -539,6 +561,17 @@ export class KbqAgGridRowGroup {
     /** Set of group paths that are currently collapsed. */
     readonly collapsedPaths = signal<ReadonlySet<string>>(new Set());
 
+    private readonly _groupColSort = signal<SortDirection>(null);
+    /**
+     * Current sort direction applied to the group column — `null` means unsorted (groups appear
+     * in `kbqAgGridRowGroupRowData` order, as today). Group-header siblings are sorted by their
+     * key at every nesting level; leaf data rows within a group keep their original order. This
+     * only ever changes in response to the user clicking the group column's header — the same
+     * native AG Grid sort UI/icon/keyboard behavior as any other sortable column (see the
+     * `sortChanged` subscription and `makeGroupColDef`'s `comparator`).
+     */
+    readonly groupColSort = this._groupColSort.asReadonly();
+
     /**
      * Emits the full list of currently-selected data rows (original `RowData` objects, in
      * `kbqAgGridRowGroupRowData` order) whenever selection changes — including rows inside
@@ -825,6 +858,16 @@ export class KbqAgGridRowGroup {
             });
             this.emitSelectionChanged();
         });
+
+        // Reflect the group column's native AG Grid sort state (set by the user clicking its
+        // header) into groupColSort, which computeGroupedData()/makeRowGroupData() use to
+        // reorder group-header siblings at every level.
+        this.grid.sortChanged.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+            const api = this.api();
+            if (!api) return;
+            const state = api.getColumnState().find((s) => s.colId === GROUP_COL_ID);
+            this._groupColSort.set(state?.sort ?? null);
+        });
     }
 
     /** Returns `true` if the group at `path` is currently collapsed. */
@@ -930,6 +973,19 @@ export class KbqAgGridRowGroup {
         });
     }
 
+    /**
+     * Sets the group column's sort direction programmatically — `'asc'`, `'desc'`, or `null` to
+     * clear it. Goes through AG Grid's own column state API (`applyColumnState`), the same
+     * mechanism a real header click uses, so the header's sort arrow / `aria-sort` stay in sync
+     * automatically — there's no need (and no supported way) to set `groupColSort` directly, or
+     * to reach into `GridApi` yourself, since the group column's `colId` is an internal detail.
+     */
+    setGroupColSort(sort: SortDirection): void {
+        const api = this.api();
+        if (!api) return;
+        api.applyColumnState({ state: [{ colId: GROUP_COL_ID, sort }] });
+    }
+
     /** Toggles the collapsed / expanded state of the group at `path`. */
     toggleCollapse(path: string): void {
         const next = new Set(this.collapsedPaths());
@@ -1006,11 +1062,33 @@ export class KbqAgGridRowGroup {
     private makeGroupColDef(): ColDef {
         return {
             ...this.groupColOptions(),
-            sortable: false,
+            // Everything below is fixed and cannot be overridden via `groupColOptions()` /
+            // `KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS` — it's spread after the line above, so any
+            // matching key there always loses:
+            //  - filter / suppressHeaderFilterButton: this column shows a *different*
+            //    underlying field's value depending on the row's nesting level (see
+            //    `makeRowGroupData`), so there is no single field a per-value filter UI could
+            //    filter against — enabling it would be broken, not just unstyled.
+            //  - suppressHeaderMenuButton: same reason — there's no column menu (filter /
+            //    columns list) that makes sense for a synthetic, level-dependent column.
+            //  - colId: this exact id is how the directive finds this column elsewhere
+            //    (adding/removing it from columnDefs, reading its sort state below) — letting
+            //    it be overridden would silently break those lookups.
+            //  - sortable / sort / comparator: sorting is handled entirely by this directive
+            //    via `groupColSort`, not by AG Grid's own array sort — `comparator` always
+            //    reporting "equal" makes AG's (stable) native sort a no-op, leaving the
+            //    already-correctly-ordered `rowData` we build ourselves untouched. `sortable`,
+            //    the header click/arrow/aria-sort behavior, and the asc → desc → none cycle are
+            //    otherwise 100% native AG Grid; `sort` just keeps the header arrow in sync with
+            //    `groupColSort` if this column is ever removed and re-added (see the "add/remove
+            //    Group column" effect).
             filter: false,
             suppressHeaderMenuButton: true,
             suppressHeaderFilterButton: true,
-            colId: KbqAgGridRowGroup.name,
+            colId: GROUP_COL_ID,
+            sortable: true,
+            sort: this._groupColSort(),
+            comparator: (): number => 0,
             cellRenderer: KbqAgGridRowGroupCellRenderer,
             cellRendererParams: { rowGroup: this } satisfies Pick<KbqAgGridRowGroupCellRendererParams, 'rowGroup'>
         };
@@ -1063,7 +1141,7 @@ export class KbqAgGridRowGroup {
         const data = this.data();
         if (fields.length === 0) return data;
 
-        return makeRowGroupData(data, fields, this.rowIdMap(), this.collapsedPaths());
+        return makeRowGroupData(data, fields, this.rowIdMap(), this.collapsedPaths(), this._groupColSort());
     }
 
     private computeSubGroupPaths(expandedPath: string): ReadonlySet<string> {
