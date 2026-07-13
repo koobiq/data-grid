@@ -277,14 +277,13 @@ const isGroupHeaderRow = (row: Row | null | undefined): row is GroupHeaderRow =>
                     [class.kbq-chevron-right_16]="collapsed()"
                 ></i>
                 <span class="kbq-ag-grid-group-cell-renderer__key">{{ row().KbqAgGridRowGroup.key }}</span>
-                <span class="kbq-ag-grid-group-cell-renderer__count">({{ row().KbqAgGridRowGroup.count }})</span>
+                <span class="kbq-ag-grid-group-cell-renderer__count">{{ row().KbqAgGridRowGroup.count }}</span>
             </div>
         }
     `
 })
 class KbqAgGridRowGroupCellRenderer implements ICellRendererAngularComp {
     private groupState: KbqAgGridRowGroup | null = null;
-
     protected readonly isGroup = signal(false);
     protected readonly row = signal<GroupHeaderRow>({
         KbqAgGridRowGroup: { isGroup: true, level: 0, path: '', ancestors: [], key: '', field: '', count: 0 }
@@ -364,7 +363,6 @@ class KbqAgGridRowGroupCellRenderer implements ICellRendererAngularComp {
 class KbqAgGridRowGroupSelectionCellRenderer implements ICellRendererAngularComp {
     private groupState: KbqAgGridRowGroup | null = null;
     private readonly checkboxRef = viewChild<ElementRef<HTMLInputElement>>('checkbox');
-
     protected readonly isGroup = signal(false);
     protected readonly key = signal('');
     protected readonly selectionState = signal<KbqAgGridRowGroupSelectionState>('unchecked');
