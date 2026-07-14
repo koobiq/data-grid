@@ -40,7 +40,7 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KOOBIQ }}'
           firebaseToolsVersion: ^13.35.1
           expires: 3d
-          channelId: prs-${{ github.event.issue.number }}
+          channelId: data-grid-pr-${{ github.event.issue.number }}
           projectId: koobiq
           target: next
       - uses: actions/github-script@v7
