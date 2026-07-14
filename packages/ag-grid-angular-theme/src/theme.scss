@@ -1421,7 +1421,7 @@
 }
 
 @mixin _ag-group-cell-renderer() {
-    // Based on `KbqAgGridGroupCellRenderer` component
+    // Based on `KbqAgGridRowGroupCellRenderer` component
     .kbq-ag-grid-group-cell-renderer {
         display: block;
         width: 100%;
