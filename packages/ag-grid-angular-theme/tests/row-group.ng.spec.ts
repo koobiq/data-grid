@@ -276,6 +276,37 @@ describe(KbqAgGridRowGroup.name, () => {
             });
             expect(level1Headers).toHaveLength(3);
         });
+
+        it('does not merge a number value with its string-lookalike into the same group', async () => {
+            const data = [
+                { id: '1', code: 1 },
+                { id: '2', code: '1' }
+            ];
+            const { fixture, grid, directive } = await setup(data);
+            directive.groupCols.set(['code']);
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+
+            const headers = grid.mock.nodes.filter((n) => isGroupHeader(n.data));
+            expect(headers).toHaveLength(2);
+            // Distinct internal identity (not merged)...
+            expect(new Set(headers.map((h) => getMeta(h.data)!.path)).size).toBe(2);
+            // ...but both still display as the same human-readable label "1".
+            expect(headers.every((h) => getMeta(h.data)!.key === '1')).toBe(true);
+        });
+
+        it('does not merge null and undefined values into the same group', async () => {
+            const data = [
+                { id: '1', code: null },
+                { id: '2' } // code is absent entirely -> undefined
+            ];
+            const { fixture, grid, directive } = await setup(data);
+            directive.groupCols.set(['code']);
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+
+            const headers = grid.mock.nodes.filter((n) => isGroupHeader(n.data));
+            expect(headers).toHaveLength(2);
+            expect(new Set(headers.map((h) => getMeta(h.data)!.path)).size).toBe(2);
+        });
     });
 
     describe('initialGroupCols input', () => {
@@ -705,12 +736,14 @@ describe(KbqAgGridRowGroup.name, () => {
 
             expect(directive.isCollapsed('USA')).toBe(false);
             expect(directive.isCollapsed('USA::Swimming')).toBe(false);
-            expect(directive.isCollapsed('USA::Swimming::2000')).toBe(false);
+            // `year` is a number field — its path segment is type-prefixed (see `toKey`) so it
+            // can never collide with a same-looking string value from another field.
+            expect(directive.isCollapsed('USA::Swimming::number:2000')).toBe(false);
 
             // Siblings at every level start collapsed, exactly like expanding one chevron
             // at a time would produce.
             expect(directive.isCollapsed('USA::Athletics')).toBe(true);
-            expect(directive.isCollapsed('USA::Swimming::2004')).toBe(true);
+            expect(directive.isCollapsed('USA::Swimming::number:2004')).toBe(true);
         });
 
         it('setExpanded(groupPath, false) only collapses the target group, not its ancestors', async () => {

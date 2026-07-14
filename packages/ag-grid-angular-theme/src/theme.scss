@@ -1420,7 +1420,7 @@
     }
 }
 
-@mixin _ag-group-cell-renderer() {
+@mixin _ag-row-group-cell-renderer() {
     // Based on `KbqAgGridRowGroupCellRenderer` component
     .kbq-ag-grid-group-cell-renderer {
         display: block;
@@ -1428,10 +1428,25 @@
         height: 100%;
 
         .kbq-ag-grid-group-cell-renderer__inner {
+            --kbq-ag-grid-group-cell-renderer-outline-width: 2px;
+
             display: flex;
             align-items: center;
             gap: var(--kbq-size-xxs);
+            width: 100%;
             height: 100%;
+            padding: 0;
+            border: none;
+            background: transparent;
+            font: inherit;
+            color: inherit;
+            text-align: left;
+            cursor: pointer;
+
+            &:focus-visible {
+                outline: var(--kbq-ag-grid-group-cell-renderer-outline-width) solid var(--kbq-states-line-focus-theme);
+                outline-offset: calc(var(--kbq-ag-grid-group-cell-renderer-outline-width) * -1);
+            }
         }
 
         .kbq-ag-grid-group-cell-renderer__icon {
@@ -1485,7 +1500,7 @@
     @include _ag-loading-overlay();
     @include _ag-row-actions-overlay();
     @include _ag-column-menu();
-    @include _ag-group-cell-renderer();
+    @include _ag-row-group-cell-renderer();
 
     &.ag-theme-koobiq_disable-cell-focus-styles {
         @include _ag-disable-cell-focus();

@@ -77,6 +77,12 @@ test.describe('KbqAgGridRowGroup', () => {
         await page.goto('/e2e/row-group');
         await waitForDataLoaded(page);
 
+        // Both columns are grouped by default (see DevRowGroup.groupCols) — start ungrouped so
+        // this test actually exercises "checking adds grouping", not just "grouping remains".
+        await getGroupCheckbox(page, 'Country').click();
+        await getGroupCheckbox(page, 'Sport').click();
+        await expect(page.locator('.kbq-ag-grid-group-cell-renderer__inner')).toHaveCount(0, { timeout: 5_000 });
+
         await getGroupCheckbox(page, 'Country').click();
         await waitForGroupsVisible(page);
 
@@ -120,6 +126,25 @@ test.describe('KbqAgGridRowGroup', () => {
         await getGroupCellInner(page, 0).click();
 
         // Row 1 should now be the next group header (not a data row)
+        await expect(getGroupCellInner(page, 1)).toBeVisible();
+    });
+
+    test('group header toggle is keyboard-operable via Enter and Space', async ({ page }) => {
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
+
+        const firstGroup = getGroupCellInner(page, 0);
+        await expect(firstGroup).toHaveAttribute('aria-expanded', 'false');
+
+        // Enter expands, same as a click.
+        await firstGroup.focus();
+        await firstGroup.press('Enter');
+        await expect(page.locator('.ag-row[row-index="1"]')).toBeVisible();
+        await expect(firstGroup).toHaveAttribute('aria-expanded', 'true');
+
+        // Space collapses it again.
+        await firstGroup.press(' ');
+        await expect(firstGroup).toHaveAttribute('aria-expanded', 'false');
         await expect(getGroupCellInner(page, 1)).toBeVisible();
     });
 

@@ -122,7 +122,21 @@ type DataRow = RowData & {
 /** Any row in the grouped dataset — either a group header or a data row. */
 type Row = GroupHeaderRow | DataRow;
 
-const toKey = (value: unknown): string =>
+/**
+ * Collision-safe grouping/path key for `value`. Strings pass through unchanged — group paths
+ * built from string-valued fields (the common case) stay exactly as before, so a path like
+ * `'Russia::Diving'` still reads the way `toggleCollapse`/`isCollapsed`/`getGroupSelectionState`
+ * document it. Every other type is prefixed with its `typeof`, so e.g. the number `1` and the
+ * string `"1"` (or `null`, `undefined`, and an object) never collapse into the same group,
+ * despite `toDisplayLabel` rendering some of them the same way. Used everywhere group identity
+ * is compared: `makeRowGroupData`'s bucketing, `collapsedPaths` path segments, and
+ * `setExpanded`'s caller-supplied raw values — all funnel through this one function, so as long
+ * as it's applied consistently they stay comparable to each other.
+ */
+const toKey = (value: unknown): string => (typeof value === 'string' ? value : `${typeof value}:${String(value)}`);
+
+/** Human-readable label for a group's value, shown in the UI (see `KbqAgGridRowGroupCellRenderer`). */
+const toDisplayLabel = (value: unknown): string =>
     typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean' ? String(value) : '';
 
 /** Map from a `RowData` object (by reference, from the unfiltered input array) to its resolved id. */
@@ -223,6 +237,7 @@ function makeRowGroupData(
     for (const [key, rows] of entries) {
         const path = pathPrefix ? `${pathPrefix}${PATH_SEPARATOR}${key}` : key;
         const collapsed = collapsedPaths.has(path);
+        const [firstRow] = rows;
 
         result.push({
             KbqAgGridRowGroup: {
@@ -230,7 +245,7 @@ function makeRowGroupData(
                 level,
                 path,
                 ancestors,
-                key,
+                key: toDisplayLabel(firstRow[currentField]),
                 field: currentField,
                 count: rows.length
             }
@@ -269,8 +284,16 @@ const isGroupHeaderRow = (row: Row | null | undefined): row is GroupHeaderRow =>
     host: { class: 'kbq-ag-grid-group-cell-renderer' },
     template: `
         @if (isGroup()) {
+            <!-- A native <button> gets keyboard (Enter/Space) and focus handling for free —
+                 no manual role/tabindex/keydown wiring needed for WCAG 2.1.1 operability. -->
             <!-- eslint-disable-next-line @angular-eslint/template/no-inline-styles -->
-            <div class="kbq-ag-grid-group-cell-renderer__inner" [style.padding-left.px]="indent()" (click)="toggle()">
+            <button
+                type="button"
+                class="kbq-ag-grid-group-cell-renderer__inner"
+                [style.padding-left.px]="indent()"
+                [attr.aria-expanded]="!collapsed()"
+                (click)="toggle()"
+            >
                 <i
                     class="kbq-ag-grid-group-cell-renderer__icon kbq kbq-icon"
                     [class.kbq-chevron-down_16]="!collapsed()"
@@ -278,7 +301,7 @@ const isGroupHeaderRow = (row: Row | null | undefined): row is GroupHeaderRow =>
                 ></i>
                 <span class="kbq-ag-grid-group-cell-renderer__key">{{ row().KbqAgGridRowGroup.key }}</span>
                 <span class="kbq-ag-grid-group-cell-renderer__count">{{ row().KbqAgGridRowGroup.count }}</span>
-            </div>
+            </button>
         }
     `
 })
