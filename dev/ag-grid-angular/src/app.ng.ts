@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
+// TEST
+
 @Component({
     standalone: true,
     imports: [RouterOutlet],
