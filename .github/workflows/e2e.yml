@@ -7,8 +7,8 @@ on:
   pull_request:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read # for actions/checkout to read the repository
+  pull-requests: write # for thollander/actions-comment-pull-request to comment on PRs
 
 jobs:
   tests:

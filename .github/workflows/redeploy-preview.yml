@@ -1,0 +1,58 @@
+# Triggered workflow by PR comment: /redeploy-preview
+name: Redeploy documentation preview
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  checks: write # for FirebaseExtended/action-hosting-deploy to create a check run
+  contents: read # for actions/checkout to read the repository
+  issues: write # for actions/github-script to react to the triggering comment
+  pull-requests: write # for FirebaseExtended/action-hosting-deploy to comment on PRs
+
+jobs:
+  redeploy:
+    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/redeploy-preview') && contains(fromJSON('["OWNER", "MEMBER", "CONTRIBUTOR"]'), github.event.comment.author_association) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: xt0rted/pull-request-comment-branch@v3
+        id: comment-branch
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'eyes',
+            });
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
+      - uses: ./.github/workflows/actions/setup-node
+      - uses: ./.github/workflows/actions/build-packages
+      - uses: ./.github/workflows/actions/build-docs
+      - uses: FirebaseExtended/action-hosting-deploy@v0.11.0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KOOBIQ }}'
+          firebaseToolsVersion: ^13.35.1
+          expires: 3d
+          channelId: prs-${{ github.event.issue.number }}
+          projectId: koobiq
+          target: next
+      - uses: actions/github-script@v7
+        if: ${{ success() }}
+        with:
+          script: |
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket',
+            });
+      - uses: thollander/actions-comment-pull-request@v3.0.1
+        if: ${{ failure() }}
+        with:
+          message: 🚨 Failed to [redeploy](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) documentation preview.
