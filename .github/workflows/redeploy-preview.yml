@@ -1,4 +1,8 @@
 # Triggered workflow by PR comment: /redeploy-preview
+#
+# ⚠️ This job checks out and builds PR-controlled code with a Firebase deployment secret.
+# Only comment /redeploy-preview after reviewing the PR's contents — the author_association
+# check below only verifies the commenter, not the safety of the code being built.
 name: Redeploy documentation preview
 
 on:
@@ -13,7 +17,7 @@ permissions:
 
 jobs:
   redeploy:
-    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/redeploy-preview') && contains(fromJSON('["OWNER", "MEMBER", "CONTRIBUTOR"]'), github.event.comment.author_association) }}
+    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/redeploy-preview') && contains(fromJSON('["OWNER", "MEMBER"]'), github.event.comment.author_association) }}
     runs-on: ubuntu-latest
     steps:
       - uses: xt0rted/pull-request-comment-branch@v3
@@ -30,6 +34,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ steps.comment-branch.outputs.head_ref }}
+          persist-credentials: false
       - uses: ./.github/actions/setup-node
       # Run dev mode build to generate the `e2eRoute`
       # @see dev/ag-grid-angular/src/main.ts
