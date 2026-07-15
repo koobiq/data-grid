@@ -1010,7 +1010,14 @@ export class KbqAgGridRowGroup {
             }
             // Render the custom group checkbox in the shared selection column so it lines up
             // with the native row-selection checkboxes instead of sitting inside the group cell.
-            api.setGridOption('selectionColumnDef', this.makeSelectionColumnDef());
+            // Merged onto whatever's already there (the consumer's own [selectionColumnDef]
+            // input, or KbqAgGridTheme's default width) rather than replacing it outright, so
+            // neither is silently discarded regardless of which directive's gridReady handler
+            // runs first — see KbqAgGridTheme.applyDefaultSelectionColumnWidth for the other half.
+            api.setGridOption('selectionColumnDef', {
+                ...api.getGridOption('selectionColumnDef'),
+                ...this.makeSelectionColumnDef()
+            });
             // Group rows are never truly selected via AG Grid's own API (isRowSelectable is
             // false for them), so apply AG's `ag-row-selected` row class ourselves, driven by
             // groupSelectionState, to get the same visual highlight as real selected rows.

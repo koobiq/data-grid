@@ -620,8 +620,6 @@ export class DevOverview {
         const { api } = event;
 
         this.gridApi = api;
-
-        this.gridApi.setColumnWidths([{ key: 'ag-Grid-SelectionColumn', newWidth: 36 }]);
     }
 
     onFirstDataRendered(event: FirstDataRenderedEvent): void {

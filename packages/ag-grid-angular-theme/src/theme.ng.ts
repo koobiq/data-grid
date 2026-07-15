@@ -3,6 +3,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgGridAngular } from 'ag-grid-angular';
 import { EMPTY, filter, startWith, switchMap } from 'rxjs';
 
+/** Default width (px) of AG Grid's auto-generated selection checkbox column, matching the
+ * Koobiq design system's checkbox column sizing (AG's own default is wider). */
+const SELECTION_COLUMN_WIDTH = 36;
+
 /**
  * Directive that applies the koobiq theme for ag-grid-angular.
  *
@@ -53,6 +57,24 @@ export class KbqAgGridTheme {
         this.grid.theme = 'legacy';
 
         this.observeColumnsOverflow();
+        this.applyDefaultSelectionColumnWidth();
+    }
+
+    /**
+     * Defaults the auto-generated selection checkbox column to `SELECTION_COLUMN_WIDTH`. Merges
+     * with — never overrides — any `width` already present on `selectionColumnDef`, whether from
+     * the consumer's own `[selectionColumnDef]` input or another directive on the same grid (e.g.
+     * `KbqAgGridRowGroup`, which also touches `selectionColumnDef` for its own renderers). Reading
+     * the current value via `getGridOption` right before writing, rather than assuming an empty
+     * starting point, keeps this correct regardless of which directive's `gridReady` handler
+     * happens to run first — see `KbqAgGridRowGroup`'s own `selectionColumnDef` merge for the
+     * matching half of this.
+     */
+    private applyDefaultSelectionColumnWidth(): void {
+        this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => {
+            const existing = api.getGridOption('selectionColumnDef');
+            api.setGridOption('selectionColumnDef', { width: SELECTION_COLUMN_WIDTH, ...existing });
+        });
     }
 
     private observeColumnsOverflow(): void {

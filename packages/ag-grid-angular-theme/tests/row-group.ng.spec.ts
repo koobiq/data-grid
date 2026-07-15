@@ -48,6 +48,7 @@ const createApiMock = (
     const _nodes: MockNode[] = [];
     let _colDefs: (ColDef | ColGroupDef)[] = [...testColDefs];
     let _columnState: MockColumnState[] = [];
+    const _gridOptions: Record<string, unknown> = {};
 
     return {
         getColumnDefs: jest.fn(() => _colDefs),
@@ -82,6 +83,7 @@ const createApiMock = (
             }
         }),
         setGridOption: jest.fn((key: string, value: unknown) => {
+            _gridOptions[key] = value;
             if (key === 'rowData') {
                 // Simulate real AG Grid: replacing rowData destroys the old nodes, firing an
                 // async deselect event for any that were selected — before the new nodes exist.
@@ -120,7 +122,7 @@ const createApiMock = (
             _colDefs = colDefs;
             onColumnDefsSet('gridOptionsChanged');
         },
-        getGridOption: jest.fn(() => undefined),
+        getGridOption: jest.fn((key: string): unknown => _gridOptions[key]),
         forEachNode: jest.fn((cb: (node: MockNode) => void) => _nodes.forEach(cb)),
         refreshCells: jest.fn(),
         redrawRows: jest.fn(),
@@ -568,6 +570,29 @@ describe(KbqAgGridRowGroup.name, () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const dummyNode = {} as unknown as IRowNode;
             expect(groupColDef.comparator?.(null, null, dummyNode, dummyNode, false)).toBe(0);
+        });
+
+        it('merges its own selectionColumnDef onto an existing one instead of replacing it', async () => {
+            const { fixture } = await render(TestRowGroupGrid);
+            fixture.componentInstance.rowData.set(DATA);
+            const grid = fixture.componentInstance.grid();
+
+            // Simulates KbqAgGridTheme's default width (or a consumer's own [selectionColumnDef]
+            // input) already being set before this directive's gridReady handler runs.
+            grid.mock.setGridOption('selectionColumnDef', { width: 36 });
+
+            grid.emitGridReady();
+            await waitFor(() => {
+                expect(grid.mock.setGridOption).toHaveBeenCalledWith('rowData', expect.any(Array));
+            });
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const selectionColumnDef = grid.mock.getGridOption('selectionColumnDef') as {
+                width?: number;
+                headerComponent?: unknown;
+            };
+            expect(selectionColumnDef.width).toBe(36);
+            expect(selectionColumnDef.headerComponent).toBeDefined();
         });
     });
 
