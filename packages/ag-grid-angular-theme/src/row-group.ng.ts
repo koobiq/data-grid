@@ -24,6 +24,7 @@ import {
     CheckboxSelectionCallbackParams,
     ColDef,
     ColGroupDef,
+    ColumnState,
     GridApi,
     ICellRendererParams,
     IHeaderParams,
@@ -54,6 +55,11 @@ const PATH_SEPARATOR = '::';
 
 /** `colId` of the generated group column, used to find it again in AG Grid's column state. */
 const GROUP_COL_ID = 'KbqAgGridRowGroup';
+
+/** The single column currently driving native AG Grid sort UI — the group column or one data
+ * column, never both (AG Grid itself clears every other column's sort state on a plain header
+ * click; see the `sortChanged` subscription in `KbqAgGridRowGroup`). */
+type ActiveSort = { readonly colId: string; readonly sort: 'asc' | 'desc' };
 
 /** Partial AG Grid `ColDef` overrides applied to the generated group column. */
 export type KbqAgGridRowGroupColOptions = Partial<ColDef>;
@@ -197,19 +203,91 @@ function sortGroupEntries(groups: ReadonlyMap<string, RowData[]>, sort: 'asc' | 
     );
 }
 
+/**
+ * Recursively walks a `(ColDef | ColGroupDef)[]` tree, applying `transform` to every leaf
+ * `ColDef` — including ones nested under `ColGroupDef.children` — and returns a new tree.
+ * `ColGroupDef` nodes are shallow-cloned with their `children` replaced; they have no
+ * `field`/`comparator` of their own to transform.
+ */
+function mapColDefTree(
+    defs: readonly (ColDef | ColGroupDef)[],
+    transform: (def: ColDef) => ColDef
+): (ColDef | ColGroupDef)[] {
+    return defs.map((def) =>
+        'children' in def ? { ...def, children: mapColDefTree(def.children, transform) } : transform(def)
+    );
+}
+
+/**
+ * Builds a `colId → field` map for every leaf `ColDef` in `defs`, recursing into
+ * `ColGroupDef.children` — `colId` defaults to `field` when not explicitly set, matching AG
+ * Grid's own default. Used to resolve which raw data field a native data-column sort (read from
+ * `api.getColumnState()`, which only reports `colId`) should reorder leaf rows by. Columns
+ * without a `field` (e.g. pure cellRenderer columns) are skipped — they can never be the target
+ * of a leaf-row sort.
+ */
+function collectDataColIdToField(defs: readonly (ColDef | ColGroupDef)[]): ReadonlyMap<string, string> {
+    const map = new Map<string, string>();
+    for (const def of defs) {
+        if ('children' in def) {
+            for (const [colId, field] of collectDataColIdToField(def.children)) map.set(colId, field);
+        } else if (def.field) {
+            map.set(def.colId ?? def.field, def.field);
+        }
+    }
+    return map;
+}
+
+/**
+ * What `makeRowGroupData` should sort — derived from `_activeSort` by
+ * `KbqAgGridRowGroup.resolveRowGroupDataSort`. At most one of `group`/`leaf` is ever non-null
+ * (AG Grid clears every other column's sort on a plain header click, so only one column can be
+ * the active sort at a time). `group` reorders group-header siblings at every nesting level
+ * (existing behavior, driven by the group column's own sort); `leaf`, when set, reorders the
+ * leaf data rows within each deepest group by a raw field value (a data column's sort).
+ */
+type RowGroupDataSort = {
+    readonly group: SortDirection;
+    readonly leaf: { readonly field: string; readonly direction: 'asc' | 'desc' } | null;
+};
+
+/**
+ * Default ordering for two raw field values when sorting leaf data rows within a group by a
+ * data column's field. Two numbers compare numerically; everything else falls back to a
+ * numeric-aware `localeCompare` (mirrors `sortGroupEntries`'s approach for group keys).
+ *
+ * Known limitation: this does NOT invoke any consumer-supplied ColDef `comparator` /
+ * `valueGetter` for the field — sorting always uses the row's raw property value. A column with
+ * custom display formatting/derivation whose sort order should follow that custom logic will
+ * not, while grouping is active. This is an explicit, documented simplification, not an
+ * oversight — see `sortLeafRows`.
+ */
+function compareRawValues(a: unknown, b: unknown): number {
+    if (typeof a === 'number' && typeof b === 'number') return a - b;
+    return toDisplayLabel(a).localeCompare(toDisplayLabel(b), undefined, { numeric: true, sensitivity: 'base' });
+}
+
+/** Sorts a copy of `data` by `leaf.field`'s raw value — see `compareRawValues` and its
+ * documented known limitation (no consumer comparator/valueGetter support). */
+function sortLeafRows(data: readonly RowData[], leaf: { field: string; direction: 'asc' | 'desc' }): RowData[] {
+    const direction = leaf.direction === 'asc' ? 1 : -1;
+    return [...data].sort((a, b) => direction * compareRawValues(a[leaf.field], b[leaf.field]));
+}
+
 // eslint-disable-next-line @typescript-eslint/max-params
 function makeRowGroupData(
     data: RowData[],
     groupFields: readonly string[],
     rowIdMap: RowIdMap,
     collapsedPaths: ReadonlySet<string> = new Set(),
-    sort: SortDirection = null,
+    sort: RowGroupDataSort = { group: null, leaf: null },
     level = 0,
     ancestors: readonly string[] = [],
     pathPrefix = ''
 ): Row[] {
     if (groupFields.length === 0) {
-        return data.map((row) => ({
+        const rows = sort.leaf ? sortLeafRows(data, sort.leaf) : data;
+        return rows.map((row) => ({
             ...row,
             KbqAgGridRowGroup: { isGroup: false as const, level, ancestors, id: rowIdMap.get(row) ?? '' }
         }));
@@ -229,10 +307,10 @@ function makeRowGroupData(
     }
 
     const result: Row[] = [];
-    // Sorting only ever reorders group-header siblings at each level — leaf data rows within
-    // the deepest group keep their original relative order (the `groupFields.length === 0`
-    // base case above never touches `sort`).
-    const entries = sort ? sortGroupEntries(groups, sort) : groups;
+    // `sort.group` only ever reorders group-header siblings at each level; `sort.leaf` (handled
+    // in the base case above) independently reorders leaf data rows within the deepest group —
+    // the two never apply to the same rows and are never both set at once.
+    const entries = sort.group ? sortGroupEntries(groups, sort.group) : groups;
 
     for (const [key, rows] of entries) {
         const path = pathPrefix ? `${pathPrefix}${PATH_SEPARATOR}${key}` : key;
@@ -529,6 +607,18 @@ class KbqAgGridRowGroupSelectAllHeaderCellRenderer implements IHeaderAngularComp
  *   whenever the full selection matters — AG's event only reports rows currently materialized
  *   as row nodes, so it misses rows hidden inside a collapsed group.
  *
+ * **Data column sorting while grouped:**
+ * - Clicking any data column's header while grouping is active reorders leaf rows *within each
+ *   deepest group only* — group headers and nesting never move. Sorting a data column and
+ *   sorting the Group column are mutually exclusive: activating one clears the other, exactly
+ *   like any two native AG Grid columns.
+ * - The comparison is a generic numeric/locale-aware comparison of the field's raw value — it
+ *   does NOT invoke a consumer-supplied ColDef `comparator` or `valueGetter`. A column whose
+ *   display value is derived/formatted will sort by its underlying raw value instead, while
+ *   grouping is active.
+ * - Only one column's sort is ever honored (no multi-column/shift-click sort chaining), and
+ *   there is no way to sort group headers themselves by an aggregate of a data field.
+ *
  * @example
  * ```html
  * <ag-grid-angular
@@ -591,16 +681,27 @@ export class KbqAgGridRowGroup {
      */
     readonly collapsedPaths = this._collapsedPaths.asReadonly();
 
-    private readonly _groupColSort = signal<SortDirection>(null);
+    /** The one column (group or data) currently driving native AG Grid sort UI — see
+     * `ActiveSort`. Structural `equal`: the `sortChanged` subscription below constructs a fresh
+     * object on every AG event, including ones that don't actually change `colId`/`sort`;
+     * without this, Angular's default reference equality would treat every such event as a
+     * change and trigger a redundant rowData rebuild via the "update rowData" effect. */
+    private readonly _activeSort = signal<ActiveSort | null>(null, {
+        equal: (a, b) => a?.colId === b?.colId && a?.sort === b?.sort
+    });
     /**
      * Current sort direction applied to the group column — `null` means unsorted (groups appear
      * in `kbqAgGridRowGroupRowData` order, as today). Group-header siblings are sorted by their
      * key at every nesting level; leaf data rows within a group keep their original order. This
      * only ever changes in response to the user clicking the group column's header — the same
      * native AG Grid sort UI/icon/keyboard behavior as any other sortable column (see the
-     * `sortChanged` subscription and `makeGroupColDef`'s `comparator`).
+     * `sortChanged` subscription and `makeGroupColDef`'s `comparator`). Derived from the more
+     * general `_activeSort`, which also tracks data-column sorting — see `resolveRowGroupDataSort`.
      */
-    readonly groupColSort = this._groupColSort.asReadonly();
+    readonly groupColSort = computed<SortDirection>(() => {
+        const active = this._activeSort();
+        return active?.colId === GROUP_COL_ID ? active.sort : null;
+    });
 
     /**
      * Emits the full list of currently-selected data rows (original `RowData` objects, in
@@ -716,6 +817,10 @@ export class KbqAgGridRowGroup {
     });
 
     private originalColDefs: (ColDef | ColGroupDef)[] = [];
+    /** `colId → field` for every data column in `originalColDefs` — see
+     * `collectDataColIdToField`. Populated once alongside `originalColDefs`, so it shares that
+     * field's known staleness limitation if `[columnDefs]` changes dynamically after `gridReady`. */
+    private dataColIdToField: ReadonlyMap<string, string> = new Map();
     private groupColShown = false;
     /** Nodes whose next `rowSelected` event was caused by our own `setSelected()` call — skip to prevent re-entrant cascades. */
     private readonly programmaticallySetNodes = new WeakSet();
@@ -732,7 +837,7 @@ export class KbqAgGridRowGroup {
         data: RowData[];
         groupCols: string[];
         collapsedPaths: ReadonlySet<string>;
-        sort: SortDirection;
+        sort: ActiveSort | null;
     } | null = null;
 
     constructor() {
@@ -753,7 +858,7 @@ export class KbqAgGridRowGroup {
                 // Track collapsedPaths so the effect re-runs after the collapse write.
                 const collapsedPaths = this.collapsedPaths();
                 const data = this.data();
-                const sort = this._groupColSort();
+                const sort = this._activeSort();
 
                 // When groupCols is bound non-empty before data arrives, collapse on first data load.
                 if (this.needsInitialCollapse && data.length > 0) {
@@ -814,7 +919,7 @@ export class KbqAgGridRowGroup {
             const needsGroupCol = this.groupCols().length > 0;
             if (needsGroupCol && !this.groupColShown) {
                 this.groupColShown = true;
-                api.setGridOption('columnDefs', [this.makeGroupColDef(), ...this.originalColDefs]);
+                api.setGridOption('columnDefs', [this.makeGroupColDef(), ...this.makeDataColDefs()]);
             } else if (!needsGroupCol && this.groupColShown) {
                 this.groupColShown = false;
                 api.setGridOption('columnDefs', this.originalColDefs);
@@ -849,6 +954,7 @@ export class KbqAgGridRowGroup {
 
         this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => {
             this.originalColDefs = api.getColumnDefs() ?? [];
+            this.dataColIdToField = collectDataColIdToField(this.originalColDefs);
 
             // Group rows are non-selectable — their state lives in groupSelectionState.
             // Prefer the non-deprecated rowSelection object form when available; fall back
@@ -917,14 +1023,23 @@ export class KbqAgGridRowGroup {
             this.emitSelectionChanged();
         });
 
-        // Reflect the group column's native AG Grid sort state (set by the user clicking its
-        // header) into groupColSort, which computeGroupedData()/makeRowGroupData() use to
-        // reorder group-header siblings at every level.
+        // Reflect whichever single column (group or data) is the current native AG Grid sort
+        // into _activeSort, which computeGroupedData()/makeRowGroupData() use to reorder either
+        // group-header siblings or leaf rows within each group (see resolveRowGroupDataSort).
         this.grid.sortChanged.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
             const api = this.api();
             if (!api) return;
-            const state = api.getColumnState().find((s) => s.colId === GROUP_COL_ID);
-            this._groupColSort.set(state?.sort ?? null);
+            // Not in multi-sort mode (default — no ctrl/shift), AG Grid itself clears every
+            // other column's sort state before applying a new one, so in practice at most one
+            // entry here has a non-null sort. sortIndex still picks a deterministic "primary"
+            // defensively. Multi-column sort chaining is out of scope — only this one primary
+            // column is ever honored.
+            const primary = api
+                .getColumnState()
+                .filter((s): s is ColumnState & { sort: 'asc' | 'desc' } => s.sort != null)
+                .sort((a, b) => (a.sortIndex ?? 0) - (b.sortIndex ?? 0))
+                .at(0);
+            this._activeSort.set(primary ? { colId: primary.colId, sort: primary.sort } : null);
         });
     }
 
@@ -1141,17 +1256,35 @@ export class KbqAgGridRowGroup {
             //    the header click/arrow/aria-sort behavior, and the asc → desc → none cycle are
             //    otherwise 100% native AG Grid; `sort` just keeps the header arrow in sync with
             //    `groupColSort` if this column is ever removed and re-added (see the "add/remove
-            //    Group column" effect).
+            //    Group column" effect). Every DATA column gets this same `comparator` no-op
+            //    treatment too, while grouping is active — see `makeDataColDefs`.
             filter: false,
             suppressHeaderMenuButton: true,
             suppressHeaderFilterButton: true,
             colId: GROUP_COL_ID,
             sortable: true,
-            sort: this._groupColSort(),
+            sort: this.groupColSort(),
             comparator: (): number => 0,
             cellRenderer: KbqAgGridRowGroupCellRenderer,
             cellRendererParams: { rowGroup: this } satisfies Pick<KbqAgGridRowGroupCellRendererParams, 'rowGroup'>
         };
+    }
+
+    /**
+     * Applies the group column's `comparator: () => 0` no-op trick (see `makeGroupColDef`) to
+     * every DATA column too, recursively including columns nested under `ColGroupDef.children`.
+     * While grouping is active, AG Grid's own native array sort over a data column would scatter
+     * our synthetic group-header rows (which carry none of the data fields) throughout
+     * `rowData`, destroying the grouped tree. AG's own sort UI (header click / arrow /
+     * aria-sort) stays fully native — only the actual row reordering is suppressed here; the
+     * `sortChanged` subscription performs the real reorder instead, restricted to leaf rows
+     * within each deepest group (see `resolveRowGroupDataSort`). `sortable` is left exactly as
+     * the consumer configured it (or AG's own default) — unaffected by this override. Only
+     * called while grouping is active; when ungrouped, `originalColDefs` is restored untouched
+     * and data columns sort with AG's fully native behavior (no group-header rows to scatter).
+     */
+    private makeDataColDefs(): (ColDef | ColGroupDef)[] {
+        return mapColDefTree(this.originalColDefs, (def) => ({ ...def, comparator: (): number => 0 }));
     }
 
     private makeSelectionColumnDef(): SelectionColumnDef {
@@ -1214,12 +1347,26 @@ export class KbqAgGridRowGroup {
         this.rowSelectionChanged.emit(rows);
     }
 
+    /**
+     * Splits the single active sort (see `_activeSort`) into the group/leaf shape
+     * `makeRowGroupData` expects. A data-column `colId` not found in `dataColIdToField`
+     * (unknown/renamed column — see `originalColDefs`'s known staleness limitation) degrades to
+     * "no sort applied" rather than throwing.
+     */
+    private resolveRowGroupDataSort(): RowGroupDataSort {
+        const active = this._activeSort();
+        if (!active) return { group: null, leaf: null };
+        if (active.colId === GROUP_COL_ID) return { group: active.sort, leaf: null };
+        const field = this.dataColIdToField.get(active.colId);
+        return field ? { group: null, leaf: { field, direction: active.sort } } : { group: null, leaf: null };
+    }
+
     private computeGroupedData(): RowData[] {
         const fields = this.groupCols();
         const data = this.data();
         if (fields.length === 0) return data;
 
-        return makeRowGroupData(data, fields, this.rowIdMap(), this.collapsedPaths(), this._groupColSort());
+        return makeRowGroupData(data, fields, this.rowIdMap(), this.collapsedPaths(), this.resolveRowGroupDataSort());
     }
 
     private computeSubGroupPaths(expandedPath: string): ReadonlySet<string> {

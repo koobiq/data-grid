@@ -27,12 +27,17 @@ const makeMockNode = (data: Record<string, unknown>, selected = false): MockNode
 
 const INITIAL_COL_DEFS: ColDef[] = [{ field: 'country' }, { field: 'sport' }];
 
-type MockColumnState = { colId: string; sort: 'asc' | 'desc' | null };
+/** Overridable per-test initial columnDefs — reset to `INITIAL_COL_DEFS` in `afterEach` below.
+ * Lets a test (e.g. one exercising `ColGroupDef` nesting) configure the columns the mock grid
+ * reports from `getColumnDefs()` without threading a param through every `createApiMock` call. */
+let testColDefs: (ColDef | ColGroupDef)[] = INITIAL_COL_DEFS;
+
+type MockColumnState = { colId: string; sort: 'asc' | 'desc' | null; sortIndex?: number | null };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createApiMock = (onNodeRemoved: (node: MockNode) => void, onSortStateApplied: () => void) => {
     const _nodes: MockNode[] = [];
-    let _colDefs: (ColDef | ColGroupDef)[] = [...INITIAL_COL_DEFS];
+    let _colDefs: (ColDef | ColGroupDef)[] = [...testColDefs];
     let _columnState: MockColumnState[] = [];
 
     return {
@@ -199,6 +204,10 @@ const setupWithGroups = async () => {
 };
 
 describe(KbqAgGridRowGroup.name, () => {
+    afterEach(() => {
+        testColDefs = INITIAL_COL_DEFS;
+    });
+
     describe('data grouping', () => {
         it('passes raw data as-is when no group columns are active', async () => {
             const { grid } = await setup(DATA);
@@ -644,6 +653,167 @@ describe(KbqAgGridRowGroup.name, () => {
             } finally {
                 warnSpy.mockRestore();
             }
+        });
+    });
+
+    describe('data column sorting', () => {
+        const ATHLETE_COL_DEFS: ColDef[] = [{ field: 'country' }, { field: 'athlete' }, { field: 'year' }];
+        const groupedAthleteData = [
+            { id: '1', country: 'USA', athlete: 'Carol', year: 2016 },
+            { id: '2', country: 'USA', athlete: 'Alice', year: 2008 },
+            { id: '3', country: 'USA', athlete: 'Bob', year: 2012 },
+            { id: '4', country: 'GBR', athlete: 'Dave', year: 2004 }
+        ];
+
+        it('gives every data column a no-op comparator while grouped, and none when ungrouped', async () => {
+            const { fixture, grid, directive } = await setup(DATA);
+            directive.groupCols.update((cols) => [...cols, 'country']);
+            fixture.detectChanges();
+            await waitFor(() => {
+                expect(grid.mock.setGridOption).toHaveBeenCalledWith('columnDefs', expect.any(Array));
+            });
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const dummyNode = {} as unknown as IRowNode;
+            const dataColDefs = grid.mock.colDefs.filter(
+                (c) => (c as ColDef).colId !== 'KbqAgGridRowGroup'
+            ) as ColDef[];
+            expect(dataColDefs).toHaveLength(INITIAL_COL_DEFS.length);
+            for (const colDef of dataColDefs) {
+                expect(colDef.comparator?.(null, null, dummyNode, dummyNode, false)).toBe(0);
+            }
+
+            directive.clearGroupColumns();
+            fixture.detectChanges();
+            await waitFor(() => {
+                expect(grid.mock.colDefs.every((c) => (c as ColDef).colId !== 'KbqAgGridRowGroup')).toBe(true);
+            });
+            expect(grid.mock.colDefs.every((c) => (c as ColDef).comparator === undefined)).toBe(true);
+        });
+
+        it('applies the no-op comparator to a leaf ColDef nested under a ColGroupDef', async () => {
+            testColDefs = [{ field: 'country' }, { headerName: 'Stats', children: [{ field: 'athlete' }] }];
+            const { fixture, grid, directive } = await setup(DATA);
+            directive.groupCols.update((cols) => [...cols, 'country']);
+            fixture.detectChanges();
+            await waitFor(() => {
+                expect(grid.mock.setGridOption).toHaveBeenCalledWith('columnDefs', expect.any(Array));
+            });
+
+            const statsGroup = grid.mock.colDefs.find((c): c is ColGroupDef => 'children' in c)!;
+            const nestedAthlete = statsGroup.children[0] as ColDef;
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const dummyNode = {} as unknown as IRowNode;
+            expect(nestedAthlete.comparator?.(null, null, dummyNode, dummyNode, false)).toBe(0);
+        });
+
+        it('sorting a data column reorders leaf rows within a group without scattering group headers', async () => {
+            testColDefs = ATHLETE_COL_DEFS;
+            const { fixture, grid, directive } = await setup(groupedAthleteData);
+            directive.groupCols.set(['country']);
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+            directive.expandAll();
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
+
+            const headersBefore = grid.mock.nodes.filter((n) => isGroupHeader(n.data));
+            expect(headersBefore.map((h) => getMeta(h.data)!.key)).toEqual(['USA', 'GBR']);
+
+            grid.mock.setColumnState([{ colId: 'athlete', sort: 'asc' }]);
+            grid.emitSortChanged();
+
+            await waitFor(() => {
+                const headersAfter = grid.mock.nodes.filter((n) => isGroupHeader(n.data));
+                expect(headersAfter.map((h) => getMeta(h.data)!.key)).toEqual(['USA', 'GBR']);
+
+                const usaLeaves = grid.mock.nodes.filter((n) => {
+                    const meta = getMeta(n.data);
+                    return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                });
+                expect(usaLeaves.map((n) => n.data.athlete)).toEqual(['Alice', 'Bob', 'Carol']);
+            });
+        });
+
+        it('sorts a numeric leaf field numerically, not lexicographically', async () => {
+            testColDefs = ATHLETE_COL_DEFS;
+            const numericLeafData = [
+                { id: '1', country: 'USA', athlete: 'A', year: 2 },
+                { id: '2', country: 'USA', athlete: 'B', year: 10 },
+                { id: '3', country: 'USA', athlete: 'C', year: 9 }
+            ];
+            const { fixture, grid, directive } = await setup(numericLeafData);
+            directive.groupCols.set(['country']);
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+            directive.expandAll();
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
+
+            grid.mock.setColumnState([{ colId: 'year', sort: 'asc' }]);
+            grid.emitSortChanged();
+
+            await waitFor(() => {
+                const leaves = grid.mock.nodes.filter((n) => !isGroupHeader(n.data) && getMeta(n.data) !== undefined);
+                expect(leaves.map((n) => n.data.year)).toEqual([2, 9, 10]);
+            });
+        });
+
+        it('activating a data column sort clears the active group column sort', async () => {
+            const { grid, directive } = await setupWithGroups();
+            directive.setGroupColSort('asc');
+            await waitFor(() => expect(directive.groupColSort()).toBe('asc'));
+
+            // Simulates what AG's own clearSortBarTheseColumns does on a plain header click: the
+            // previously-active column's sort is cleared, the new one gets it instead.
+            grid.mock.setColumnState([
+                { colId: 'KbqAgGridRowGroup', sort: null },
+                { colId: 'country', sort: 'asc' }
+            ]);
+            grid.emitSortChanged();
+
+            await waitFor(() => {
+                expect(directive.groupColSort()).toBeNull();
+            });
+        });
+
+        it('picks the sortIndex-lowest column as primary when multiple entries carry a non-null sort', async () => {
+            const { directive, grid } = await setupWithGroups();
+
+            grid.mock.setColumnState([
+                { colId: 'country', sort: 'asc', sortIndex: 1 },
+                { colId: 'KbqAgGridRowGroup', sort: 'asc', sortIndex: 0 }
+            ]);
+            grid.emitSortChanged();
+
+            await waitFor(() => {
+                expect(directive.groupColSort()).toBe('asc');
+            });
+        });
+
+        it('clearing a data column sort restores the original leaf insertion order', async () => {
+            testColDefs = ATHLETE_COL_DEFS;
+            const { fixture, grid, directive } = await setup(groupedAthleteData);
+            directive.groupCols.set(['country']);
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+            directive.expandAll();
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
+
+            const usaAthletes = (): unknown[] =>
+                grid.mock.nodes
+                    .filter((n) => {
+                        const meta = getMeta(n.data);
+                        return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                    })
+                    .map((n) => n.data.athlete);
+
+            grid.mock.setColumnState([{ colId: 'athlete', sort: 'asc' }]);
+            grid.emitSortChanged();
+            await waitFor(() => {
+                expect(usaAthletes()).toEqual(['Alice', 'Bob', 'Carol']);
+            });
+
+            grid.mock.setColumnState([{ colId: 'athlete', sort: null }]);
+            grid.emitSortChanged();
+            await waitFor(() => {
+                expect(usaAthletes()).toEqual(['Carol', 'Alice', 'Bob']);
+            });
         });
     });
 

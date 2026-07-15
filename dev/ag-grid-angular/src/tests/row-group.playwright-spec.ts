@@ -37,6 +37,16 @@ const getDataRowByText = (page: Page, text: string): Locator =>
 
 const getGroupHeaderCell = (page: Page): Locator => page.locator('.ag-header-cell[col-id="KbqAgGridRowGroup"]');
 
+const getDataHeaderCell = (page: Page, colId: string): Locator => page.locator(`.ag-header-cell[col-id="${colId}"]`);
+
+// Every row (group or leaf) renders a cell for every column, but a group row's data-field cells
+// are empty (group rows carry none of the raw data fields) — filtering those out leaves exactly
+// the currently-visible leaf rows' Gold values, in DOM order.
+const getLeafGoldValues = async (page: Page): Promise<number[]> => {
+    const cells = await page.locator('.ag-row [col-id="gold"]').allTextContents();
+    return cells.filter((text) => text !== '').map(Number);
+};
+
 const naturalCompare = (a: string, b: string): number => a.localeCompare(b, undefined, { numeric: true });
 
 test.describe('KbqAgGridRowGroup', () => {
@@ -530,5 +540,74 @@ test.describe('KbqAgGridRowGroup', () => {
 
         // Group cell renderers should no longer be present
         await expect(page.locator('.kbq-ag-grid-group-cell-renderer__inner')).toHaveCount(0, { timeout: 5_000 });
+    });
+
+    test('sorting a data column reorders leaf rows within a group without scattering group headers', async ({
+        page
+    }) => {
+        // Both Country and Sport are grouped by default (see DevRowGroup.groupCols).
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
+
+        await page.getByTestId('expandRussiaDivingBtn').click();
+        await expect(getDataRowByText(page, 'Ilya Zakharov')).toBeVisible();
+
+        const groupCountBefore = await page.locator('.kbq-ag-grid-group-cell-renderer__inner').count();
+        const goldBefore = await getLeafGoldValues(page);
+
+        const goldHeader = getDataHeaderCell(page, 'gold');
+        await goldHeader.locator('.ag-header-cell-label').click();
+        await expect(goldHeader).toHaveAttribute('aria-sort', 'ascending');
+
+        // Group headers/nesting stay identical to before the sort — this is the actual bug: a
+        // native AG sort over rowData used to scatter/duplicate/lose these synthetic rows.
+        await expect(page.locator('.kbq-ag-grid-group-cell-renderer__inner')).toHaveCount(groupCountBefore);
+        await expect(getGroupRowByKey(page, 'Diving')).toBeVisible();
+
+        // The leaf rows within Diving are now actually reordered ascending by Gold.
+        await expect.poll(async () => getLeafGoldValues(page)).not.toEqual(goldBefore);
+        const goldAfter = await getLeafGoldValues(page);
+        expect(goldAfter).toEqual([...goldAfter].sort((a, b) => a - b));
+    });
+
+    test('sorting a data column and the group column are mutually exclusive', async ({ page }) => {
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
+
+        const groupHeader = getGroupHeaderCell(page);
+        const goldHeader = getDataHeaderCell(page, 'gold');
+
+        await groupHeader.locator('.ag-header-cell-label').click();
+        await expect(groupHeader).toHaveAttribute('aria-sort', 'ascending');
+
+        // Sorting Gold takes over as the single active sort — AG itself clears the group
+        // column's sort state, same as a real header click would for any two native columns.
+        await goldHeader.locator('.ag-header-cell-label').click();
+        await expect(goldHeader).toHaveAttribute('aria-sort', 'ascending');
+        await expect(groupHeader).toHaveAttribute('aria-sort', 'none');
+    });
+
+    test('data column sorting behaves as a plain native AG sort once grouping is removed', async ({ page }) => {
+        await page.goto('/e2e/row-group');
+        await waitForDataLoaded(page);
+
+        // Both columns are grouped by default (see DevRowGroup.groupCols) — uncheck each so the
+        // no-op comparator (grouped-only) is out of the picture entirely.
+        await getGroupCheckbox(page, 'Country').click();
+        await getGroupCheckbox(page, 'Sport').click();
+        await expect(page.locator('.kbq-ag-grid-group-cell-renderer__inner')).toHaveCount(0, { timeout: 5_000 });
+
+        const goldHeader = getDataHeaderCell(page, 'gold');
+        const firstGoldCell = page.locator('.ag-row[row-index="0"] [col-id="gold"]');
+        const initialGold = (await firstGoldCell.textContent()) ?? '';
+
+        await goldHeader.locator('.ag-header-cell-label').click();
+        await expect(goldHeader).toHaveAttribute('aria-sort', 'ascending');
+        await expect(firstGoldCell).not.toHaveText(initialGold);
+        const ascGold = (await firstGoldCell.textContent()) ?? '';
+
+        await goldHeader.locator('.ag-header-cell-label').click();
+        await expect(goldHeader).toHaveAttribute('aria-sort', 'descending');
+        await expect(firstGoldCell).not.toHaveText(ascGold);
     });
 });
