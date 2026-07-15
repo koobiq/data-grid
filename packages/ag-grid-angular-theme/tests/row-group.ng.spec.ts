@@ -34,8 +34,12 @@ let testColDefs: (ColDef | ColGroupDef)[] = INITIAL_COL_DEFS;
 
 type MockColumnState = { colId: string; sort: 'asc' | 'desc' | null; sortIndex?: number | null };
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const createApiMock = (onNodeRemoved: (node: MockNode) => void, onSortStateApplied: () => void) => {
+const createApiMock = (
+    onNodeRemoved: (node: MockNode) => void,
+    onSortStateApplied: () => void,
+    onColumnDefsSet: (source: string) => void
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+) => {
     const _nodes: MockNode[] = [];
     let _colDefs: (ColDef | ColGroupDef)[] = [...testColDefs];
     let _columnState: MockColumnState[] = [];
@@ -77,8 +81,27 @@ const createApiMock = (onNodeRemoved: (node: MockNode) => void, onSortStateAppli
             } else if (key === 'columnDefs') {
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 _colDefs = value as (ColDef | ColGroupDef)[];
+                // Simulates real AG Grid: a direct api.setGridOption('columnDefs', ...) call —
+                // whether from this directive's own setColumnDefsInternally or any other direct
+                // API usage — always fires newColumnsLoaded with source: 'api' (AG Grid's
+                // default when no explicit source is passed). See
+                // simulateExternalColumnDefsChange for the consumer's own [columnDefs] input
+                // changing, which is a genuinely different code path in real AG Grid/AgGridAngular
+                // and reports a different source.
+                onColumnDefsSet('api');
             }
         }),
+        // Simulates the consumer's own [columnDefs] Angular input changing — AgGridAngular
+        // routes that through AG Grid's _processOnChange/gridOptionsChanged path, not through
+        // api.setGridOption, so the resulting newColumnsLoaded event reports source:
+        // 'gridOptionsChanged' rather than 'api' (confirmed by reading AG Grid's
+        // GridOptionsService.updateGridOptions and SyncService.setColumnDefs). This is what
+        // KbqAgGridRowGroup's newColumnsLoaded subscription uses to tell an external columnDefs
+        // change apart from its own writes.
+        simulateExternalColumnDefsChange: (colDefs: (ColDef | ColGroupDef)[]): void => {
+            _colDefs = colDefs;
+            onColumnDefsSet('gridOptionsChanged');
+        },
         getGridOption: jest.fn(() => undefined),
         forEachNode: jest.fn((cb: (node: MockNode) => void) => _nodes.forEach(cb)),
         refreshCells: jest.fn(),
@@ -103,7 +126,8 @@ type ApiMock = ReturnType<typeof createApiMock>;
 class TestAgGridAngularStub {
     readonly mock = createApiMock(
         (node) => this.emitRowSelected(node),
-        () => this.emitSortChanged()
+        () => this.emitSortChanged(),
+        (source) => this.emitNewColumnsLoaded(source)
     );
 
     get api(): GridApi {
@@ -114,9 +138,14 @@ class TestAgGridAngularStub {
     readonly gridReady = new Subject<{ api: GridApi }>();
     readonly rowSelected = new Subject<{ node: IRowNode }>();
     readonly sortChanged = new Subject<void>();
+    readonly newColumnsLoaded = new Subject<{ source: string }>();
 
     emitGridReady(): void {
         this.gridReady.next({ api: this.api });
+    }
+
+    emitNewColumnsLoaded(source: string): void {
+        this.newColumnsLoaded.next({ source });
     }
 
     emitRowSelected(node: MockNode): void {
@@ -521,6 +550,89 @@ describe(KbqAgGridRowGroup.name, () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const dummyNode = {} as unknown as IRowNode;
             expect(groupColDef.comparator?.(null, null, dummyNode, dummyNode, false)).toBe(0);
+        });
+    });
+
+    describe('external columnDefs changes', () => {
+        it('reapplies the Group column on top of an external columnDefs change made while grouping is active', async () => {
+            const { fixture, grid, directive } = await setup(DATA);
+            directive.groupCols.update((cols) => [...cols, 'country']);
+            fixture.detectChanges();
+            await waitFor(() => {
+                expect((grid.mock.colDefs[0] as ColDef).colId).toBe('KbqAgGridRowGroup');
+            });
+
+            // Simulates the consumer's own [columnDefs] input changing, which would otherwise
+            // silently drop the synthetic Group column.
+            grid.mock.simulateExternalColumnDefsChange([
+                { field: 'country' },
+                { field: 'sport' },
+                { field: 'athlete' }
+            ]);
+
+            await waitFor(() => {
+                expect((grid.mock.colDefs[0] as ColDef).colId).toBe('KbqAgGridRowGroup');
+            });
+            const fields = grid.mock.colDefs.slice(1).map((c) => (c as ColDef).field);
+            expect(fields).toEqual(['country', 'sport', 'athlete']);
+            // The newly-added data column also gets the no-op comparator, same as the others.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const dummyNode = {} as unknown as IRowNode;
+            const athleteColDef = grid.mock.colDefs.find((c): c is ColDef => (c as ColDef).field === 'athlete')!;
+            expect(athleteColDef.comparator?.(null, null, dummyNode, dummyNode, false)).toBe(0);
+        });
+
+        it('resolves sorting for a data column added via an external columnDefs change', async () => {
+            const dataWithExtraField = [
+                { id: '1', country: 'USA', sport: 'Swimming', athlete: 'Carol' },
+                { id: '2', country: 'USA', sport: 'Athletics', athlete: 'Alice' },
+                { id: '3', country: 'GBR', sport: 'Cycling', athlete: 'Dave' }
+            ];
+            const { fixture, grid, directive } = await setup(dataWithExtraField);
+            directive.groupCols.set(['country']);
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+            directive.expandAll();
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
+
+            // 'athlete' exists on every row already, but isn't a known column yet — sorting by it
+            // must be a no-op (unresolvable colId) until the consumer's own columnDefs change
+            // below introduces it.
+            grid.mock.simulateExternalColumnDefsChange([
+                { field: 'country' },
+                { field: 'sport' },
+                { field: 'athlete' }
+            ]);
+
+            grid.mock.setColumnState([{ colId: 'athlete', sort: 'asc' }]);
+            grid.emitSortChanged();
+
+            await waitFor(() => {
+                const usaLeaves = grid.mock.nodes.filter((n) => {
+                    const meta = getMeta(n.data);
+                    return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                });
+                expect(usaLeaves.map((n) => n.data.athlete)).toEqual(['Alice', 'Carol']);
+            });
+        });
+
+        it("does not mistake its own columnDefs writes for an external change — grouping toggles don't corrupt the snapshot", async () => {
+            const { fixture, grid, directive } = await setup(DATA);
+
+            directive.groupCols.update((cols) => [...cols, 'country']);
+            fixture.detectChanges();
+            await waitFor(() => {
+                expect((grid.mock.colDefs[0] as ColDef).colId).toBe('KbqAgGridRowGroup');
+            });
+
+            directive.clearGroupColumns();
+            fixture.detectChanges();
+
+            // If the newColumnsLoaded resync mistook the directive's own writes above for an
+            // external change, this would restore the Group-column/no-op-comparator variant
+            // instead of the consumer's real original columnDefs.
+            await waitFor(() => {
+                expect(grid.mock.colDefs).toEqual(INITIAL_COL_DEFS);
+            });
         });
     });
 

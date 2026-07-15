@@ -816,10 +816,12 @@ export class KbqAgGridRowGroup {
         return count === total ? 'checked' : 'indeterminate';
     });
 
+    /** Snapshot of the consumer's own columnDefs, without the synthetic Group column or the
+     * per-column `comparator` override — kept in sync with `[columnDefs]` via the
+     * `newColumnsLoaded` subscription below (see `setColumnDefsInternally`). */
     private originalColDefs: (ColDef | ColGroupDef)[] = [];
-    /** `colId → field` for every data column in `originalColDefs` — see
-     * `collectDataColIdToField`. Populated once alongside `originalColDefs`, so it shares that
-     * field's known staleness limitation if `[columnDefs]` changes dynamically after `gridReady`. */
+    /** `colId → field` for every data column in `originalColDefs` — see `collectDataColIdToField`.
+     * Resynced alongside `originalColDefs`. */
     private dataColIdToField: ReadonlyMap<string, string> = new Map();
     private groupColShown = false;
     /** Nodes whose next `rowSelected` event was caused by our own `setSelected()` call — skip to prevent re-entrant cascades. */
@@ -919,10 +921,10 @@ export class KbqAgGridRowGroup {
             const needsGroupCol = this.groupCols().length > 0;
             if (needsGroupCol && !this.groupColShown) {
                 this.groupColShown = true;
-                api.setGridOption('columnDefs', [this.makeGroupColDef(), ...this.makeDataColDefs()]);
+                this.setColumnDefsInternally(api, [this.makeGroupColDef(), ...this.makeDataColDefs()]);
             } else if (!needsGroupCol && this.groupColShown) {
                 this.groupColShown = false;
-                api.setGridOption('columnDefs', this.originalColDefs);
+                this.setColumnDefsInternally(api, this.originalColDefs);
             }
         });
 
@@ -1040,6 +1042,35 @@ export class KbqAgGridRowGroup {
                 .sort((a, b) => (a.sortIndex ?? 0) - (b.sortIndex ?? 0))
                 .at(0);
             this._activeSort.set(primary ? { colId: primary.colId, sort: primary.sort } : null);
+        });
+
+        // Keep originalColDefs/dataColIdToField in sync with the consumer's own [columnDefs]
+        // input, not just its value at gridReady — a column added/removed/renamed later is
+        // picked up going forward (its comparator override, its colId → field resolution).
+        // AG Grid tags every columnDefs write with who caused it: a direct
+        // api.setGridOption('columnDefs', ...) call (this directive's own, via
+        // setColumnDefsInternally) reports source 'api', while the consumer's own [columnDefs]
+        // input changing is routed by AgGridAngular through gridOptionsChanged instead —
+        // confirmed by reading AG Grid's _processOnChange / GridOptionsService.updateGridOptions
+        // (default source 'api') and SyncService.setColumnDefs, which converts a
+        // 'gridOptionsChanged'-sourced update via _convertColumnEventSourceType before it reaches
+        // here. Only the latter should trigger a resync — resyncing from our own write would
+        // replace the real snapshot with our synthetic Group-column/no-op-comparator variant.
+        this.grid.newColumnsLoaded.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ source }) => {
+            if (source === 'api') return;
+            const api = this.api();
+            if (!api) return;
+
+            this.originalColDefs = api.getColumnDefs() ?? [];
+            this.dataColIdToField = collectDataColIdToField(this.originalColDefs);
+
+            // The consumer's own columnDefs write just replaced whatever this directive had
+            // rendered — if the Group column was showing, put it (and the data-column
+            // comparator overrides) back on top of the fresh snapshot instead of silently
+            // losing it.
+            if (this.groupColShown) {
+                this.setColumnDefsInternally(api, [this.makeGroupColDef(), ...this.makeDataColDefs()]);
+            }
         });
     }
 
@@ -1287,6 +1318,17 @@ export class KbqAgGridRowGroup {
         return mapColDefTree(this.originalColDefs, (def) => ({ ...def, comparator: (): number => 0 }));
     }
 
+    /** Every columnDefs write this directive itself makes (adding/removing the Group column,
+     * restoring `originalColDefs`) goes through here rather than a bare `api.setGridOption`
+     * call — purely for symmetry/documentation with the `newColumnsLoaded` resync subscription
+     * in the constructor, which relies on this call's resulting event reporting
+     * `source: 'api'` (AG Grid's default when no explicit source is passed) to recognize it as
+     * self-caused, as opposed to `source: 'gridOptionsChanged'` for the consumer's own
+     * `[columnDefs]` input changing. */
+    private setColumnDefsInternally(api: GridApi, colDefs: (ColDef | ColGroupDef)[]): void {
+        api.setGridOption('columnDefs', colDefs);
+    }
+
     private makeSelectionColumnDef(): SelectionColumnDef {
         return {
             headerComponent: KbqAgGridRowGroupSelectAllHeaderCellRenderer,
@@ -1349,8 +1391,8 @@ export class KbqAgGridRowGroup {
 
     /**
      * Splits the single active sort (see `_activeSort`) into the group/leaf shape
-     * `makeRowGroupData` expects. A data-column `colId` not found in `dataColIdToField`
-     * (unknown/renamed column — see `originalColDefs`'s known staleness limitation) degrades to
+     * `makeRowGroupData` expects. A data-column `colId` not found in `dataColIdToField` (e.g. a
+     * `sortChanged` event racing a `newColumnsLoaded` resync still in flight) degrades to
      * "no sort applied" rather than throwing.
      */
     private resolveRowGroupDataSort(): RowGroupDataSort {
