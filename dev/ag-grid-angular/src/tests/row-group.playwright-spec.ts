@@ -610,4 +610,44 @@ test.describe('KbqAgGridRowGroup', () => {
         await expect(goldHeader).toHaveAttribute('aria-sort', 'descending');
         await expect(firstGoldCell).not.toHaveText(ascGold);
     });
+
+    test('data columns for active group fields are hidden from header and body', async ({ page }) => {
+        // Both Country and Sport are grouped by default (see DevRowGroup.groupCols).
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
+
+        await expect(getDataHeaderCell(page, 'country')).toHaveCount(0);
+        await expect(getDataHeaderCell(page, 'sport')).toHaveCount(0);
+        await expect(getDataHeaderCell(page, 'gold')).toBeVisible();
+        await expect(page.locator('.ag-row [col-id="country"]')).toHaveCount(0);
+    });
+
+    test('un-grouping a field re-shows its data column', async ({ page }) => {
+        await page.goto('/e2e/row-group');
+        await waitForGroupsVisible(page);
+        await expect(getDataHeaderCell(page, 'country')).toHaveCount(0);
+
+        await getGroupCheckbox(page, 'Country').click();
+
+        await expect(getDataHeaderCell(page, 'country')).toBeVisible();
+        await expect(getDataHeaderCell(page, 'sport')).toHaveCount(0);
+    });
+
+    test('adding a second group field while already grouped hides that column too', async ({ page }) => {
+        await page.goto('/e2e/row-group');
+        await waitForDataLoaded(page);
+
+        // Start with only Country grouped (uncheck Sport, which is grouped by default).
+        await getGroupCheckbox(page, 'Sport').click();
+        await waitForGroupsVisible(page);
+        await expect(getDataHeaderCell(page, 'country')).toHaveCount(0);
+        await expect(getDataHeaderCell(page, 'sport')).toBeVisible();
+
+        // Re-check Sport: a groupCols content change while already grouped, not the initial
+        // 0-to-non-zero boundary — the case syncGroupFieldVisibility exists to cover.
+        await getGroupCheckbox(page, 'Sport').click();
+
+        await expect(getDataHeaderCell(page, 'sport')).toHaveCount(0);
+        await expect(getDataHeaderCell(page, 'country')).toHaveCount(0);
+    });
 });

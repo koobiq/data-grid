@@ -619,6 +619,15 @@ class KbqAgGridRowGroupSelectAllHeaderCellRenderer implements IHeaderAngularComp
  * - Only one column's sort is ever honored (no multi-column/shift-click sort chaining), and
  *   there is no way to sort group headers themselves by an aggregate of a data field.
  *
+ * **Grouped column visibility:**
+ * - A column whose field is an active `groupCols` entry has its own data cells hidden from the
+ *   grid body — its value is only shown via the synthetic Group column instead, matching real AG
+ *   Grid Enterprise's row-grouping UX. It's automatically restored once the field is no longer
+ *   grouped.
+ * - A column already hidden independently of grouping (the consumer's own `colDef.hide: true`, or
+ *   a prior manual visibility change) is left exactly as-is — grouping by it never makes it
+ *   visible, and un-grouping it never un-hides it either.
+ *
  * @example
  * ```html
  * <ag-grid-angular
@@ -824,6 +833,12 @@ export class KbqAgGridRowGroup {
      * Resynced alongside `originalColDefs`. */
     private dataColIdToField: ReadonlyMap<string, string> = new Map();
     private groupColShown = false;
+    /** colIds this directive has itself hidden because their field is an active `groupCols` entry
+     * (see `syncGroupFieldVisibility`) — the source of truth for whether it "owns" a column's
+     * hidden state. A column already hidden by the consumer's own `colDef.hide: true` (unrelated
+     * to grouping) is deliberately never added here, so it's never force-shown once it stops being
+     * a group field. */
+    private readonly hiddenGroupFieldColIds = new Set<string>();
     /** Nodes whose next `rowSelected` event was caused by our own `setSelected()` call — skip to prevent re-entrant cascades. */
     private readonly programmaticallySetNodes = new WeakSet();
     /** Deferred collapse: set on gridReady when groupCols is non-empty; cleared once data is available. */
@@ -914,11 +929,14 @@ export class KbqAgGridRowGroup {
             { allowSignalWrites: true }
         );
 
-        // Reactive: add/remove the "Group" column when grouping is activated/deactivated
+        // Reactive: add/remove the "Group" column when grouping is activated/deactivated, and
+        // keep each active group field's own data column hidden (see syncGroupFieldVisibility) —
+        // runs on every groupCols content change, not just the 0↔non-zero boundary above.
         effect(() => {
             const api = this.api();
             if (!api) return;
-            const needsGroupCol = this.groupCols().length > 0;
+            const groupCols = this.groupCols();
+            const needsGroupCol = groupCols.length > 0;
             if (needsGroupCol && !this.groupColShown) {
                 this.groupColShown = true;
                 this.setColumnDefsInternally(api, [this.makeGroupColDef(), ...this.makeDataColDefs()]);
@@ -926,6 +944,7 @@ export class KbqAgGridRowGroup {
                 this.groupColShown = false;
                 this.setColumnDefsInternally(api, this.originalColDefs);
             }
+            this.syncGroupFieldVisibility(api, groupCols);
         });
 
         // Redraw group rows whenever selection state changes, so the checkbox cell and the
@@ -1071,6 +1090,12 @@ export class KbqAgGridRowGroup {
             if (this.groupColShown) {
                 this.setColumnDefsInternally(api, [this.makeGroupColDef(), ...this.makeDataColDefs()]);
             }
+
+            // groupCols itself hasn't changed here, so the "add/remove Group column" effect
+            // above won't re-run on its own — resync hidden-column state against the fresh
+            // colDefs explicitly. A true no-op when ungrouped (hiddenGroupFieldColIds is already
+            // empty by then).
+            this.syncGroupFieldVisibility(api, this.groupCols());
         });
     }
 
@@ -1327,6 +1352,54 @@ export class KbqAgGridRowGroup {
      * `[columnDefs]` input changing. */
     private setColumnDefsInternally(api: GridApi, colDefs: (ColDef | ColGroupDef)[]): void {
         api.setGridOption('columnDefs', colDefs);
+    }
+
+    /**
+     * Hides the data column for every field currently in `groupCols` — mirrors real AG Grid
+     * Enterprise row-grouping, where a grouped-by column's own cells are hidden and its value is
+     * shown only via the synthetic Group column. Restores visibility for any colId this directive
+     * previously hid once its field stops being a group field.
+     *
+     * Ownership: only ever touches a colId this directive owns (`hiddenGroupFieldColIds`). A colId
+     * already hidden — by the consumer's own `colDef.hide: true`, unrelated to grouping — before it
+     * became a group field is detected via `api.getColumnState()` and left alone: never taken
+     * ownership of, so never force-shown later. Uses `api.setColumnsVisible()`, which is decoupled
+     * from `columnDefs` (goes through `_applyColumnState`, not `createColsFromColDefs` — it never
+     * fires `newColumnsLoaded`), so this is safe to call from both the "add/remove Group column"
+     * effect and the `newColumnsLoaded` resync subscription with no risk of feeding back into
+     * either.
+     */
+    private syncGroupFieldVisibility(api: GridApi, groupCols: readonly string[]): void {
+        const groupFields = new Set(groupCols);
+        const shouldHide = new Set<string>();
+        for (const [colId, field] of this.dataColIdToField) {
+            if (groupFields.has(field)) shouldHide.add(colId);
+        }
+
+        const toShow: string[] = [];
+        for (const colId of this.hiddenGroupFieldColIds) {
+            if (shouldHide.has(colId)) continue;
+            toShow.push(colId);
+            this.hiddenGroupFieldColIds.delete(colId);
+        }
+
+        const toHide: string[] = [];
+        if (shouldHide.size > 0) {
+            const hiddenElsewhere = new Set(
+                api
+                    .getColumnState()
+                    .filter((s) => s.hide === true)
+                    .map((s) => s.colId)
+            );
+            for (const colId of shouldHide) {
+                if (this.hiddenGroupFieldColIds.has(colId) || hiddenElsewhere.has(colId)) continue;
+                toHide.push(colId);
+                this.hiddenGroupFieldColIds.add(colId);
+            }
+        }
+
+        if (toShow.length > 0) api.setColumnsVisible(toShow, true);
+        if (toHide.length > 0) api.setColumnsVisible(toHide, false);
     }
 
     private makeSelectionColumnDef(): SelectionColumnDef {

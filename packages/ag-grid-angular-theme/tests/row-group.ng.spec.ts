@@ -32,7 +32,12 @@ const INITIAL_COL_DEFS: ColDef[] = [{ field: 'country' }, { field: 'sport' }];
  * reports from `getColumnDefs()` without threading a param through every `createApiMock` call. */
 let testColDefs: (ColDef | ColGroupDef)[] = INITIAL_COL_DEFS;
 
-type MockColumnState = { colId: string; sort: 'asc' | 'desc' | null; sortIndex?: number | null };
+type MockColumnState = {
+    colId: string;
+    sort: 'asc' | 'desc' | null;
+    sortIndex?: number | null;
+    hide?: boolean | null;
+};
 
 const createApiMock = (
     onNodeRemoved: (node: MockNode) => void,
@@ -62,6 +67,19 @@ const createApiMock = (
                 }
             }
             onSortStateApplied();
+        }),
+        // Simulates real AG Grid: setColumnsVisible goes through _applyColumnState (the same
+        // underlying column-state store as applyColumnState/getColumnState above) — never
+        // through columnDefs, so it never fires newColumnsLoaded.
+        setColumnsVisible: jest.fn((keys: string[], visible: boolean): void => {
+            for (const colId of keys) {
+                const existing = _columnState.find((s) => s.colId === colId);
+                if (existing) {
+                    existing.hide = !visible;
+                } else {
+                    _columnState.push({ colId, sort: null, hide: !visible });
+                }
+            }
         }),
         setGridOption: jest.fn((key: string, value: unknown) => {
             if (key === 'rowData') {
@@ -550,6 +568,115 @@ describe(KbqAgGridRowGroup.name, () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const dummyNode = {} as unknown as IRowNode;
             expect(groupColDef.comparator?.(null, null, dummyNode, dummyNode, false)).toBe(0);
+        });
+    });
+
+    describe('data column visibility while grouped', () => {
+        it("hides a field's data column when it becomes an active group field", async () => {
+            const { fixture, directive, grid } = await setup(DATA);
+
+            directive.groupCols.set(['country']);
+            fixture.detectChanges();
+
+            await waitFor(() => {
+                expect(grid.mock.setColumnsVisible).toHaveBeenCalledWith(['country'], false);
+            });
+        });
+
+        it('shows the data column again once its field is removed from groupCols', async () => {
+            const { fixture, directive, grid } = await setup(DATA);
+            directive.groupCols.set(['country']);
+            fixture.detectChanges();
+            await waitFor(() => {
+                expect(grid.mock.setColumnsVisible).toHaveBeenCalledWith(['country'], false);
+            });
+
+            directive.groupCols.set([]);
+            fixture.detectChanges();
+
+            await waitFor(() => {
+                expect(grid.mock.setColumnsVisible).toHaveBeenCalledWith(['country'], true);
+            });
+        });
+
+        it('hides a newly added group field without re-toggling an already-hidden one', async () => {
+            const { fixture, directive, grid } = await setup(DATA);
+            directive.groupCols.set(['country']);
+            fixture.detectChanges();
+            await waitFor(() => {
+                expect(grid.mock.setColumnsVisible).toHaveBeenCalledWith(['country'], false);
+            });
+            grid.mock.setColumnsVisible.mockClear();
+
+            directive.groupCols.set(['country', 'sport']);
+            fixture.detectChanges();
+
+            await waitFor(() => {
+                expect(grid.mock.setColumnsVisible).toHaveBeenCalledWith(['sport'], false);
+            });
+            expect(grid.mock.setColumnsVisible).not.toHaveBeenCalledWith(
+                expect.arrayContaining(['country']),
+                expect.anything()
+            );
+        });
+
+        it('does not force-show a column already hidden by the consumer before it became a group field', async () => {
+            const { fixture, directive, grid } = await setup(DATA);
+            grid.mock.setColumnState([{ colId: 'sport', sort: null, hide: true }]);
+
+            directive.groupCols.set(['sport']);
+            fixture.detectChanges();
+            await waitFor(() => {
+                expect(grid.mock.setGridOption).toHaveBeenCalledWith('columnDefs', expect.any(Array));
+            });
+            expect(grid.mock.setColumnsVisible).not.toHaveBeenCalledWith(['sport'], false);
+
+            directive.clearGroupColumns();
+            fixture.detectChanges();
+
+            await waitFor(() => {
+                expect(grid.mock.colDefs.every((c) => (c as ColDef).colId !== 'KbqAgGridRowGroup')).toBe(true);
+            });
+            expect(grid.mock.setColumnsVisible).not.toHaveBeenCalledWith(['sport'], true);
+        });
+
+        it('moveGroupColumn does not toggle any column visibility', async () => {
+            const { fixture, directive, grid } = await setup(DATA);
+            directive.groupCols.set(['country', 'sport']);
+            fixture.detectChanges();
+            await waitFor(() => expect(grid.mock.setColumnsVisible).toHaveBeenCalled());
+            grid.mock.setColumnsVisible.mockClear();
+            grid.mock.setGridOption.mockClear();
+
+            directive.moveGroupColumn(0, 1);
+            fixture.detectChanges();
+
+            // Reordering still rebuilds rowData (group hierarchy order changed) — wait for that
+            // to confirm the same effect tick that would also call setColumnsVisible has flushed.
+            await waitFor(() => {
+                expect(grid.mock.setGridOption).toHaveBeenCalledWith('rowData', expect.any(Array));
+            });
+            expect(grid.mock.setColumnsVisible).not.toHaveBeenCalled();
+        });
+
+        it('applies visibility for a group field introduced by an external columnDefs change', async () => {
+            const { fixture, directive, grid } = await setup(DATA);
+            directive.groupCols.set(['athlete']);
+            fixture.detectChanges();
+            await waitFor(() => {
+                expect(grid.mock.setGridOption).toHaveBeenCalledWith('columnDefs', expect.any(Array));
+            });
+            grid.mock.setColumnsVisible.mockClear();
+
+            grid.mock.simulateExternalColumnDefsChange([
+                { field: 'country' },
+                { field: 'sport' },
+                { field: 'athlete' }
+            ]);
+
+            await waitFor(() => {
+                expect(grid.mock.setColumnsVisible).toHaveBeenCalledWith(['athlete'], false);
+            });
         });
     });
 
