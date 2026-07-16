@@ -54,8 +54,6 @@ export type KbqAgGridRowGroupSelectionState = 'checked' | 'unchecked' | 'indeter
  */
 export type KbqAgGridRowGroupPath = readonly unknown[];
 
-const PATH_SEPARATOR = '::';
-
 /** `colId` of the generated group column, used to find it again in AG Grid's column state. */
 const GROUP_COL_ID = 'KbqAgGridRowGroup';
 
@@ -87,7 +85,7 @@ const KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS = new InjectionToken<KbqAgGridRowGroupCo
  *
  * @example
  * ```ts
- * providers: [kbqAgGridRowGroupColOptionsProvider({ headerName: 'Группировка' })]
+ * providers: [kbqAgGridRowGroupColOptionsProvider({ headerName: 'Groups' })]
  * ```
  */
 export const kbqAgGridRowGroupColOptionsProvider = (options: KbqAgGridRowGroupColOptions): Provider => ({
@@ -101,7 +99,9 @@ type GroupHeaderRow = {
         readonly isGroup: true;
         /** Nesting depth (0 = top level). */
         readonly level: number;
-        /** Unique `PATH_SEPARATOR`- separated path identifying this group. */
+        /** Unique path identifying this group — an opaque token (a JSON encoding of its
+         * ancestor chain internally); pass it to `isCollapsed`/`getGroupSelectionState`, don't
+         * parse or construct it yourself. */
         readonly path: string;
         /** Paths of all ancestor groups. */
         readonly ancestors: readonly string[];
@@ -144,7 +144,9 @@ export type KbqAgGridRowGroupInfo = {
     readonly key: string;
     /** Total number of descendant data rows. */
     readonly count: number;
-    /** Unique `PATH_SEPARATOR`-separated path identifying this group. */
+    /** Unique path identifying this group — an opaque token (a JSON encoding of its ancestor
+     * chain internally); pass it to `isCollapsed`/`getGroupSelectionState`, don't parse or
+     * construct it yourself. */
     readonly path: string;
     /** Paths of all ancestor groups. */
     readonly ancestors: readonly string[];
@@ -172,17 +174,27 @@ export type KbqAgGridRowGroupCellContent = {
 };
 
 /**
- * Collision-safe grouping/path key for `value`. Strings pass through unchanged — group paths
- * built from string-valued fields (the common case) stay exactly as before, so a path like
- * `'Russia::Diving'` still reads the way `toggleCollapse`/`isCollapsed`/`getGroupSelectionState`
- * document it. Every other type is prefixed with its `typeof`, so e.g. the number `1` and the
- * string `"1"` (or `null`, `undefined`, and an object) never collapse into the same group,
- * despite `toDisplayLabel` rendering some of them the same way. Used everywhere group identity
- * is compared: `makeRowGroupData`'s bucketing, `collapsedPaths` path segments, and
- * `setExpanded`'s caller-supplied raw values — all funnel through this one function, so as long
- * as it's applied consistently they stay comparable to each other.
+ * Canonical, collision-safe string for a single raw group value — used both as the bucketing
+ * key in `makeRowGroupData` and as one element of the JSON-encoded array a group's `path` is
+ * built from (see `makeRowGroupData`/`computeSubGroupPaths`, which join/split segments via
+ * `JSON.stringify`/`JSON.parse` rather than a hand-rolled separator). Delegates to
+ * `JSON.stringify` for anything JSON can represent, so e.g. the number `1` (`"1"`) and the
+ * string `"1"` (`'"1"'`) naturally encode differently — no hand-rolled `${typeof}:${value}`
+ * tagging that a string value could itself accidentally collide with. A few JSON-unsafe cases
+ * get an explicit sentinel instead: `undefined` has no JSON form at all, `NaN`/`±Infinity` would
+ * otherwise all collapse to the same `"null"`, and `bigint`/`function`/`symbol` would make
+ * `JSON.stringify` throw or silently return `undefined` (violating this function's `string`
+ * return type). Used everywhere group identity is compared: `makeRowGroupData`'s bucketing,
+ * `collapsedPaths` path segments, and `setExpanded`'s caller-supplied raw values — all funnel
+ * through this one function, so as long as it's applied consistently they stay comparable.
  */
-const toKey = (value: unknown): string => (typeof value === 'string' ? value : `${typeof value}:${String(value)}`);
+const toKey = (value: unknown): string => {
+    if (value === undefined) return 'undefined';
+    if (typeof value === 'bigint') return `bigint:${value}`;
+    if (typeof value === 'function' || typeof value === 'symbol') return `${typeof value}:${String(value)}`;
+    if (typeof value === 'number' && !Number.isFinite(value)) return `number:${value}`;
+    return JSON.stringify(value);
+};
 
 /** Human-readable label for a group's value, shown in the UI (see `KbqAgGridRowGroupCellRenderer`). */
 const toDisplayLabel = (value: unknown): string =>
@@ -213,14 +225,14 @@ function resolveRowIds(
     return { ids, duplicateIds };
 }
 
-/** The ancestor group paths for `row` given `groupFields`, shallowest first. */
+/** The ancestor group paths for `row` given `groupFields`, shallowest first. Each path is the
+ * JSON encoding of the `toKey` segments up to that level — see `toKey`. */
 function computeRowAncestorPaths(row: RowData, groupFields: readonly string[]): string[] {
     const paths: string[] = [];
-    let prefix = '';
+    const segments: string[] = [];
     for (const field of groupFields) {
-        const key = toKey(row[field]);
-        prefix = prefix ? `${prefix}${PATH_SEPARATOR}${key}` : key;
-        paths.push(prefix);
+        segments.push(toKey(row[field]));
+        paths.push(JSON.stringify(segments));
     }
     return paths;
 }
@@ -326,7 +338,7 @@ function makeRowGroupData(
     sort: RowGroupDataSort = { group: null, leaf: null },
     level = 0,
     ancestors: readonly string[] = [],
-    pathPrefix = ''
+    pathSegments: readonly string[] = []
 ): Row[] {
     if (groupFields.length === 0) {
         const rows = sort.leaf ? sortLeafRows(data, sort.leaf) : data;
@@ -356,7 +368,8 @@ function makeRowGroupData(
     const entries = sort.group ? sortGroupEntries(groups, sort.group) : groups;
 
     for (const [key, rows] of entries) {
-        const path = pathPrefix ? `${pathPrefix}${PATH_SEPARATOR}${key}` : key;
+        const segments = [...pathSegments, key];
+        const path = JSON.stringify(segments);
         const collapsed = collapsedPaths.has(path);
         const [firstRow] = rows;
 
@@ -382,7 +395,7 @@ function makeRowGroupData(
                     sort,
                     level + 1,
                     [...ancestors, path],
-                    path
+                    segments
                 )
             );
         }
@@ -1342,10 +1355,11 @@ export class KbqAgGridRowGroup {
         if (groupPath.length === 0) return;
 
         const next = new Set(this.collapsedPaths());
+        const segments: string[] = [];
         let leafPath = '';
         for (const value of groupPath) {
-            const segment = toKey(value);
-            leafPath = leafPath ? `${leafPath}${PATH_SEPARATOR}${segment}` : segment;
+            segments.push(toKey(value));
+            leafPath = JSON.stringify(segments);
             if (expanded) {
                 // Expanding: reveal children, but start them collapsed — walking the chain from
                 // the root down means this also auto-expands every ancestor of the target group.
@@ -1580,7 +1594,8 @@ export class KbqAgGridRowGroup {
 
     private computeSubGroupPaths(expandedPath: string): ReadonlySet<string> {
         const fields = this.groupCols();
-        const pathParts = expandedPath.split(PATH_SEPARATOR);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const pathParts = JSON.parse(expandedPath) as string[];
         const subField = fields[pathParts.length];
         if (!subField) return new Set<string>();
 
@@ -1598,7 +1613,7 @@ export class KbqAgGridRowGroup {
         const paths = new Set<string>();
         for (const row of filteredData) {
             const val = row[subField];
-            paths.add(`${expandedPath}${PATH_SEPARATOR}${toKey(val)}`);
+            paths.add(JSON.stringify([...pathParts, toKey(val)]));
         }
         return paths;
     }
@@ -1609,7 +1624,7 @@ export class KbqAgGridRowGroup {
         const paths = new Set<string>();
         for (const row of this.data()) {
             const val = row[firstField];
-            paths.add(toKey(val));
+            paths.add(JSON.stringify([toKey(val)]));
         }
         return paths;
     }

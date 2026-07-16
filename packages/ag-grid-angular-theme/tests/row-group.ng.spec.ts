@@ -13,6 +13,10 @@ import {
 /** Shared row id extractor bound on every test host below — resolves each row's `id` field. */
 const testRowId: KbqAgGridRowGroupRowId = (row) => String(row.id);
 
+/** Mirrors the production path encoding (see `toKey`/`makeRowGroupData` in row-group.ng.ts) so
+ * tests can build an expected `path`/`ancestors` value without hardcoding its internal format. */
+const groupPath = (...values: unknown[]): string => JSON.stringify(values.map((value) => JSON.stringify(value)));
+
 type MockNode = {
     data: Record<string, unknown>;
     isSelected: () => boolean;
@@ -322,7 +326,7 @@ describe(KbqAgGridRowGroup.name, () => {
 
             const usaDataRows = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
             expect(usaDataRows).toHaveLength(2);
         });
@@ -336,13 +340,13 @@ describe(KbqAgGridRowGroup.name, () => {
             await waitForNodes(grid, fixture, (nodes) =>
                 nodes.every((n) => {
                     const meta = getMeta(n.data);
-                    return !meta || meta.isGroup || !meta.ancestors.includes('USA');
+                    return !meta || meta.isGroup || !meta.ancestors.includes(groupPath('USA'));
                 })
             );
 
             const usaDataRows = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
             expect(usaDataRows).toHaveLength(0);
         });
@@ -558,7 +562,7 @@ describe(KbqAgGridRowGroup.name, () => {
         it('clearGroupColumns empties groupCols and collapsedPaths', async () => {
             const { directive } = await setup(DATA);
             directive.groupCols.set(['country']);
-            directive.toggleCollapse('USA');
+            directive.toggleCollapse(groupPath('USA'));
             directive.clearGroupColumns();
             expect(directive.groupCols()).toHaveLength(0);
             expect(directive.collapsedPaths().size).toBe(0);
@@ -854,7 +858,7 @@ describe(KbqAgGridRowGroup.name, () => {
             await waitFor(() => {
                 const usaLeaves = grid.mock.nodes.filter((n) => {
                     const meta = getMeta(n.data);
-                    return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                    return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
                 });
                 expect(usaLeaves.map((n) => n.data.athlete)).toEqual(['Alice', 'Carol']);
             });
@@ -943,7 +947,7 @@ describe(KbqAgGridRowGroup.name, () => {
             await waitFor(() => {
                 const sportsUnderGbr = grid.mock.nodes.filter((n) => {
                     const meta = getMeta(n.data);
-                    return meta?.isGroup && meta.level === 1 && meta.ancestors.includes('GBR');
+                    return meta?.isGroup && meta.level === 1 && meta.ancestors.includes(groupPath('GBR'));
                 });
                 expect(sportsUnderGbr.map((h) => getMeta(h.data)!.key)).toEqual(['Athletics', 'Cycling']);
             });
@@ -1084,7 +1088,7 @@ describe(KbqAgGridRowGroup.name, () => {
 
                 const usaLeaves = grid.mock.nodes.filter((n) => {
                     const meta = getMeta(n.data);
-                    return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                    return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
                 });
                 expect(usaLeaves.map((n) => n.data.athlete)).toEqual(['Alice', 'Bob', 'Carol']);
             });
@@ -1156,7 +1160,7 @@ describe(KbqAgGridRowGroup.name, () => {
                 grid.mock.nodes
                     .filter((n) => {
                         const meta = getMeta(n.data);
-                        return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                        return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
                     })
                     .map((n) => n.data.athlete);
 
@@ -1177,20 +1181,20 @@ describe(KbqAgGridRowGroup.name, () => {
     describe('collapse and expand', () => {
         it('isCollapsed returns true for a collapsed path', async () => {
             const { directive } = await setup(DATA);
-            directive.toggleCollapse('USA');
-            expect(directive.isCollapsed('USA')).toBe(true);
+            directive.toggleCollapse(groupPath('USA'));
+            expect(directive.isCollapsed(groupPath('USA'))).toBe(true);
         });
 
         it('isCollapsed returns false for a path not in collapsedPaths', async () => {
             const { directive } = await setup(DATA);
-            directive.toggleCollapse('GBR');
-            expect(directive.isCollapsed('USA')).toBe(false);
+            directive.toggleCollapse(groupPath('GBR'));
+            expect(directive.isCollapsed(groupPath('USA'))).toBe(false);
         });
 
         it('expandAll clears all collapsed paths', async () => {
             const { directive } = await setup(DATA);
-            directive.toggleCollapse('USA');
-            directive.toggleCollapse('GBR');
+            directive.toggleCollapse(groupPath('USA'));
+            directive.toggleCollapse(groupPath('GBR'));
             directive.expandAll();
             expect(directive.collapsedPaths().size).toBe(0);
         });
@@ -1199,23 +1203,23 @@ describe(KbqAgGridRowGroup.name, () => {
             const { directive } = await setup(DATA);
             directive.groupCols.set(['country']);
             directive.collapseAll();
-            expect(directive.collapsedPaths().has('USA')).toBe(true);
-            expect(directive.collapsedPaths().has('GBR')).toBe(true);
+            expect(directive.collapsedPaths().has(groupPath('USA'))).toBe(true);
+            expect(directive.collapsedPaths().has(groupPath('GBR'))).toBe(true);
         });
 
         it('toggleCollapse collapses an expanded group', async () => {
             const { directive } = await setup(DATA);
             directive.groupCols.set(['country']);
-            directive.toggleCollapse('USA');
-            expect(directive.isCollapsed('USA')).toBe(true);
+            directive.toggleCollapse(groupPath('USA'));
+            expect(directive.isCollapsed(groupPath('USA'))).toBe(true);
         });
 
         it('toggleCollapse expands a collapsed group', async () => {
             const { directive } = await setup(DATA);
             directive.groupCols.set(['country']);
-            directive.toggleCollapse('USA'); // start collapsed
-            directive.toggleCollapse('USA');
-            expect(directive.isCollapsed('USA')).toBe(false);
+            directive.toggleCollapse(groupPath('USA')); // start collapsed
+            directive.toggleCollapse(groupPath('USA'));
+            expect(directive.isCollapsed(groupPath('USA'))).toBe(false);
         });
 
         it('toggleCollapse on expand starts immediate sub-groups in collapsed state', async () => {
@@ -1225,26 +1229,26 @@ describe(KbqAgGridRowGroup.name, () => {
             ];
             const { directive } = await setup(nestedData);
             directive.groupCols.set(['country', 'sport']);
-            directive.toggleCollapse('USA'); // start collapsed
-            directive.toggleCollapse('USA');
+            directive.toggleCollapse(groupPath('USA')); // start collapsed
+            directive.toggleCollapse(groupPath('USA'));
             // Sub-group paths should now be collapsed
-            expect(directive.isCollapsed('USA::Swimming')).toBe(true);
-            expect(directive.isCollapsed('USA::Athletics')).toBe(true);
+            expect(directive.isCollapsed(groupPath('USA', 'Swimming'))).toBe(true);
+            expect(directive.isCollapsed(groupPath('USA', 'Athletics'))).toBe(true);
         });
 
         it('setExpanded(groupPath, false) collapses the group', async () => {
             const { directive } = await setup(DATA);
             directive.groupCols.set(['country']);
             directive.setExpanded(['USA'], false);
-            expect(directive.isCollapsed('USA')).toBe(true);
+            expect(directive.isCollapsed(groupPath('USA'))).toBe(true);
         });
 
         it('setExpanded(groupPath, true) expands the group', async () => {
             const { directive } = await setup(DATA);
             directive.groupCols.set(['country']);
-            directive.toggleCollapse('USA');
+            directive.toggleCollapse(groupPath('USA'));
             directive.setExpanded(['USA'], true);
-            expect(directive.isCollapsed('USA')).toBe(false);
+            expect(directive.isCollapsed(groupPath('USA'))).toBe(false);
         });
 
         it('setExpanded(groupPath, true) auto-expands every ancestor along a multi-level path', async () => {
@@ -1261,16 +1265,16 @@ describe(KbqAgGridRowGroup.name, () => {
             // ancestor level one at a time in order.
             directive.setExpanded(['USA', 'Swimming', 2000], true);
 
-            expect(directive.isCollapsed('USA')).toBe(false);
-            expect(directive.isCollapsed('USA::Swimming')).toBe(false);
+            expect(directive.isCollapsed(groupPath('USA'))).toBe(false);
+            expect(directive.isCollapsed(groupPath('USA', 'Swimming'))).toBe(false);
             // `year` is a number field — its path segment is type-prefixed (see `toKey`) so it
             // can never collide with a same-looking string value from another field.
-            expect(directive.isCollapsed('USA::Swimming::number:2000')).toBe(false);
+            expect(directive.isCollapsed(groupPath('USA', 'Swimming', 2000))).toBe(false);
 
             // Siblings at every level start collapsed, exactly like expanding one chevron
             // at a time would produce.
-            expect(directive.isCollapsed('USA::Athletics')).toBe(true);
-            expect(directive.isCollapsed('USA::Swimming::number:2004')).toBe(true);
+            expect(directive.isCollapsed(groupPath('USA', 'Athletics'))).toBe(true);
+            expect(directive.isCollapsed(groupPath('USA', 'Swimming', 2004))).toBe(true);
         });
 
         it('setExpanded(groupPath, false) only collapses the target group, not its ancestors', async () => {
@@ -1284,8 +1288,8 @@ describe(KbqAgGridRowGroup.name, () => {
 
             directive.setExpanded(['USA', 'Swimming'], false);
 
-            expect(directive.isCollapsed('USA::Swimming')).toBe(true);
-            expect(directive.isCollapsed('USA')).toBe(false);
+            expect(directive.isCollapsed(groupPath('USA', 'Swimming'))).toBe(true);
+            expect(directive.isCollapsed(groupPath('USA'))).toBe(false);
         });
 
         it('does not scan grid nodes on a rebuild when nothing is selected', async () => {
@@ -1293,7 +1297,7 @@ describe(KbqAgGridRowGroup.name, () => {
             grid.mock.forEachNode.mockClear();
             grid.mock.setGridOption.mockClear();
 
-            directive.toggleCollapse('USA');
+            directive.toggleCollapse(groupPath('USA'));
             fixture.detectChanges();
             await waitFor(() => {
                 expect(grid.mock.setGridOption).toHaveBeenCalledWith('rowData', expect.any(Array));
@@ -1307,33 +1311,33 @@ describe(KbqAgGridRowGroup.name, () => {
         it('clicking group checkbox selects all descendant data rows', async () => {
             const { grid, directive } = await setupWithGroups();
 
-            directive.onGroupCheckboxClick('USA');
+            directive.onGroupCheckboxClick(groupPath('USA'));
 
             const usaChildren = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
             expect(usaChildren.length).toBeGreaterThan(0);
             for (const child of usaChildren) {
                 expect(child.setSelected).toHaveBeenCalledWith(true, false);
             }
-            expect(directive.groupSelectionState().get('USA')).toBe('checked');
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('checked');
         });
 
         it('clicking group checkbox again deselects all descendants', async () => {
             const { grid, directive } = await setupWithGroups();
 
-            directive.onGroupCheckboxClick('USA'); // select
-            directive.onGroupCheckboxClick('USA'); // deselect
+            directive.onGroupCheckboxClick(groupPath('USA')); // select
+            directive.onGroupCheckboxClick(groupPath('USA')); // deselect
 
             const usaChildren = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
             for (const child of usaChildren) {
                 expect(child.setSelected).toHaveBeenLastCalledWith(false, false);
             }
-            expect(directive.groupSelectionState().get('USA')).toBeUndefined();
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBeUndefined();
         });
 
         it('does not swallow a real deselect on a child that was already selected before the group checkbox click', async () => {
@@ -1341,7 +1345,7 @@ describe(KbqAgGridRowGroup.name, () => {
 
             const usaChildren = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
             expect(usaChildren.length).toBeGreaterThanOrEqual(2);
             const [alreadySelected, ...rest] = usaChildren;
@@ -1349,14 +1353,14 @@ describe(KbqAgGridRowGroup.name, () => {
             // Select one child individually first (a real user selection).
             alreadySelected.setSelected(true);
             grid.emitRowSelected(alreadySelected);
-            expect(directive.groupSelectionState().get('USA')).toBe('indeterminate');
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('indeterminate');
 
             // Click the group checkbox — this re-selects every child, including the one already
             // selected above. AG Grid's real setSelected() is a no-op (no event) for a node
             // already at the target value, so the already-selected child must NOT be marked
             // "programmatic" here, or a later real deselect on it would be silently swallowed.
-            directive.onGroupCheckboxClick('USA');
-            expect(directive.groupSelectionState().get('USA')).toBe('checked');
+            directive.onGroupCheckboxClick(groupPath('USA'));
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('checked');
 
             // The user now manually deselects the child that was already selected before the
             // group click (never touched by setSelected during that click).
@@ -1364,7 +1368,7 @@ describe(KbqAgGridRowGroup.name, () => {
             grid.emitRowSelected(alreadySelected);
 
             // This must be treated as a real, un-swallowed deselect.
-            expect(directive.groupSelectionState().get('USA')).toBe('indeterminate');
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('indeterminate');
             expect(rest.every((child) => child.isSelected())).toBe(true);
         });
 
@@ -1375,7 +1379,7 @@ describe(KbqAgGridRowGroup.name, () => {
 
             const usaDataRows = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
             const [firstDataRow, ...siblingRows] = usaDataRows;
             firstDataRow.setSelected(true);
@@ -1393,12 +1397,12 @@ describe(KbqAgGridRowGroup.name, () => {
 
             const gbrChild = grid.mock.nodes.find((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('GBR');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('GBR'));
             })!;
             gbrChild.setSelected(true);
             grid.emitRowSelected(gbrChild);
 
-            expect(directive.groupSelectionState().get('GBR')).toBe('checked');
+            expect(directive.groupSelectionState().get(groupPath('GBR'))).toBe('checked');
         });
 
         it('selecting one of multiple children marks the group as indeterminate', async () => {
@@ -1408,12 +1412,12 @@ describe(KbqAgGridRowGroup.name, () => {
 
             const [firstDataRow] = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
             firstDataRow.setSelected(true);
             grid.emitRowSelected(firstDataRow);
 
-            expect(directive.groupSelectionState().get('USA')).toBe('indeterminate');
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('indeterminate');
         });
 
         it('selecting all children one by one eventually marks the group as checked', async () => {
@@ -1423,7 +1427,7 @@ describe(KbqAgGridRowGroup.name, () => {
 
             const usaDataRows = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
             expect(usaDataRows.length).toBeGreaterThan(1);
 
@@ -1432,12 +1436,12 @@ describe(KbqAgGridRowGroup.name, () => {
                 usaDataRows[i].setSelected(true);
                 grid.emitRowSelected(usaDataRows[i]);
             }
-            expect(directive.groupSelectionState().get('USA')).toBe('indeterminate');
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('indeterminate');
 
             // Select the last — group must become checked
             usaDataRows.at(-1)!.setSelected(true);
             grid.emitRowSelected(usaDataRows.at(-1)!);
-            expect(directive.groupSelectionState().get('USA')).toBe('checked');
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('checked');
         });
 
         it('deselecting one child from a fully-selected group makes it indeterminate', async () => {
@@ -1447,18 +1451,18 @@ describe(KbqAgGridRowGroup.name, () => {
 
             const usaDataRows = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
             for (const row of usaDataRows) {
                 row.setSelected(true);
                 grid.emitRowSelected(row);
             }
-            expect(directive.groupSelectionState().get('USA')).toBe('checked');
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('checked');
 
             usaDataRows[0].setSelected(false);
             grid.emitRowSelected(usaDataRows[0]);
 
-            expect(directive.groupSelectionState().get('USA')).toBe('indeterminate');
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('indeterminate');
         });
 
         it('deselecting one child keeps all sibling data rows selected', async () => {
@@ -1468,7 +1472,7 @@ describe(KbqAgGridRowGroup.name, () => {
 
             const usaDataRows = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
             expect(usaDataRows.length).toBeGreaterThanOrEqual(2);
 
@@ -1502,8 +1506,8 @@ describe(KbqAgGridRowGroup.name, () => {
             gbrCyclingDataRow.setSelected(true);
             grid.emitRowSelected(gbrCyclingDataRow);
 
-            expect(directive.groupSelectionState().get('GBR::Cycling')).toBe('checked');
-            expect(directive.groupSelectionState().get('GBR')).toBe('checked');
+            expect(directive.groupSelectionState().get(groupPath('GBR', 'Cycling'))).toBe('checked');
+            expect(directive.groupSelectionState().get(groupPath('GBR'))).toBe('checked');
         });
 
         it('deselecting one child propagates up through all ancestor levels', async () => {
@@ -1519,7 +1523,7 @@ describe(KbqAgGridRowGroup.name, () => {
                 node.setSelected(true);
                 grid.emitRowSelected(node);
             }
-            expect(directive.groupSelectionState().get('GBR')).toBe('checked');
+            expect(directive.groupSelectionState().get(groupPath('GBR'))).toBe('checked');
 
             // GBR::Cycling has exactly one data row — deselecting it unchecks both the
             // GBR::Cycling sub-group and the GBR top-level group
@@ -1530,20 +1534,20 @@ describe(KbqAgGridRowGroup.name, () => {
             gbrCyclingDataRow.setSelected(false);
             grid.emitRowSelected(gbrCyclingDataRow);
 
-            expect(directive.groupSelectionState().get('GBR::Cycling')).toBeUndefined();
-            expect(directive.groupSelectionState().get('GBR')).toBeUndefined();
+            expect(directive.groupSelectionState().get(groupPath('GBR', 'Cycling'))).toBeUndefined();
+            expect(directive.groupSelectionState().get(groupPath('GBR'))).toBeUndefined();
             // USA is unrelated — must remain checked
-            expect(directive.groupSelectionState().get('USA')).toBe('checked');
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('checked');
         });
 
         it('each descendant is selected exactly once when group checkbox is clicked', async () => {
             const { grid, directive } = await setupWithGroups();
 
-            directive.onGroupCheckboxClick('USA');
+            directive.onGroupCheckboxClick(groupPath('USA'));
 
             const usaChildren = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
             for (const child of usaChildren) {
                 expect(child.setSelected).toHaveBeenCalledTimes(1);
@@ -1559,22 +1563,22 @@ describe(KbqAgGridRowGroup.name, () => {
             await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
 
             // Select USA's whole subtree via its group checkbox (groups are non-selectable via AG Grid)
-            directive.onGroupCheckboxClick('USA');
+            directive.onGroupCheckboxClick(groupPath('USA'));
 
             // Expand USA — triggers a rowData refresh via the collapsedPaths effect
-            directive.toggleCollapse('USA');
+            directive.toggleCollapse(groupPath('USA'));
             fixture.detectChanges();
 
             await waitFor(() => {
                 const usaChildren = grid.mock.nodes.filter((n) => {
                     const meta = getMeta(n.data);
-                    return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                    return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
                 });
                 expect(usaChildren.length).toBeGreaterThan(0);
                 for (const child of usaChildren) {
                     expect(child.setSelected).toHaveBeenCalledWith(true, false);
                 }
-                expect(directive.groupSelectionState().get('USA')).toBe('checked');
+                expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('checked');
             });
         });
 
@@ -1588,16 +1592,16 @@ describe(KbqAgGridRowGroup.name, () => {
             await waitForNodes(grid, fixture, (nodes) => nodes.every((n) => isGroupHeader(n.data)));
 
             // Select USA's whole subtree while it is collapsed
-            directive.onGroupCheckboxClick('USA');
+            directive.onGroupCheckboxClick(groupPath('USA'));
 
             // Expand USA — triggers rowData refresh
-            directive.toggleCollapse('USA');
+            directive.toggleCollapse(groupPath('USA'));
             fixture.detectChanges();
 
             await waitFor(() => {
                 const usaChildren = grid.mock.nodes.filter((n) => {
                     const meta = getMeta(n.data);
-                    return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                    return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
                 });
                 expect(usaChildren.length).toBeGreaterThan(0);
                 for (const child of usaChildren) {
@@ -1635,10 +1639,10 @@ describe(KbqAgGridRowGroup.name, () => {
             await waitForNodes(grid, fixture, (nodes) => nodes.every((n) => isGroupHeader(n.data)));
 
             // Select USA's whole subtree while collapsed
-            directive.onGroupCheckboxClick('USA');
+            directive.onGroupCheckboxClick(groupPath('USA'));
 
             // Expand: effect restores selection and adds restored data nodes to programmaticallySetNodes
-            directive.toggleCollapse('USA');
+            directive.toggleCollapse(groupPath('USA'));
             fixture.detectChanges();
 
             // Wait for restored children to appear and be selected
@@ -1648,7 +1652,7 @@ describe(KbqAgGridRowGroup.name, () => {
 
             const usaChildren = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
 
             // Simulate the async rowSelected event that AG Grid fires after a programmatic setSelected.
@@ -1672,37 +1676,37 @@ describe(KbqAgGridRowGroup.name, () => {
             // Select only one of USA's two children — group ends up indeterminate.
             const usaDataRows = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
             expect(usaDataRows.length).toBeGreaterThanOrEqual(2);
             usaDataRows[0].setSelected(true);
             grid.emitRowSelected(usaDataRows[0]);
-            expect(directive.groupSelectionState().get('USA')).toBe('indeterminate');
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('indeterminate');
 
             // Collapse USA — this used to silently discard the partial selection.
-            directive.toggleCollapse('USA');
+            directive.toggleCollapse(groupPath('USA'));
             fixture.detectChanges();
             await waitForNodes(grid, fixture, (nodes) =>
                 nodes.every((n) => {
                     const meta = getMeta(n.data);
-                    return !meta || meta.isGroup || !meta.ancestors.includes('USA');
+                    return !meta || meta.isGroup || !meta.ancestors.includes(groupPath('USA'));
                 })
             );
-            expect(directive.groupSelectionState().get('USA')).toBe('indeterminate');
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('indeterminate');
 
             // Re-expand — the same single child must still be selected, group still indeterminate.
-            directive.toggleCollapse('USA');
+            directive.toggleCollapse(groupPath('USA'));
             fixture.detectChanges();
             await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
 
             const restoredUsaDataRows = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
             const selectedRows = restoredUsaDataRows.filter((n) => n.isSelected());
             expect(selectedRows).toHaveLength(1);
             expect(selectedRows[0].data.id).toBe(usaDataRows[0].data.id);
-            expect(directive.groupSelectionState().get('USA')).toBe('indeterminate');
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('indeterminate');
         });
     });
 
@@ -1715,18 +1719,18 @@ describe(KbqAgGridRowGroup.name, () => {
         it('onSelectAllCheckboxClick selects every row across the whole dataset, even collapsed ones', async () => {
             const { grid, directive, fixture } = await setupWithGroups();
             // Collapse USA back down so its children are not currently loaded into the row model.
-            directive.toggleCollapse('USA');
+            directive.toggleCollapse(groupPath('USA'));
 
             directive.onSelectAllCheckboxClick();
 
             expect(directive.overallSelectionState()).toBe('checked');
 
             // Re-expand — the previously-collapsed children must come back selected too.
-            directive.toggleCollapse('USA');
+            directive.toggleCollapse(groupPath('USA'));
             await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
             const usaDataRows = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
             expect(usaDataRows.length).toBeGreaterThan(0);
             for (const row of usaDataRows) {
@@ -1781,10 +1785,10 @@ describe(KbqAgGridRowGroup.name, () => {
             const { directive } = await setupWithGroups();
             // Re-collapse USA so its children are not currently loaded into the row model —
             // AG Grid's own (selectionChanged) event could never report these.
-            directive.toggleCollapse('USA');
+            directive.toggleCollapse(groupPath('USA'));
 
             const emitSpy = jest.spyOn(directive.rowSelectionChanged, 'emit');
-            directive.onGroupCheckboxClick('USA');
+            directive.onGroupCheckboxClick(groupPath('USA'));
 
             expect(emitSpy).toHaveBeenCalledTimes(1);
             const [[emitted]] = emitSpy.mock.calls;
@@ -1795,7 +1799,7 @@ describe(KbqAgGridRowGroup.name, () => {
             const { grid, directive } = await setupWithGroups();
             const usaRows = grid.mock.nodes.filter((n) => {
                 const meta = getMeta(n.data);
-                return meta && !meta.isGroup && meta.ancestors.includes('USA');
+                return meta && !meta.isGroup && meta.ancestors.includes(groupPath('USA'));
             });
             expect(usaRows.length).toBeGreaterThanOrEqual(2);
             for (const row of usaRows) {
@@ -1823,26 +1827,26 @@ describe(KbqAgGridRowGroup.name, () => {
 
             const row1 = grid.mock.nodes.find((n) => n.data.id === '1')!;
             expect(row1.isSelected()).toBe(true);
-            expect(directive.groupSelectionState().get('USA')).toBe('indeterminate');
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('indeterminate');
         });
 
         it('selects a row hidden inside a collapsed group — rollup updates with no AG node for it', async () => {
             const { directive } = await setupWithGroups();
-            directive.toggleCollapse('USA'); // re-collapse so USA's children aren't loaded
+            directive.toggleCollapse(groupPath('USA')); // re-collapse so USA's children aren't loaded
 
             directive.setRowSelected('1', true);
 
             // No AG node exists for the hidden row, but the group's rollup state is still
             // correct — it's derived entirely from selectedRowIds, independent of visibility.
-            expect(directive.groupSelectionState().get('USA')).toBe('indeterminate');
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBe('indeterminate');
         });
 
         it('restores a selection made while hidden once the group is expanded', async () => {
             const { grid, directive, fixture } = await setupWithGroups();
-            directive.toggleCollapse('USA');
+            directive.toggleCollapse(groupPath('USA'));
             directive.setRowSelected('1', true);
 
-            directive.toggleCollapse('USA'); // expand again
+            directive.toggleCollapse(groupPath('USA')); // expand again
             await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
 
             const row1 = grid.mock.nodes.find((n) => n.data.id === '1')!;
@@ -1857,7 +1861,7 @@ describe(KbqAgGridRowGroup.name, () => {
 
             const row1 = grid.mock.nodes.find((n) => n.data.id === '1')!;
             expect(row1.isSelected()).toBe(false);
-            expect(directive.groupSelectionState().get('USA')).toBeUndefined();
+            expect(directive.groupSelectionState().get(groupPath('USA'))).toBeUndefined();
         });
 
         it('emits rowSelectionChanged with the full selected row set', async () => {
