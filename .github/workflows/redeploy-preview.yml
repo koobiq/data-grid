@@ -36,7 +36,6 @@ jobs:
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KOOBIQ }}'
-          firebaseToolsVersion: ^13.35.1
           expires: 3d
           channelId: data-grid-pr-${{ github.event.issue.number }}
           projectId: koobiq

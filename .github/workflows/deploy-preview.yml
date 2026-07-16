@@ -20,11 +20,10 @@ jobs:
       # Run dev mode build to generate the `e2eRoute`
       # @see dev/ag-grid-angular/src/main.ts
       - run: yarn run build --configuration=development
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      - uses: FirebaseExtended/action-hosting-deploy@v0.11.0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KOOBIQ }}
-          firebaseToolsVersion: ^13.35.1
           expires: 3d
           target: next
           channelId: data-grid-pr-${{ github.event.number }}
