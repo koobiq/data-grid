@@ -598,17 +598,19 @@ test.describe('KbqAgGridRowGroup', () => {
         await expect(page.locator('.kbq-ag-grid-group-cell-renderer__inner')).toHaveCount(0, { timeout: 5_000 });
 
         const goldHeader = getDataHeaderCell(page, 'gold');
-        const firstGoldCell = page.locator('.ag-row[row-index="0"] [col-id="gold"]');
-        const initialGold = (await firstGoldCell.textContent()) ?? '';
+        const goldBefore = await getLeafGoldValues(page);
 
         await goldHeader.locator('.ag-header-cell-label').click();
         await expect(goldHeader).toHaveAttribute('aria-sort', 'ascending');
-        await expect(firstGoldCell).not.toHaveText(initialGold);
-        const ascGold = (await firstGoldCell.textContent()) ?? '';
+        await expect.poll(async () => getLeafGoldValues(page)).not.toEqual(goldBefore);
+        const goldAsc = await getLeafGoldValues(page);
+        expect(goldAsc).toEqual([...goldAsc].sort((a, b) => a - b));
 
         await goldHeader.locator('.ag-header-cell-label').click();
         await expect(goldHeader).toHaveAttribute('aria-sort', 'descending');
-        await expect(firstGoldCell).not.toHaveText(ascGold);
+        await expect.poll(async () => getLeafGoldValues(page)).not.toEqual(goldAsc);
+        const goldDesc = await getLeafGoldValues(page);
+        expect(goldDesc).toEqual([...goldDesc].sort((a, b) => b - a));
     });
 
     test('data columns for active group fields are hidden from header and body', async ({ page }) => {
