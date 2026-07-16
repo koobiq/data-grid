@@ -1,7 +1,10 @@
-import { ChangeDetectionStrategy, Component, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, model, signal, viewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import {
     KbqAgGridRowGroup,
+    KbqAgGridRowGroupCellContent,
     kbqAgGridRowGroupColOptionsProvider,
+    KbqAgGridRowGroupInfo,
     KbqAgGridRowGroupRowId,
     KbqAgGridThemeModule
 } from '@koobiq/ag-grid-angular-theme';
@@ -27,9 +30,34 @@ const DEFAULT_COL_DEF: ColDef = {
     minWidth: 80
 };
 
+// Custom `kbqAgGridRowGroupCellContent` demo — replaces the default key markup with a
+// differently-styled label; the toggle button/icon/click handling stays whatever the directive renders.
 @Component({
     standalone: true,
-    imports: [AgGridModule, KbqAgGridThemeModule],
+    selector: 'dev-row-group-custom-cell-content',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
+        <strong>{{ group().key }}</strong>
+        <span class="dev-row-group-custom-cell-content__count">{{ group().count }}</span>
+    `,
+    styles: `
+        :host {
+            display: flex;
+            gap: var(--kbq-size-xxs);
+        }
+
+        .dev-row-group-custom-cell-content__count {
+            color: var(--kbq-foreground-contrast-secondary);
+        }
+    `
+})
+class DevRowGroupCustomCellContent implements KbqAgGridRowGroupCellContent {
+    readonly group = input.required<KbqAgGridRowGroupInfo>();
+}
+
+@Component({
+    standalone: true,
+    imports: [AgGridModule, KbqAgGridThemeModule, FormsModule],
     selector: 'dev-row-group',
     template: `
         <div>
@@ -73,6 +101,10 @@ const DEFAULT_COL_DEF: ColDef = {
             <button type="button" data-testid="clearGroupColSortBtn" (click)="clearGroupColSort()">
                 Clear group column sort
             </button>
+            <label>
+                <input type="checkbox" data-testid="useCustomCellContentCheckbox" [(ngModel)]="useCustomCellContent" />
+                Use custom group cell content
+            </label>
         </div>
 
         <ag-grid-angular
@@ -84,6 +116,7 @@ const DEFAULT_COL_DEF: ColDef = {
             [kbqAgGridRowGroupRowId]="rowId"
             [columnDefs]="columnDefs"
             [(kbqAgGridRowGroupCols)]="groupCols"
+            [kbqAgGridRowGroupCellContent]="cellContent()"
             [defaultColDef]="defaultColDef"
             [rowSelection]="rowSelection"
             [animateRows]="false"
@@ -103,6 +136,10 @@ export class DevRowGroup {
     readonly rowData = devInjectRowData();
     readonly columnDefs = COLUMN_DEFS;
     readonly defaultColDef = DEFAULT_COL_DEF;
+    protected readonly useCustomCellContent = model(false);
+    protected readonly cellContent = computed(() =>
+        this.useCustomCellContent() ? DevRowGroupCustomCellContent : undefined
+    );
     protected readonly rowId: KbqAgGridRowGroupRowId = (row) => String(row.id);
     protected readonly groupCols = signal<string[]>(['country', 'sport']);
     protected readonly rowSelection = { mode: 'multiRow', checkboxes: true } as const;

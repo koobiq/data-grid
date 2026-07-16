@@ -1,9 +1,14 @@
-import { Component, Directive, forwardRef, signal, viewChild } from '@angular/core';
+import { Component, Directive, forwardRef, input, signal, Type, viewChild } from '@angular/core';
 import { render, waitFor } from '@testing-library/angular';
 import { AgGridAngular } from 'ag-grid-angular';
 import { ColDef, ColGroupDef, GridApi, IRowNode } from 'ag-grid-community';
 import { Subject } from 'rxjs';
-import { KbqAgGridRowGroup, KbqAgGridRowGroupRowId } from '../src/row-group.ng';
+import {
+    KbqAgGridRowGroup,
+    KbqAgGridRowGroupCellContent,
+    KbqAgGridRowGroupInfo,
+    KbqAgGridRowGroupRowId
+} from '../src/row-group.ng';
 
 /** Shared row id extractor bound on every test host below — resolves each row's `id` field. */
 const testRowId: KbqAgGridRowGroupRowId = (row) => String(row.id);
@@ -192,6 +197,40 @@ class TestAgGridAngularStub {
 })
 class TestRowGroupGrid {
     readonly rowData = signal<Record<string, unknown>[]>([]);
+    readonly grid = viewChild.required(TestAgGridAngularStub);
+    readonly directive = viewChild.required(KbqAgGridRowGroup);
+    protected readonly testRowId = testRowId;
+}
+
+/** Dummy `kbqAgGridRowGroupCellContent` component satisfying the `KbqAgGridRowGroupCellContent`
+ * contract, used to test that the directive plumbs a custom component through correctly. */
+@Component({
+    selector: 'test-group-cell-content',
+    standalone: true,
+    template: `
+        {{ group().key }}
+    `
+})
+class TestGroupCellContent implements KbqAgGridRowGroupCellContent {
+    readonly group = input.required<KbqAgGridRowGroupInfo>();
+}
+
+@Component({
+    selector: 'test-row-group-cell-content',
+    standalone: true,
+    template: `
+        <ag-grid-angular
+            kbqAgGridRowGroup
+            [kbqAgGridRowGroupRowData]="rowData()"
+            [kbqAgGridRowGroupRowId]="testRowId"
+            [kbqAgGridRowGroupCellContent]="cellContent()"
+        />
+    `,
+    imports: [TestAgGridAngularStub, KbqAgGridRowGroup]
+})
+class TestRowGroupCellContentHost {
+    readonly rowData = signal<Record<string, unknown>[]>([]);
+    readonly cellContent = signal<Type<KbqAgGridRowGroupCellContent> | undefined>(undefined);
     readonly grid = viewChild.required(TestAgGridAngularStub);
     readonly directive = viewChild.required(KbqAgGridRowGroup);
     protected readonly testRowId = testRowId;
@@ -593,6 +632,60 @@ describe(KbqAgGridRowGroup.name, () => {
             };
             expect(selectionColumnDef.width).toBe(36);
             expect(selectionColumnDef.headerComponent).toBeDefined();
+        });
+    });
+
+    describe('custom cell content', () => {
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        const setupCellContent = async () => {
+            const { fixture } = await render(TestRowGroupCellContentHost);
+            fixture.componentInstance.rowData.set(DATA);
+            const grid = fixture.componentInstance.grid();
+            grid.emitGridReady();
+            await waitFor(() => {
+                expect(grid.mock.setGridOption).toHaveBeenCalledWith('rowData', expect.any(Array));
+            });
+            return { fixture, grid, directive: fixture.componentInstance.directive() };
+        };
+
+        it('reflects the bound kbqAgGridRowGroupCellContent value on the directive', async () => {
+            const { fixture, directive } = await setupCellContent();
+            expect(directive.cellContent()).toBeUndefined();
+
+            fixture.componentInstance.cellContent.set(TestGroupCellContent);
+            fixture.detectChanges();
+
+            expect(directive.cellContent()).toBe(TestGroupCellContent);
+        });
+
+        it('redraws only group header rows when cellContent changes while already grouped', async () => {
+            const { fixture, grid, directive } = await setupCellContent();
+            directive.groupCols.set(['country']);
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+            grid.mock.redrawRows.mockClear();
+
+            fixture.componentInstance.cellContent.set(TestGroupCellContent);
+            fixture.detectChanges();
+
+            await waitFor(() => {
+                expect(grid.mock.redrawRows).toHaveBeenCalled();
+            });
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const [{ rowNodes }] = grid.mock.redrawRows.mock.calls.at(-1) as [{ rowNodes: MockNode[] }];
+            expect(rowNodes.length).toBeGreaterThan(0);
+            expect(rowNodes.every((node) => isGroupHeader(node.data))).toBe(true);
+        });
+
+        it('does not redraw when cellContent changes while ungrouped (no group rows exist)', async () => {
+            const { fixture, grid } = await setupCellContent();
+            grid.mock.redrawRows.mockClear();
+
+            fixture.componentInstance.cellContent.set(TestGroupCellContent);
+            fixture.detectChanges();
+            // Flush the effect scheduler's microtask so it's had a chance to run before asserting.
+            await Promise.resolve();
+
+            expect(grid.mock.redrawRows).not.toHaveBeenCalled();
         });
     });
 

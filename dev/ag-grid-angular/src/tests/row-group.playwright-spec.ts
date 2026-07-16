@@ -49,6 +49,13 @@ const getLeafGoldValues = async (page: Page): Promise<number[]> => {
 
 const naturalCompare = (a: string, b: string): number => a.localeCompare(b, undefined, { numeric: true });
 
+const getUseCustomCellContentCheckbox = (page: Page): Locator => page.getByTestId('useCustomCellContentCheckbox');
+
+// The custom kbqAgGridRowGroupCellContent demo (DevRowGroupCustomCellContent) renders its own
+// count markup instead of the default `.kbq-ag-grid-group-cell-renderer__count` span.
+const getCustomCellContentCount = (page: Page, rowIndex: number): Locator =>
+    page.locator(`.ag-row[row-index="${rowIndex}"] .dev-row-group-custom-cell-content__count`);
+
 test.describe('KbqAgGridRowGroup', () => {
     // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('screenshot — grouped, expanded, and with selection', async ({ page }) => {
@@ -356,14 +363,15 @@ test.describe('KbqAgGridRowGroup', () => {
         await page.goto('/e2e/row-group');
         await waitForGroupsVisible(page);
 
-        // Read the first top-level group's total descendant count from its own label.
-        const countText = await page.locator('.kbq-ag-grid-group-cell-renderer__count').first().textContent();
-        const total = Number(countText!.replace(/[()]/g, ''));
-
         // Select the whole top-level group while it — and all its nested sub-groups — are
         // still collapsed, i.e. none of its descendant rows are loaded into AG's row model.
         await getRowCheckbox(page, 0).click();
-        await expect(page.getByTestId('selectedCount')).toHaveText(String(total));
+
+        // Read back the reported total straight from selectedCount instead of parsing a group
+        // cell's own label — the default cell renderer no longer displays a descendant count.
+        const selectedCount = page.getByTestId('selectedCount');
+        await expect(selectedCount).not.toHaveText('0');
+        const total = Number(await selectedCount.textContent());
 
         // Expand the top-level group, then its first nested sub-group.
         await getGroupCellInner(page, 0).click();
@@ -651,5 +659,68 @@ test.describe('KbqAgGridRowGroup', () => {
 
         await expect(getDataHeaderCell(page, 'sport')).toHaveCount(0);
         await expect(getDataHeaderCell(page, 'country')).toHaveCount(0);
+    });
+
+    test.describe('kbqAgGridRowGroupCellContent', () => {
+        test('renders the default key markup when no custom cell content is configured', async ({ page }) => {
+            await page.goto('/e2e/row-group');
+            await waitForGroupsVisible(page);
+
+            await expect(page.locator('.kbq-ag-grid-group-cell-renderer__key').first()).toBeVisible();
+            await expect(getCustomCellContentCount(page, 0)).toHaveCount(0);
+        });
+
+        test('checking the toggle replaces the default markup with the custom component, live', async ({ page }) => {
+            await page.goto('/e2e/row-group');
+            await waitForGroupsVisible(page);
+
+            const firstGroupKey = page.locator('.kbq-ag-grid-group-cell-renderer__key').first();
+            const initialKey = (await firstGroupKey.textContent()) ?? '';
+
+            await getUseCustomCellContentCheckbox(page).click();
+
+            // Default key/count spans are gone — replaced by the custom component's own markup —
+            // and this happens immediately for already-rendered rows, without needing to
+            // re-expand/re-group anything.
+            await expect(page.locator('.kbq-ag-grid-group-cell-renderer__key')).toHaveCount(0);
+            await expect(getCustomCellContentCount(page, 0)).toBeVisible();
+
+            // Same group, same key — only the rendering changed, not the underlying data.
+            await expect(getGroupCellInner(page, 0)).toContainText(initialKey);
+        });
+
+        test('unchecking the toggle reverts already-rendered rows back to the default markup', async ({ page }) => {
+            await page.goto('/e2e/row-group');
+            await waitForGroupsVisible(page);
+
+            await getUseCustomCellContentCheckbox(page).click();
+            await expect(getCustomCellContentCount(page, 0)).toBeVisible();
+
+            await getUseCustomCellContentCheckbox(page).click();
+
+            await expect(getCustomCellContentCount(page, 0)).toHaveCount(0);
+            await expect(page.locator('.kbq-ag-grid-group-cell-renderer__key').first()).toBeVisible();
+        });
+
+        test('expand/collapse via the toggle button keeps working when custom cell content is active', async ({
+            page
+        }) => {
+            await page.goto('/e2e/row-group');
+            await waitForGroupsVisible(page);
+
+            await getUseCustomCellContentCheckbox(page).click();
+            await expect(getCustomCellContentCount(page, 0)).toBeVisible();
+
+            // The chevron/click/keyboard toggle is unaffected by the custom cell content — only
+            // the key/count label area is swapped out (see KbqAgGridRowGroupCellRenderer).
+            await expect(getGroupCellInner(page, 0)).toHaveAttribute('aria-expanded', 'false');
+            await getGroupCellInner(page, 0).click();
+            await expect(getGroupCellInner(page, 0)).toHaveAttribute('aria-expanded', 'true');
+            await expect(page.locator('.ag-row[row-index="1"]')).toBeVisible();
+            await expect(getCustomCellContentCount(page, 1)).toBeVisible();
+
+            await getGroupCellInner(page, 0).click();
+            await expect(getGroupCellInner(page, 0)).toHaveAttribute('aria-expanded', 'false');
+        });
     });
 });

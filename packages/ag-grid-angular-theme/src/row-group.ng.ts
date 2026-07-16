@@ -1,3 +1,4 @@
+import { NgComponentOutlet } from '@angular/common';
 import {
     ChangeDetectionStrategy,
     Component,
@@ -9,11 +10,13 @@ import {
     inject,
     InjectionToken,
     input,
+    InputSignal,
     isDevMode,
     model,
     output,
     Provider,
     signal,
+    Type,
     untracked,
     viewChild
 } from '@angular/core';
@@ -65,17 +68,16 @@ type ActiveSort = { readonly colId: string; readonly sort: 'asc' | 'desc' };
 export type KbqAgGridRowGroupColOptions = Partial<ColDef>;
 
 /** Default group column options. */
-export const KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS_DEFAULT: KbqAgGridRowGroupColOptions = {
+const KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS_DEFAULT: KbqAgGridRowGroupColOptions = {
     headerName: 'Группа'
 };
 
 /**
  * Injection token for supplying custom ColDef overrides for the generated group column.
- * Defaults to {@link KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS_DEFAULT}.
- *
- * @see kbqAgGridRowGroupColOptionsProvider
+ * Defaults to `KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS_DEFAULT`. Not part of the public API — set
+ * options via `kbqAgGridRowGroupColOptionsProvider` instead.
  */
-export const KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS = new InjectionToken<KbqAgGridRowGroupColOptions>(
+const KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS = new InjectionToken<KbqAgGridRowGroupColOptions>(
     'KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS',
     { factory: (): KbqAgGridRowGroupColOptions => KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS_DEFAULT }
 );
@@ -127,6 +129,47 @@ type DataRow = RowData & {
 
 /** Any row in the grouped dataset — either a group header or a data row. */
 type Row = GroupHeaderRow | DataRow;
+
+/**
+ * Data describing a single group header row, passed to a custom `kbqAgGridRowGroupCellContent`
+ * component via its `group` input. Carries more than the default renderer shows (which is just
+ * `key`) so a custom component can, for example, render `count` or `level`-dependent styling too.
+ */
+export type KbqAgGridRowGroupInfo = {
+    /** Nesting depth (0 = top level). */
+    readonly level: number;
+    /** Column field this group is based on. */
+    readonly field: string;
+    /** Display value of this group. */
+    readonly key: string;
+    /** Total number of descendant data rows. */
+    readonly count: number;
+    /** Unique `PATH_SEPARATOR`-separated path identifying this group. */
+    readonly path: string;
+    /** Paths of all ancestor groups. */
+    readonly ancestors: readonly string[];
+};
+
+/**
+ * Contract a custom `kbqAgGridRowGroupCellContent` component must satisfy — a single `group`
+ * input receiving the current group's info (see {@link KbqAgGridRowGroupInfo}). Rendered in place
+ * of the default key-only markup; the surrounding toggle button, chevron icon, and
+ * click/keyboard handling in `KbqAgGridRowGroupCellRenderer` are unaffected either way.
+ *
+ * @example
+ * ```ts
+ * @Component({
+ *   selector: 'my-group-label',
+ *   template: `{{ group().key }} — {{ group().count }} items`
+ * })
+ * class MyGroupLabel implements KbqAgGridRowGroupCellContent {
+ *   readonly group = input.required<KbqAgGridRowGroupInfo>();
+ * }
+ * ```
+ */
+export type KbqAgGridRowGroupCellContent = {
+    readonly group: InputSignal<KbqAgGridRowGroupInfo>;
+};
 
 /**
  * Collision-safe grouping/path key for `value`. Strings pass through unchanged — group paths
@@ -360,6 +403,7 @@ const isGroupHeaderRow = (row: Row | null | undefined): row is GroupHeaderRow =>
     selector: 'kbq-ag-grid-group-cell-renderer',
     changeDetection: ChangeDetectionStrategy.OnPush,
     host: { class: 'kbq-ag-grid-group-cell-renderer' },
+    imports: [NgComponentOutlet],
     template: `
         @if (isGroup()) {
             <!-- A native <button> gets keyboard (Enter/Space) and focus handling for free —
@@ -377,8 +421,11 @@ const isGroupHeaderRow = (row: Row | null | undefined): row is GroupHeaderRow =>
                     [class.kbq-chevron-down_16]="!collapsed()"
                     [class.kbq-chevron-right_16]="collapsed()"
                 ></i>
-                <span class="kbq-ag-grid-group-cell-renderer__key">{{ row().KbqAgGridRowGroup.key }}</span>
-                <span class="kbq-ag-grid-group-cell-renderer__count">{{ row().KbqAgGridRowGroup.count }}</span>
+                @if (cellContent(); as content) {
+                    <ng-container *ngComponentOutlet="content; inputs: { group: groupInfo() }" />
+                } @else {
+                    <span class="kbq-ag-grid-group-cell-renderer__key">{{ row().KbqAgGridRowGroup.key }}</span>
+                }
             </button>
         }
     `
@@ -391,6 +438,13 @@ class KbqAgGridRowGroupCellRenderer implements ICellRendererAngularComp {
     });
     protected readonly indent = signal(8);
     protected readonly collapsed = signal(false);
+    /** Custom component replacing the default key/count markup — see `kbqAgGridRowGroupCellContent`. */
+    protected readonly cellContent = signal<Type<KbqAgGridRowGroupCellContent> | undefined>(undefined);
+    /** `group` input value passed to `cellContent()` — derived from `row()`. */
+    protected readonly groupInfo = computed<KbqAgGridRowGroupInfo>(() => {
+        const { level, field, key, count, path, ancestors } = this.row().KbqAgGridRowGroup;
+        return { level, field, key, count, path, ancestors };
+    });
 
     agInit(params: KbqAgGridRowGroupCellRendererParams): void {
         this.groupState = params.rowGroup;
@@ -401,6 +455,11 @@ class KbqAgGridRowGroupCellRenderer implements ICellRendererAngularComp {
         // writes are not allowed inside effects without allowSignalWrites; untracked
         // removes the reactive context so the writes succeed.
         untracked(() => {
+            // Read live off the directive (rather than a value snapshotted into
+            // cellRendererParams at column-def creation time) so a runtime change to
+            // kbqAgGridRowGroupCellContent takes effect on the next refresh() — see the
+            // "redraw group rows on cellContent change" effect in KbqAgGridRowGroup.
+            this.cellContent.set(this.groupState?.cellContent());
             this.isGroup.set(isGroup);
             if (isGroup) this.updateFromParams(data);
         });
@@ -411,6 +470,7 @@ class KbqAgGridRowGroupCellRenderer implements ICellRendererAngularComp {
         const { data } = params;
         const isGroup = isGroupHeaderRow(data);
         untracked(() => {
+            this.cellContent.set(this.groupState?.cellContent());
             this.isGroup.set(isGroup);
             if (isGroup) this.updateFromParams(data);
         });
@@ -670,8 +730,8 @@ export class KbqAgGridRowGroup {
     readonly groupCols = model<string[]>([], { alias: 'kbqAgGridRowGroupCols' });
 
     /**
-     * ColDef overrides for the generated group column. Takes precedence over
-     * {@link KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS} when both are provided.
+     * ColDef overrides for the generated group column. Takes precedence over options set via
+     * {@link kbqAgGridRowGroupColOptionsProvider} when both are provided.
      */
     readonly groupColOptions = input<KbqAgGridRowGroupColOptions | undefined>(
         inject(KBQ_AG_GRID_ROW_GROUP_COL_OPTIONS),
@@ -679,6 +739,15 @@ export class KbqAgGridRowGroup {
             alias: 'kbqAgGridRowGroupColOptions'
         }
     );
+
+    /**
+     * Custom component rendered in place of the default group-cell key-only markup — see
+     * {@link KbqAgGridRowGroupCellContent}. Leaves the chevron icon, expand/collapse toggle
+     * button, and its keyboard/focus handling untouched; only the label area is replaced.
+     */
+    readonly cellContent = input<Type<KbqAgGridRowGroupCellContent> | undefined>(undefined, {
+        alias: 'kbqAgGridRowGroupCellContent'
+    });
 
     private readonly _collapsedPaths = signal<ReadonlySet<string>>(new Set());
     /**
@@ -955,6 +1024,24 @@ export class KbqAgGridRowGroup {
             const api = this.api();
             if (!api) return;
             this.groupSelectionState();
+            const groupRowNodes: IRowNode<Row>[] = [];
+            api.forEachNode((node: IRowNode<Row>) => {
+                if (isGroupHeaderRow(node.data)) groupRowNodes.push(node);
+            });
+            if (groupRowNodes.length > 0) {
+                api.redrawRows({ rowNodes: groupRowNodes });
+            }
+        });
+
+        // Redraw group rows whenever cellContent changes, so already-rendered cells pick up a
+        // runtime change immediately — KbqAgGridRowGroupCellRenderer reads `cellContent()` live
+        // off this directive (see its agInit/refresh), rather than from a value snapshotted into
+        // cellRendererParams once at column-def creation time, precisely so this redraw is enough
+        // and re-adding the Group column isn't needed.
+        effect(() => {
+            const api = this.api();
+            if (!api) return;
+            this.cellContent();
             const groupRowNodes: IRowNode<Row>[] = [];
             api.forEachNode((node: IRowNode<Row>) => {
                 if (isGroupHeaderRow(node.data)) groupRowNodes.push(node);
