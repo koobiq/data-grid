@@ -1,7 +1,7 @@
 import { Component, viewChild } from '@angular/core';
-import { render } from '@testing-library/angular';
+import { render, waitFor } from '@testing-library/angular';
 import { AgGridAngular, AgGridModule } from 'ag-grid-angular';
-import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
+import { AllCommunityModule, ModuleRegistry, SelectionColumnDef } from 'ag-grid-community';
 import { KbqAgGridTheme } from '../src/theme.ng';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -28,6 +28,19 @@ class TestGrid {
 })
 class TestGridFocusDisabled {}
 
+@Component({
+    selector: 'test-grid-custom-selection-width',
+    standalone: true,
+    template: `
+        <ag-grid-angular kbqAgGridTheme [selectionColumnDef]="selectionColumnDef" />
+    `,
+    imports: [AgGridModule, KbqAgGridTheme]
+})
+class TestGridCustomSelectionWidth {
+    readonly grid = viewChild.required(AgGridAngular);
+    protected readonly selectionColumnDef: SelectionColumnDef = { width: 80 };
+}
+
 describe(KbqAgGridTheme.name, () => {
     it('should apply ag-theme-koobiq host class', async () => {
         const { container } = await render(TestGrid);
@@ -51,5 +64,25 @@ describe(KbqAgGridTheme.name, () => {
         const { container } = await render(TestGridFocusDisabled);
 
         expect(container.querySelector('ag-grid-angular')).toHaveClass('ag-theme-koobiq_disable-cell-focus-styles');
+    });
+
+    it('defaults the selection checkbox column width to 36px', async () => {
+        const { fixture } = await render(TestGrid);
+
+        await waitFor(() => {
+            expect(fixture.componentInstance.grid().api.getGridOption('selectionColumnDef')).toEqual(
+                expect.objectContaining({ width: 36 })
+            );
+        });
+    });
+
+    it("does not override a consumer's own selectionColumnDef width", async () => {
+        const { fixture } = await render(TestGridCustomSelectionWidth);
+
+        await waitFor(() => {
+            expect(fixture.componentInstance.grid().api.getGridOption('selectionColumnDef')).toEqual(
+                expect.objectContaining({ width: 80 })
+            );
+        });
     });
 });

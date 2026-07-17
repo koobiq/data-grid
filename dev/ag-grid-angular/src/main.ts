@@ -102,6 +102,10 @@ if (isDevMode()) {
             {
                 path: 'infinite-selection',
                 loadComponent: async () => import('./tests/infinite-selection.ng').then((m) => m.DevInfiniteSelection)
+            },
+            {
+                path: 'row-group',
+                loadComponent: async () => import('./tests/row-group').then((m) => m.DevRowGroup)
             }
         ]
     };

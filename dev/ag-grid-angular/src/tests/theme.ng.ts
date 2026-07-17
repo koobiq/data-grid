@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
-import { AllCommunityModule, ColDef, GridReadyEvent, ModuleRegistry, RowSelectionOptions } from 'ag-grid-community';
+import { AllCommunityModule, ColDef, ModuleRegistry, RowSelectionOptions } from 'ag-grid-community';
 import { devInjectRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -35,7 +35,6 @@ const DEFAULT_COL_DEF: ColDef = {
             [rowSelection]="rowSelection"
             [defaultColDef]="defaultColDef"
             [pagination]="false"
-            (gridReady)="onGridReady($event)"
         />
     `,
     styles: `
@@ -69,8 +68,4 @@ export class DevTheme {
         { field: 'bronze', headerName: 'Bronze' },
         { field: 'total', headerName: 'Total' }
     ];
-
-    onGridReady({ api }: GridReadyEvent): void {
-        api.setColumnWidths([{ key: 'ag-Grid-SelectionColumn', newWidth: 36 }]);
-    }
 }
