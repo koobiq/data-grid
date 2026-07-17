@@ -1,0 +1,46 @@
+# Triggered workflow by PR comment: /redeploy-preview
+#
+# ⚠️ This job checks out and builds PR-controlled code with a Firebase deployment secret.
+# Only comment /redeploy-preview after reviewing the PR's contents — the author_association
+# check below only verifies the commenter, not the safety of the code being built.
+name: Redeploy documentation preview
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  checks: write # for FirebaseExtended/action-hosting-deploy to create a check run
+  contents: read # for actions/checkout to read the repository
+  pull-requests: write # for FirebaseExtended/action-hosting-deploy to comment on PRs
+
+jobs:
+  redeploy:
+    if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/redeploy-preview') && contains(fromJSON('["OWNER", "MEMBER"]'), github.event.comment.author_association) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: xt0rted/pull-request-comment-branch@v3
+        id: comment-branch
+      - uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: 🔄 [Redeploying](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) documentation preview.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.comment-branch.outputs.head_ref }}
+          persist-credentials: false
+      - uses: ./.github/actions/setup-node
+      # Run dev mode build to generate the `e2eRoute`
+      # @see dev/ag-grid-angular/src/main.ts
+      - run: yarn run build --configuration=development
+      - uses: FirebaseExtended/action-hosting-deploy@v0.11.0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_KOOBIQ }}'
+          expires: 3d
+          channelId: data-grid-pr-${{ github.event.issue.number }}
+          projectId: koobiq
+          target: next
+      - uses: thollander/actions-comment-pull-request@v3
+        if: ${{ failure() }}
+        with:
+          message: 🚨 Failed to [redeploy](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) documentation preview.
