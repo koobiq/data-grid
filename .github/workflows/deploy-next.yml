@@ -7,6 +7,9 @@ on:
   # Allows you to run this workflow manually
   workflow_dispatch:
 
+permissions:
+  contents: read # for actions/checkout to read the repository
+
 jobs:
   deploy_next:
     if: ${{ github.repository_owner == 'koobiq' }}
@@ -17,4 +20,9 @@ jobs:
           fetch-depth: 0
       - uses: ./.github/actions/setup-node
       - run: yarn run build
-      - run: yarn firebase deploy --only hosting:next --token=${{ secrets.FIREBASE_DEPLOY_TOKEN }}
+      - uses: FirebaseExtended/action-hosting-deploy@v0.11.0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KOOBIQ }}
+          target: next
+          channelId: live # reserved channel ID for the live/production site (not a temporary preview channel)
