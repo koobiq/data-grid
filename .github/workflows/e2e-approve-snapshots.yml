@@ -36,13 +36,7 @@ jobs:
       - uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
         if: ${{ steps.commit-and-push.outputs.changes_detected == 'true' }}
         with:
-          script: |
-            await github.rest.reactions.createForIssueComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: context.payload.comment.id,
-              content: 'rocket',
-            });
+          message: ✅ Snapshots [updated](https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}/commits/${{ steps.commit-and-push.outputs.commit_hash }})!
       - uses: thollander/actions-comment-pull-request@v3
         if: ${{ steps.commit-and-push.outputs.changes_detected != 'true' }}
         with:
