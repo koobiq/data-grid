@@ -153,7 +153,7 @@ class TestQuickFilterStateGridReactiveForms {
     readonly directive = viewChild.required(KbqAgGridQuickFilterState);
 }
 
-describe(KbqAgGridQuickFilterState.name, () => {
+describe('KbqAgGridQuickFilterState', () => {
     it('restores saved text from store on init', async () => {
         const store: KbqAgGridQuickFilterStateStore = {
             getItem: jest.fn(() => 'Michael'),

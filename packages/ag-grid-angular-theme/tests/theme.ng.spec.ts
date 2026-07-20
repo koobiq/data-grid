@@ -41,7 +41,7 @@ class TestGridCustomSelectionWidth {
     protected readonly selectionColumnDef: SelectionColumnDef = { width: 80 };
 }
 
-describe(KbqAgGridTheme.name, () => {
+describe('KbqAgGridTheme', () => {
     it('should apply ag-theme-koobiq host class', async () => {
         const { container } = await render(TestGrid);
 

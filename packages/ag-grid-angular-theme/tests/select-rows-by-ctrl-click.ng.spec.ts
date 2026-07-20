@@ -32,7 +32,7 @@ const createNode = (selected = false) => ({
     setSelected: jest.fn()
 });
 
-describe(KbqAgGridSelectRowsByCtrlClick.name, () => {
+describe('KbqAgGridSelectRowsByCtrlClick', () => {
     it('should select the row on ctrl+click when not selected', async () => {
         const { fixture } = await render(TestComponent);
         const node = createNode(false);

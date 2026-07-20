@@ -365,7 +365,7 @@ const setupWithState = async (params: {
     return { fixture, grid, directive: fixture.componentInstance.directive() };
 };
 
-describe(KbqAgGridRowGroup.name, () => {
+describe('KbqAgGridRowGroup', () => {
     afterEach(() => {
         testColDefs = INITIAL_COL_DEFS;
     });

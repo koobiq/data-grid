@@ -37,7 +37,7 @@ const makeParams = (rowIndex: number, rowCount: number, backwards = false): TabT
         nextCellPosition: null
     }) as unknown as TabToNextCellParams;
 
-describe(KbqAgGridToNextRowByTab.name, () => {
+describe('KbqAgGridToNextRowByTab', () => {
     it('should set tabToNextCell on the grid', async () => {
         const { fixture } = await render(TestComponent);
 

@@ -184,6 +184,12 @@ const playwrightRules = {
 };
 
 /** @type {import('eslint').Linter.ConfigOverride} */
+const jestRules = {
+    files: ['*.spec.ts'],
+    extends: ['plugin:jest/recommended']
+};
+
+/** @type {import('eslint').Linter.ConfigOverride} */
 const prettierRules = {
     files: ['*.js', '*.ts', '*.html'],
     extends: ['plugin:prettier/recommended']
@@ -212,6 +218,7 @@ const config = {
         ngTsPackagesRules,
         ngTemplateRules,
         playwrightRules,
+        jestRules,
         // should be last
         prettierRules
     ]

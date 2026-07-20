@@ -143,7 +143,7 @@ class TestExternalFilterStateGridReactiveForms {
     }
 }
 
-describe(KbqAgGridExternalFilterState.name, () => {
+describe('KbqAgGridExternalFilterState', () => {
     it('restores saved value from store on init', async () => {
         const store: KbqAgGridExternalFilterStateStore = {
             getItem: jest.fn(() => 'Swimming'),

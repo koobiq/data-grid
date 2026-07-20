@@ -91,7 +91,7 @@ class TestRowSelectionStateGrid {
     readonly directive = viewChild.required(KbqAgGridRowSelectionState);
 }
 
-describe(KbqAgGridRowSelectionState.name, () => {
+describe('KbqAgGridRowSelectionState', () => {
     it('restores saved selection from store on firstDataRendered', async () => {
         const nodeA = makeNode('a');
         const nodeB = makeNode('b');

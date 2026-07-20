@@ -41,7 +41,7 @@ const createKeyEvent = (keyCode: number, modifiers: { ctrlKey?: boolean; metaKey
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const createApi = (nodes: object[] = []): GridApi => ({ getSelectedNodes: jest.fn(() => nodes) }) as unknown as GridApi;
 
-describe(KbqAgGridCopyByCtrlC.name, () => {
+describe('KbqAgGridCopyByCtrlC', () => {
     beforeEach(() => {
         jest.spyOn(document, 'getSelection').mockReturnValue(null);
     });

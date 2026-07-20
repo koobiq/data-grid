@@ -128,7 +128,7 @@ const setup = async () => {
     return { fixture, stub, directive, ds, wrapped };
 };
 
-describe(KbqAgGridInfiniteSelection.name, () => {
+describe('KbqAgGridInfiniteSelection', () => {
     it('sets rowModelType to "infinite" on construction', async () => {
         const { fixture } = await render(TestGrid);
         expect(fixture.componentInstance.grid().rowModelType).toBe('infinite');
@@ -469,7 +469,7 @@ describe(KbqAgGridInfiniteSelection.name, () => {
         });
     });
 
-    describe(KbqAgGridInfiniteSelectionHeaderComponent.name, () => {
+    describe('KbqAgGridInfiniteSelectionHeaderComponent', () => {
         const createHeader = (
             stateValue: KbqAgGridInfiniteSelectionState = { selectAll: false, excludedIds: [] },
             toggle: jest.Mock = jest.fn()

@@ -43,7 +43,7 @@ class TestGridWithApiComponent {
     readonly loading = signal(false);
 }
 
-describe(KbqAgGridLoadingOverlay.name, () => {
+describe('KbqAgGridLoadingOverlay', () => {
     it('should set loadingOverlayComponent to KbqAgGridLoadingOverlayComponent', async () => {
         const { fixture } = await render(TestGridComponent);
         const stub = fixture.debugElement.children[0].injector.get(AgGridAngular) as TestAgGridAngularStub;
@@ -91,7 +91,7 @@ describe(KbqAgGridLoadingOverlay.name, () => {
         expect(stub.loading).toBe(false);
     });
 
-    describe(KbqAgGridLoadingOverlayComponent.name, () => {
+    describe('KbqAgGridLoadingOverlayComponent', () => {
         it('should render 1 header row and 3 data rows by default', async () => {
             const { container } = await render(KbqAgGridLoadingOverlayComponent);
             const rows = container.querySelectorAll('.kbq-ag-grid-skeleton-row');

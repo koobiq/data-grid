@@ -74,7 +74,7 @@ class TestFilterStateGrid {
     readonly directive = viewChild.required(KbqAgGridFilterState);
 }
 
-describe(KbqAgGridFilterState.name, () => {
+describe('KbqAgGridFilterState', () => {
     it('restores saved model from store on init', async () => {
         const savedModel: FilterModel = {
             athlete: { filterType: 'text', type: 'contains', filter: 'Michael' }

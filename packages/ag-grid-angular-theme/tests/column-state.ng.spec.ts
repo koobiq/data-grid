@@ -74,7 +74,7 @@ class TestColumnStateGrid {
     readonly directive = viewChild.required(KbqAgGridColumnState);
 }
 
-describe(KbqAgGridColumnState.name, () => {
+describe('KbqAgGridColumnState', () => {
     it('restores saved state from store on init', async () => {
         const savedState: ColumnState[] = [{ colId: 'name', sort: 'asc' }];
         const store: KbqAgGridColumnStateStore = {

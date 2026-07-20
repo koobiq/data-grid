@@ -35,7 +35,7 @@ const createKeyEvent = (keyCode: number, modifiers: { shiftKey?: boolean } = {})
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const createRowNode = (rowIndex: number) => ({ rowIndex, setSelected: jest.fn() });
 
-describe(KbqAgGridSelectRowsByShiftArrow.name, () => {
+describe('KbqAgGridSelectRowsByShiftArrow', () => {
     it('should select the next row on shift+down', async () => {
         const { fixture } = await render(TestComponent);
 

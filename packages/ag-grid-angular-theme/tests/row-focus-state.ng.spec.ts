@@ -88,7 +88,7 @@ class TestRowFocusStateGrid {
     readonly directive = viewChild.required(KbqAgGridRowFocusState);
 }
 
-describe(KbqAgGridRowFocusState.name, () => {
+describe('KbqAgGridRowFocusState', () => {
     it('restores saved active cell from store on firstDataRendered', async () => {
         const savedValue: KbqAgGridRowFocusStateValue = { rowId: 'b', colId: 'athlete' };
         const nodeB = makeNode('b', 1);

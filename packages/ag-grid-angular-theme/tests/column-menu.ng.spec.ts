@@ -144,7 +144,7 @@ const getHiddenSection = (container: Element): Element | undefined =>
             ?.textContent?.includes(KBQ_AG_GRID_COLUMN_MENU_LABELS_RU.hiddenSection)
     );
 
-describe(KbqAgGridColumnMenu.name, () => {
+describe('KbqAgGridColumnMenu', () => {
     describe('overlay lifecycle', () => {
         it('creates overlay trigger button after gridReady', async () => {
             const { fixture, container } = await render(TestColumnMenuGrid);

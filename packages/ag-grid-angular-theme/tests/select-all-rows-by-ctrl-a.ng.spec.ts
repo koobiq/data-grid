@@ -36,8 +36,7 @@ const createKeyEvent = (keyCode: number, modifiers: { ctrlKey?: boolean; metaKey
     return event;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-describe(KbqAgGridSelectAllRowsByCtrlA.name, () => {
+describe('KbqAgGridSelectAllRowsByCtrlA', () => {
     it('should call api.selectAll() on ctrl+A', async () => {
         const { fixture } = await render(TestComponent);
         const api = createGridApi();
