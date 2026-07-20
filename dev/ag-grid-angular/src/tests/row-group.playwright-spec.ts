@@ -51,6 +51,35 @@ const naturalCompare = (a: string, b: string): number => a.localeCompare(b, unde
 
 const getUseCustomCellContentCheckbox = (page: Page): Locator => page.getByTestId('useCustomCellContentCheckbox');
 
+const rowGroupCollapsedStateStorageKey = 'dev-ag-grid-row-group-collapsed-state';
+const rowGroupSelectionStateStorageKey = 'dev-ag-grid-row-group-selection-state';
+
+const clearRowGroupPersistedState = async (page: Page): Promise<void> => {
+    await page.evaluate(
+        ({ collapseKey, selectionKey }) => {
+            localStorage.removeItem(collapseKey);
+            localStorage.removeItem(selectionKey);
+        },
+        { collapseKey: rowGroupCollapsedStateStorageKey, selectionKey: rowGroupSelectionStateStorageKey }
+    );
+};
+
+const getStoredCollapsedPaths = async (page: Page): Promise<string[] | null> =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    page.evaluate((key) => {
+        const stored = localStorage.getItem(key);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return stored ? JSON.parse(stored) : null;
+    }, rowGroupCollapsedStateStorageKey);
+
+const getStoredSelectedIds = async (page: Page): Promise<string[] | null> =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    page.evaluate((key) => {
+        const stored = localStorage.getItem(key);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return stored ? JSON.parse(stored) : null;
+    }, rowGroupSelectionStateStorageKey);
+
 // The custom kbqAgGridRowGroupCellContent demo (DevRowGroupCustomCellContent) renders its own
 // count markup instead of the default `.kbq-ag-grid-group-cell-renderer__count` span.
 const getCustomCellContentCount = (page: Page, rowIndex: number): Locator =>
@@ -721,6 +750,93 @@ test.describe('KbqAgGridRowGroup', () => {
 
             await getGroupCellInner(page, 0).click();
             await expect(getGroupCellInner(page, 0)).toHaveAttribute('aria-expanded', 'false');
+        });
+    });
+
+    test.describe('state persistence', () => {
+        test('persists collapse state to localStorage and restores it on reload', async ({ page }) => {
+            await page.goto('/e2e/row-group');
+            await clearRowGroupPersistedState(page);
+            await page.reload();
+            await waitForGroupsVisible(page);
+
+            // Expand the first top-level group — row 1 becomes its first (still-collapsed)
+            // nested Sport sub-group, not the *next* top-level country header.
+            const firstGroupKey =
+                (await page.locator('.kbq-ag-grid-group-cell-renderer__key').first().textContent()) ?? '';
+            await getGroupCellInner(page, 0).click();
+            await expect(page.locator('.ag-row[row-index="1"]')).toBeVisible();
+
+            await expect.poll(async () => getStoredCollapsedPaths(page)).not.toBeNull();
+
+            await page.reload();
+            await waitForGroupsVisible(page);
+
+            // The same top-level group must still be expanded after reload.
+            await expect(getGroupCellInner(page, 0)).toContainText(firstGroupKey);
+            await expect(getGroupCellInner(page, 0)).toHaveAttribute('aria-expanded', 'true');
+            await expect(page.locator('.ag-row[row-index="1"]')).toBeVisible();
+        });
+
+        test('reset group state clears the persisted collapse state', async ({ page }) => {
+            await page.goto('/e2e/row-group');
+            await clearRowGroupPersistedState(page);
+            await page.reload();
+            await waitForGroupsVisible(page);
+
+            await getGroupCellInner(page, 0).click();
+            await expect.poll(async () => getStoredCollapsedPaths(page)).not.toBeNull();
+
+            await page.getByTestId('resetRowGroupStateBtn').click();
+
+            await expect.poll(async () => getStoredCollapsedPaths(page)).toBeNull();
+        });
+
+        test('persists selection to localStorage and restores it on reload, even hidden inside a collapsed group', async ({
+            page
+        }) => {
+            await page.goto('/e2e/row-group');
+            await clearRowGroupPersistedState(page);
+            await page.reload();
+            await waitForGroupsVisible(page);
+
+            // Select Ilya Zakharov while Russia > Diving is still fully collapsed.
+            await page.getByTestId('selectIlyaZakharovBtn').click();
+            await expect(page.getByTestId('selectedCount')).toHaveText('1');
+            await expect.poll(async () => getStoredSelectedIds(page)).not.toBeNull();
+
+            await page.reload();
+            await waitForGroupsVisible(page);
+
+            // The full-dataset selection count is restored — including a row not yet loaded
+            // into AG's row model — once the (async-fetched) row data has arrived.
+            await expect(page.getByTestId('selectedCount')).toHaveText('1', { timeout: 10_000 });
+
+            // Expand down to the row — it comes back visually selected too.
+            await page.getByTestId('expandRussiaDivingBtn').click();
+            const athleteRow = getDataRowByText(page, 'Ilya Zakharov');
+            await expect(athleteRow).toBeVisible();
+            await expect(athleteRow).toHaveClass(/ag-row-selected/);
+        });
+
+        test('reset group state does not clear the persisted selection — selection is independent of grouping', async ({
+            page
+        }) => {
+            await page.goto('/e2e/row-group');
+            await clearRowGroupPersistedState(page);
+            await page.reload();
+            await waitForGroupsVisible(page);
+
+            await page.getByTestId('selectIlyaZakharovBtn').click();
+            await expect.poll(async () => getStoredSelectedIds(page)).not.toBeNull();
+
+            await page.getByTestId('resetRowGroupStateBtn').click();
+
+            // Collapse state is cleared by the reset...
+            await expect.poll(async () => getStoredCollapsedPaths(page)).toBeNull();
+            // ...but the selection itself — both in storage and in the reported count — remains.
+            await expect.poll(async () => getStoredSelectedIds(page)).not.toBeNull();
+            await expect(page.getByTestId('selectedCount')).toHaveText('1');
         });
     });
 });

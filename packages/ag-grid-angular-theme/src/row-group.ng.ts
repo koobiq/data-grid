@@ -8,6 +8,7 @@ import {
     effect,
     ElementRef,
     inject,
+    Injectable,
     InjectionToken,
     input,
     InputSignal,
@@ -21,6 +22,7 @@ import {
     viewChild
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 import { AgGridAngular, ICellRendererAngularComp, IHeaderAngularComp } from 'ag-grid-angular';
 import {
     CellRendererSelectorResult,
@@ -36,6 +38,7 @@ import {
     SelectionColumnDef,
     SortDirection
 } from 'ag-grid-community';
+import { KbqAgGridStateStore } from './state-store';
 
 /** A plain input data row — any object with string keys. */
 type RowData = Record<string, unknown>;
@@ -663,6 +666,240 @@ class KbqAgGridRowGroupSelectAllHeaderCellRenderer implements IHeaderAngularComp
 }
 
 /**
+ * Storage interface for persisting and retrieving `KbqAgGridRowGroup`'s collapsed-group state
+ * (see `kbqAgGridRowGroupCollapsedState`) — a list of opaque group `path` tokens (see `collapsedPaths`).
+ *
+ * Supports both synchronous and Promise-based implementations.
+ */
+export type KbqAgGridRowGroupCollapsedStateStore = KbqAgGridStateStore<readonly string[]>;
+
+/**
+ * {@link KbqAgGridRowGroupCollapsedStateStore} implementation backed by `localStorage`.
+ */
+@Injectable({ providedIn: 'root' })
+export class KbqAgGridRowGroupCollapsedStateLocalStorageStore implements KbqAgGridRowGroupCollapsedStateStore {
+    // TODO: Should use KBQ_WINDOW token
+    private readonly localStorage = window.localStorage;
+
+    getItem(key: string): readonly string[] | null {
+        const item = this.localStorage.getItem(key);
+
+        if (!item) return null;
+
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            return JSON.parse(item) as string[];
+        } catch {
+            return null;
+        }
+    }
+
+    setItem(key: string, value: readonly string[]): void {
+        this.localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    removeItem(key: string): void {
+        this.localStorage.removeItem(key);
+    }
+}
+
+/**
+ * {@link KbqAgGridRowGroupCollapsedStateStore} implementation backed by URL query parameters.
+ *
+ * @example
+ * ```typescript
+ * providers: [kbqAgGridRowGroupCollapsedStateStoreProvider(KbqAgGridRowGroupCollapsedStateQueryParamsStore)]
+ * ```
+ */
+@Injectable({ providedIn: 'root' })
+export class KbqAgGridRowGroupCollapsedStateQueryParamsStore implements KbqAgGridRowGroupCollapsedStateStore {
+    private readonly router = inject(Router);
+    // TODO: Should use KBQ_WINDOW token
+    private readonly location = window.location;
+
+    getItem(key: string): readonly string[] | null {
+        const item = new URLSearchParams(this.location.search).get(key);
+
+        if (!item) return null;
+
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            return JSON.parse(item) as string[];
+        } catch {
+            return null;
+        }
+    }
+
+    async setItem(key: string, value: readonly string[]): Promise<void> {
+        await this.router.navigate([], {
+            queryParams: { [key]: JSON.stringify(value) },
+            queryParamsHandling: 'merge',
+            replaceUrl: true
+        });
+    }
+
+    async removeItem(key: string): Promise<void> {
+        await this.router.navigate([], {
+            queryParams: { [key]: null },
+            queryParamsHandling: 'merge',
+            replaceUrl: true
+        });
+    }
+}
+
+/**
+ * Injection token for {@link KbqAgGridRowGroupCollapsedStateStore}.
+ *
+ * Defaults to {@link KbqAgGridRowGroupCollapsedStateLocalStorageStore}.
+ * Override it with {@link kbqAgGridRowGroupCollapsedStateStoreProvider}.
+ */
+export const KBQ_AG_GRID_ROW_GROUP_COLLAPSED_STATE_STORE = new InjectionToken<KbqAgGridRowGroupCollapsedStateStore>(
+    'KBQ_AG_GRID_ROW_GROUP_COLLAPSED_STATE_STORE',
+    { factory: (): KbqAgGridRowGroupCollapsedStateStore => inject(KbqAgGridRowGroupCollapsedStateLocalStorageStore) }
+);
+
+/**
+ * Creates an Angular {@link Provider} that binds {@link KBQ_AG_GRID_ROW_GROUP_COLLAPSED_STATE_STORE}
+ * to the given store class or instance.
+ *
+ * @example
+ * ```typescript
+ * providers: [kbqAgGridRowGroupCollapsedStateStoreProvider(KbqAgGridRowGroupCollapsedStateQueryParamsStore)]
+ * ```
+ * @example
+ * ```typescript
+ * providers: [kbqAgGridRowGroupCollapsedStateStoreProvider(myCustomStoreInstance)]
+ * ```
+ */
+export const kbqAgGridRowGroupCollapsedStateStoreProvider = (
+    store: Type<KbqAgGridRowGroupCollapsedStateStore> | KbqAgGridRowGroupCollapsedStateStore
+): Provider => {
+    return store instanceof Type
+        ? { provide: KBQ_AG_GRID_ROW_GROUP_COLLAPSED_STATE_STORE, useClass: store }
+        : { provide: KBQ_AG_GRID_ROW_GROUP_COLLAPSED_STATE_STORE, useValue: store };
+};
+
+/**
+ * Storage interface for persisting and retrieving `KbqAgGridRowGroup`'s row selection (see
+ * `kbqAgGridRowGroupSelectionState`) — the ids (see `kbqAgGridRowGroupRowId`) of every selected
+ * data row, independent of which are currently visible/materialized as AG Grid row nodes.
+ *
+ * Not interchangeable with `KbqAgGridRowSelectionState` (the standalone directive) — that one
+ * reads AG Grid's own `getSelectedNodes()`, which only reports currently-materialized rows and
+ * so misses anything hidden inside a collapsed group. This store is fed from
+ * `KbqAgGridRowGroup`'s own `selectedRowIds`, which is not subject to that limitation.
+ *
+ * Supports both synchronous and Promise-based implementations.
+ */
+export type KbqAgGridRowGroupSelectionStateStore = KbqAgGridStateStore<readonly string[]>;
+
+/**
+ * {@link KbqAgGridRowGroupSelectionStateStore} implementation backed by `localStorage`.
+ */
+@Injectable({ providedIn: 'root' })
+export class KbqAgGridRowGroupSelectionStateLocalStorageStore implements KbqAgGridRowGroupSelectionStateStore {
+    // TODO: Should use KBQ_WINDOW token
+    private readonly localStorage = window.localStorage;
+
+    getItem(key: string): readonly string[] | null {
+        const item = this.localStorage.getItem(key);
+
+        if (!item) return null;
+
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            return JSON.parse(item) as string[];
+        } catch {
+            return null;
+        }
+    }
+
+    setItem(key: string, value: readonly string[]): void {
+        this.localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    removeItem(key: string): void {
+        this.localStorage.removeItem(key);
+    }
+}
+
+/**
+ * {@link KbqAgGridRowGroupSelectionStateStore} implementation backed by URL query parameters.
+ *
+ * @example
+ * ```typescript
+ * providers: [kbqAgGridRowGroupSelectionStateStoreProvider(KbqAgGridRowGroupSelectionStateQueryParamsStore)]
+ * ```
+ */
+@Injectable({ providedIn: 'root' })
+export class KbqAgGridRowGroupSelectionStateQueryParamsStore implements KbqAgGridRowGroupSelectionStateStore {
+    private readonly router = inject(Router);
+    // TODO: Should use KBQ_WINDOW token
+    private readonly location = window.location;
+
+    getItem(key: string): readonly string[] | null {
+        const item = new URLSearchParams(this.location.search).get(key);
+
+        if (!item) return null;
+
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            return JSON.parse(item) as string[];
+        } catch {
+            return null;
+        }
+    }
+
+    async setItem(key: string, value: readonly string[]): Promise<void> {
+        await this.router.navigate([], {
+            queryParams: { [key]: JSON.stringify(value) },
+            queryParamsHandling: 'merge',
+            replaceUrl: true
+        });
+    }
+
+    async removeItem(key: string): Promise<void> {
+        await this.router.navigate([], {
+            queryParams: { [key]: null },
+            queryParamsHandling: 'merge',
+            replaceUrl: true
+        });
+    }
+}
+
+/**
+ * Injection token for {@link KbqAgGridRowGroupSelectionStateStore}.
+ *
+ * Defaults to {@link KbqAgGridRowGroupSelectionStateLocalStorageStore}.
+ * Override it with {@link kbqAgGridRowGroupSelectionStateStoreProvider}.
+ */
+export const KBQ_AG_GRID_ROW_GROUP_SELECTION_STATE_STORE = new InjectionToken<KbqAgGridRowGroupSelectionStateStore>(
+    'KBQ_AG_GRID_ROW_GROUP_SELECTION_STATE_STORE',
+    { factory: (): KbqAgGridRowGroupSelectionStateStore => inject(KbqAgGridRowGroupSelectionStateLocalStorageStore) }
+);
+
+/**
+ * Creates an Angular {@link Provider} that binds {@link KBQ_AG_GRID_ROW_GROUP_SELECTION_STATE_STORE}
+ * to the given store class or instance.
+ *
+ * @example
+ * ```typescript
+ * providers: [kbqAgGridRowGroupSelectionStateStoreProvider(KbqAgGridRowGroupSelectionStateQueryParamsStore)]
+ * ```
+ * @example
+ * ```typescript
+ * providers: [kbqAgGridRowGroupSelectionStateStoreProvider(myCustomStoreInstance)]
+ * ```
+ */
+export const kbqAgGridRowGroupSelectionStateStoreProvider = (
+    store: Type<KbqAgGridRowGroupSelectionStateStore> | KbqAgGridRowGroupSelectionStateStore
+): Provider => {
+    return store instanceof Type
+        ? { provide: KBQ_AG_GRID_ROW_GROUP_SELECTION_STATE_STORE, useClass: store }
+        : { provide: KBQ_AG_GRID_ROW_GROUP_SELECTION_STATE_STORE, useValue: store };
+};
+
+/**
  * Directive that implements client-side row grouping without AG Grid Enterprise.
  *
  * Attach to `ag-grid-angular` and supply raw data via `[kbqAgGridRowGroupRowData]`
@@ -700,6 +937,32 @@ class KbqAgGridRowGroupSelectAllHeaderCellRenderer implements IHeaderAngularComp
  * - A column already hidden independently of grouping (the consumer's own `colDef.hide: true`, or
  *   a prior manual visibility change) is left exactly as-is — grouping by it never makes it
  *   visible, and un-grouping it never un-hides it either.
+ *
+ * **Persisting collapsed/expanded state:**
+ * - Set `[kbqAgGridRowGroupCollapsedState]` to a storage key to persist and restore which groups are
+ *   collapsed, using a configurable {@link KbqAgGridRowGroupCollapsedStateStore} (defaults to
+ *   `localStorage`; override via `[kbqAgGridRowGroupCollapsedStateStore]`).
+ * - A group `path` (see `collapsedPaths`) is derived from the raw values of its `groupCols`
+ *   fields, not from row identity — unlike `[kbqAgGridRowGroupRowId]`-based selection tracking,
+ *   restoring collapse state does NOT require a stable row id to survive a page reload.
+ * - This does NOT persist `groupCols` itself (which fields are grouped by) — restore that
+ *   yourself via `[(kbqAgGridRowGroupCols)]` before/at grid init. A restored path only matches
+ *   an existing group once `groupCols` again equals whatever it was when the path was saved;
+ *   otherwise it's silently ignored until `groupCols` catches up (or discarded the next time the
+ *   grouping structure actually changes).
+ * - `clearGroupColumns()` also removes the stored state — with no grouping there's nothing
+ *   meaningful for a collapsed path to refer to.
+ *
+ * **Persisting row selection:**
+ * - Set `[kbqAgGridRowGroupSelectionState]` to a storage key to persist and restore which data
+ *   rows are selected, using a configurable {@link KbqAgGridRowGroupSelectionStateStore}
+ *   (defaults to `localStorage`; override via `[kbqAgGridRowGroupSelectionStateStore]`).
+ * - This is a separate feature from `KbqAgGridRowSelectionState` (the standalone directive) —
+ *   that one reads AG Grid's own `getSelectedNodes()`, which only reports currently-visible
+ *   rows and so misses anything hidden inside a collapsed group. This one persists from the
+ *   directive's own `selectedRowIds`, which tracks the full selection regardless of collapse
+ *   state, and requires `[kbqAgGridRowGroupRowId]` for the same reason selection tracking does
+ *   in general (see the class-level `**Recommended**` note).
  *
  * @example
  * ```html
@@ -752,6 +1015,34 @@ export class KbqAgGridRowGroup {
             alias: 'kbqAgGridRowGroupColOptions'
         }
     );
+
+    /**
+     * Key under which collapsed/expanded group state is stored. Must be unique per grid.
+     * Omit to disable persistence (the default) — see the class-level
+     * `**Persisting collapsed/expanded state**` note.
+     */
+    readonly collapsedStateKey = input<string | undefined>(undefined, { alias: 'kbqAgGridRowGroupCollapsedState' });
+
+    /** Store used to persist and restore collapsed/expanded group state. Defaults to
+     * {@link KBQ_AG_GRID_ROW_GROUP_COLLAPSED_STATE_STORE}. */
+    readonly collapsedStateStore = input(inject(KBQ_AG_GRID_ROW_GROUP_COLLAPSED_STATE_STORE), {
+        alias: 'kbqAgGridRowGroupCollapsedStateStore'
+    });
+
+    /**
+     * Key under which selected row ids are stored. Must be unique per grid.
+     * Omit to disable persistence (the default) — see the class-level
+     * `**Persisting row selection**` note.
+     */
+    readonly selectionStateKey = input<string | undefined>(undefined, {
+        alias: 'kbqAgGridRowGroupSelectionState'
+    });
+
+    /** Store used to persist and restore selected row ids. Defaults to
+     * {@link KBQ_AG_GRID_ROW_GROUP_SELECTION_STATE_STORE}. */
+    readonly selectionStateStore = input(inject(KBQ_AG_GRID_ROW_GROUP_SELECTION_STATE_STORE), {
+        alias: 'kbqAgGridRowGroupSelectionStateStore'
+    });
 
     /**
      * Custom component rendered in place of the default group-cell key-only markup — see
@@ -925,6 +1216,9 @@ export class KbqAgGridRowGroup {
     private readonly programmaticallySetNodes = new WeakSet();
     /** Deferred collapse: set on gridReady when groupCols is non-empty; cleared once data is available. */
     private needsInitialCollapse = false;
+    /** Selection restored from kbqAgGridRowGroupSelectionState, staged in onGridReady and
+     * applied once data() is non-empty — see the "update rowData" effect below. */
+    private pendingRestoredSelectedIds: readonly string[] | null = null;
     /** Previous groupCols reference — compared by identity to detect structural changes. */
     private prevGroupCols: string[] | null = null;
     private warnedMissingRowId = false;
@@ -981,6 +1275,19 @@ export class KbqAgGridRowGroup {
                 }
                 this.lastRebuildInputs = { data, groupCols, collapsedPaths, sort };
 
+                // Applies a selection restored from kbqAgGridRowGroupSelectionState once real
+                // data is available — mirrors needsInitialCollapse above: rowData() can still be
+                // [] here (e.g. an async HTTP fetch hasn't resolved yet) when onGridReady staged
+                // this, so applying it there directly could resolve rowIdMap() against no rows
+                // and silently produce nothing. Deferring the resolution to this point, where
+                // data is confirmed non-empty, is what emitSelectionChanged() below relies on.
+                let justRestoredSelection = false;
+                if (this.pendingRestoredSelectedIds && data.length > 0) {
+                    this.selectedRowIds.set(new Set(this.pendingRestoredSelectedIds));
+                    this.pendingRestoredSelectedIds = null;
+                    justRestoredSelection = true;
+                }
+
                 // Restore native AG selection for every visible data row from selectedRowIds —
                 // the definitive source of truth, independent of collapse state. Read untracked:
                 // this effect must only re-run on data/groupCols/collapsedPaths/groupColSort
@@ -1007,6 +1314,8 @@ export class KbqAgGridRowGroup {
                         true
                     );
                 }
+
+                if (justRestoredSelection) this.emitSelectionChanged();
             },
             { allowSignalWrites: true }
         );
@@ -1073,62 +1382,52 @@ export class KbqAgGridRowGroup {
             api.refreshHeader();
         });
 
-        this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => {
-            this.originalColDefs = api.getColumnDefs() ?? [];
-            this.dataColIdToField = collectDataColIdToField(this.originalColDefs);
+        // Persists collapsedPaths whenever it changes (see kbqAgGridRowGroupCollapsedState). Gated on
+        // `api()` being set — same as every other effect above — so this never fires with the
+        // pre-restore default collapsedPaths before onGridReady has applied a stored value: by
+        // the time api() becomes non-null, restore has already run (see onGridReady).
+        effect(() => {
+            const api = this.api();
+            if (!api) return;
 
-            // Group rows are non-selectable — their state lives in groupSelectionState.
-            // Prefer the non-deprecated rowSelection object form when available; fall back
-            // to the legacy setGridOption('isRowSelectable') only for string / absent config.
-            const rowSelection = api.getGridOption('rowSelection');
-            if (rowSelection && typeof rowSelection !== 'string') {
-                // Merge into the existing rowSelection object so user-supplied options are preserved.
-                // checkboxes:false for group rows suppresses AG Grid's own native selection-column
-                // checkbox entirely (rather than just disabling it), so only our custom
-                // group-cell-renderer checkbox is shown in that cell. headerCheckbox:false does the
-                // same for the header "select all" checkbox — AG's own only knows about currently
-                // visible rows and disables itself while any group is collapsed; our own custom one
-                // (see makeSelectionColumnDef) accounts for the full, uncollapsed dataset instead.
-                const originalCheckboxes = rowSelection.checkboxes;
-                const mergedSelection = {
-                    ...rowSelection,
-                    isRowSelectable: ((node: IRowNode<Row>) =>
-                        !isGroupHeaderRow(node.data)) as typeof rowSelection.isRowSelectable,
-                    checkboxes: ((params: CheckboxSelectionCallbackParams<Row>) => {
-                        if (isGroupHeaderRow(params.data)) return false;
-                        return typeof originalCheckboxes === 'function'
-                            ? originalCheckboxes(params)
-                            : (originalCheckboxes ?? true);
-                    }) as typeof rowSelection.checkboxes,
-                    hideDisabledCheckboxes: true,
-                    // headerCheckbox only exists on multiRow selection options.
-                    ...(rowSelection.mode === 'multiRow' ? { headerCheckbox: false } : {})
-                };
-                api.setGridOption('rowSelection', mergedSelection);
-            } else {
-                api.setGridOption('isRowSelectable', (node: IRowNode<Row>) => !isGroupHeaderRow(node.data));
-            }
-            // Render the custom group checkbox in the shared selection column so it lines up
-            // with the native row-selection checkboxes instead of sitting inside the group cell.
-            // Merged onto whatever's already there (the consumer's own [selectionColumnDef]
-            // input, or KbqAgGridTheme's default width) rather than replacing it outright, so
-            // neither is silently discarded regardless of which directive's gridReady handler
-            // runs first — see KbqAgGridTheme.applyDefaultSelectionColumnWidth for the other half.
-            api.setGridOption('selectionColumnDef', {
-                ...api.getGridOption('selectionColumnDef'),
-                ...this.makeSelectionColumnDef()
-            });
-            // Group rows are never truly selected via AG Grid's own API (isRowSelectable is
-            // false for them), so apply AG's `ag-row-selected` row class ourselves, driven by
-            // groupSelectionState, to get the same visual highlight as real selected rows.
-            api.setGridOption('rowClassRules', this.makeRowClassRules());
-            queueMicrotask(() => {
-                if (this.groupCols().length > 0) {
-                    this.needsInitialCollapse = true;
-                }
-                this.api.set(api);
-            });
+            const key = this.collapsedStateKey();
+            if (!key) return;
+
+            // Nothing meaningful for a collapsed path to refer to without a grouping structure
+            // — and clearGroupColumns() already removes any previously-stored state itself.
+            if (this.groupCols().length === 0) return;
+
+            void this.collapsedStateStore().setItem(key, [...this.collapsedPaths()]);
         });
+
+        // Persists selectedRowIds whenever it changes (see kbqAgGridRowGroupSelectionState).
+        // Unlike the collapsedPaths persist effect above, gating on `api()` alone isn't enough
+        // here: onGridReady only *stages* a restored selection in pendingRestoredSelectedIds —
+        // applying it is deferred to the "update rowData" effect until data() is non-empty (see
+        // there). If this effect ran in between (api() set, but data() still []), it would see
+        // the still-default-empty selectedRowIds() and call removeItem(key), wiping the very
+        // selection that's waiting to be applied — permanently, for a URL-based store, if data
+        // never actually arrives. Deferring this effect the same way sidesteps that entirely.
+        effect(() => {
+            const api = this.api();
+            if (!api) return;
+
+            const key = this.selectionStateKey();
+            if (!key) return;
+
+            if (this.pendingRestoredSelectedIds !== null) return;
+
+            const selected = this.selectedRowIds();
+            if (selected.size === 0) {
+                void this.selectionStateStore().removeItem(key);
+            } else {
+                void this.selectionStateStore().setItem(key, [...selected]);
+            }
+        });
+
+        this.grid.gridReady
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(({ api }) => void this.onGridReady(api));
 
         this.grid.rowSelected.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ node }) => {
             // Skip events caused by our own programmatic setSelected calls.
@@ -1203,6 +1502,84 @@ export class KbqAgGridRowGroup {
             // colDefs explicitly. A true no-op when ungrouped (hiddenGroupFieldColIds is already
             // empty by then).
             this.syncGroupFieldVisibility(api, this.groupCols());
+        });
+    }
+
+    /** Runs once per grid instance on `gridReady` — sets up group-aware row selection, the
+     * shared selection column's group checkbox, group row styling, and (if
+     * `kbqAgGridRowGroupCollapsedState` is set) restores previously-collapsed groups before the initial
+     * rowData build. See the class-level `**Persisting collapsed/expanded state**` note. */
+    private async onGridReady(api: GridApi): Promise<void> {
+        this.originalColDefs = api.getColumnDefs() ?? [];
+        this.dataColIdToField = collectDataColIdToField(this.originalColDefs);
+
+        // Group rows are non-selectable — their state lives in groupSelectionState.
+        // Prefer the non-deprecated rowSelection object form when available; fall back
+        // to the legacy setGridOption('isRowSelectable') only for string / absent config.
+        const rowSelection = api.getGridOption('rowSelection');
+        if (rowSelection && typeof rowSelection !== 'string') {
+            // Merge into the existing rowSelection object so user-supplied options are preserved.
+            // checkboxes:false for group rows suppresses AG Grid's own native selection-column
+            // checkbox entirely (rather than just disabling it), so only our custom
+            // group-cell-renderer checkbox is shown in that cell. headerCheckbox:false does the
+            // same for the header "select all" checkbox — AG's own only knows about currently
+            // visible rows and disables itself while any group is collapsed; our own custom one
+            // (see makeSelectionColumnDef) accounts for the full, uncollapsed dataset instead.
+            const originalCheckboxes = rowSelection.checkboxes;
+            const mergedSelection = {
+                ...rowSelection,
+                isRowSelectable: ((node: IRowNode<Row>) =>
+                    !isGroupHeaderRow(node.data)) as typeof rowSelection.isRowSelectable,
+                checkboxes: ((params: CheckboxSelectionCallbackParams<Row>) => {
+                    if (isGroupHeaderRow(params.data)) return false;
+                    return typeof originalCheckboxes === 'function'
+                        ? originalCheckboxes(params)
+                        : (originalCheckboxes ?? true);
+                }) as typeof rowSelection.checkboxes,
+                hideDisabledCheckboxes: true,
+                // headerCheckbox only exists on multiRow selection options.
+                ...(rowSelection.mode === 'multiRow' ? { headerCheckbox: false } : {})
+            };
+            api.setGridOption('rowSelection', mergedSelection);
+        } else {
+            api.setGridOption('isRowSelectable', (node: IRowNode<Row>) => !isGroupHeaderRow(node.data));
+        }
+        // Render the custom group checkbox in the shared selection column so it lines up
+        // with the native row-selection checkboxes instead of sitting inside the group cell.
+        // Merged onto whatever's already there (the consumer's own [selectionColumnDef]
+        // input, or KbqAgGridTheme's default width) rather than replacing it outright, so
+        // neither is silently discarded regardless of which directive's gridReady handler
+        // runs first — see KbqAgGridTheme.applyDefaultSelectionColumnWidth for the other half.
+        api.setGridOption('selectionColumnDef', {
+            ...api.getGridOption('selectionColumnDef'),
+            ...this.makeSelectionColumnDef()
+        });
+        // Group rows are never truly selected via AG Grid's own API (isRowSelectable is
+        // false for them), so apply AG's `ag-row-selected` row class ourselves, driven by
+        // groupSelectionState, to get the same visual highlight as real selected rows.
+        api.setGridOption('rowClassRules', this.makeRowClassRules());
+
+        // Load any previously-persisted collapse/selection state before the first rowData build
+        // (below, via api.set(api)) — a no-op (stays null) when the respective key isn't set, so
+        // these awaits are skipped entirely and the rest of this method still runs synchronously.
+        const key = this.collapsedStateKey();
+        const restoredPaths = key ? await this.collapsedStateStore().getItem(key) : null;
+
+        const selectionKey = this.selectionStateKey();
+        const restoredSelectedIds = selectionKey ? await this.selectionStateStore().getItem(selectionKey) : null;
+
+        queueMicrotask(() => {
+            if (restoredPaths) {
+                this._collapsedPaths.set(new Set(restoredPaths));
+            } else if (this.groupCols().length > 0) {
+                this.needsInitialCollapse = true;
+            }
+            // Staged rather than applied directly — data() can still be [] here (e.g. an async
+            // HTTP fetch feeding [kbqAgGridRowGroupRowData] hasn't resolved yet), and the
+            // "update rowData" effect applies this once data is confirmed non-empty (see
+            // pendingRestoredSelectedIds there).
+            this.pendingRestoredSelectedIds = restoredSelectedIds;
+            this.api.set(api);
         });
     }
 
@@ -1392,10 +1769,15 @@ export class KbqAgGridRowGroup {
         this.groupCols.set(cols);
     }
 
-    /** Removes all group columns, returning the grid to a flat (ungrouped) view. */
+    /** Removes all group columns, returning the grid to a flat (ungrouped) view. Also removes
+     * any persisted collapse state (see `kbqAgGridRowGroupCollapsedState`) — with no grouping structure
+     * there's nothing meaningful left for a stored collapsed path to refer to. */
     clearGroupColumns(): void {
         this.groupCols.set([]);
         this._collapsedPaths.set(new Set());
+
+        const key = this.collapsedStateKey();
+        if (key) void this.collapsedStateStore().removeItem(key);
     }
 
     private makeGroupColDef(): ColDef {

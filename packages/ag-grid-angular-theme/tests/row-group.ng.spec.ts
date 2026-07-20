@@ -6,8 +6,10 @@ import { Subject } from 'rxjs';
 import {
     KbqAgGridRowGroup,
     KbqAgGridRowGroupCellContent,
+    KbqAgGridRowGroupCollapsedStateStore,
     KbqAgGridRowGroupInfo,
-    KbqAgGridRowGroupRowId
+    KbqAgGridRowGroupRowId,
+    KbqAgGridRowGroupSelectionStateStore
 } from '../src/row-group.ng';
 
 /** Shared row id extractor bound on every test host below — resolves each row's `id` field. */
@@ -293,6 +295,74 @@ const setupWithGroups = async () => {
     result.directive.expandAll();
     await waitForNodes(result.grid, result.fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
     return result;
+};
+
+@Component({
+    selector: 'test-row-group-state-grid',
+    standalone: true,
+    template: `
+        <ag-grid-angular
+            kbqAgGridRowGroup
+            [kbqAgGridRowGroupRowData]="rowData()"
+            [kbqAgGridRowGroupRowId]="testRowId"
+            [kbqAgGridRowGroupCollapsedState]="collapsedStateKey"
+            [kbqAgGridRowGroupCollapsedStateStore]="store"
+            [kbqAgGridRowGroupSelectionState]="selectionStateKey"
+            [kbqAgGridRowGroupSelectionStateStore]="selectionStore"
+            [(kbqAgGridRowGroupCols)]="groupCols"
+        />
+    `,
+    imports: [TestAgGridAngularStub, KbqAgGridRowGroup]
+})
+class TestRowGroupStateGrid {
+    collapsedStateKey = 'row-group-state';
+    store: KbqAgGridRowGroupCollapsedStateStore = {
+        getItem: () => null,
+        setItem: () => undefined,
+        removeItem: () => undefined
+    };
+    selectionStateKey: string | undefined = undefined;
+    selectionStore: KbqAgGridRowGroupSelectionStateStore = {
+        getItem: () => null,
+        setItem: () => undefined,
+        removeItem: () => undefined
+    };
+    readonly rowData = signal<Record<string, unknown>[]>([]);
+    readonly groupCols = signal<string[]>([]);
+    readonly grid = viewChild.required(TestAgGridAngularStub);
+    readonly directive = viewChild.required(KbqAgGridRowGroup);
+    protected readonly testRowId = testRowId;
+}
+
+/** Mirrors `setup()`, but for `TestRowGroupStateGrid` — lets each test configure `collapsedStateKey`,
+ * `store`, and pre-gridReady `groupCols` (simulating the consumer having already restored
+ * grouping fields themselves, as the class-level `**Persisting collapsed/expanded state**`
+ * note recommends) before `emitGridReady()` fires. */
+const setupWithState = async (params: {
+    data?: Record<string, unknown>[];
+    key?: string;
+    store: KbqAgGridRowGroupCollapsedStateStore;
+    selectionKey?: string;
+    selectionStore?: KbqAgGridRowGroupSelectionStateStore;
+    groupCols?: string[];
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+}) => {
+    const { fixture } = await render(TestRowGroupStateGrid, {
+        componentProperties: {
+            collapsedStateKey: params.key ?? 'row-group-state',
+            store: params.store,
+            ...(params.selectionKey !== undefined ? { selectionStateKey: params.selectionKey } : {}),
+            ...(params.selectionStore ? { selectionStore: params.selectionStore } : {})
+        }
+    });
+    fixture.componentInstance.rowData.set(params.data ?? DATA);
+    if (params.groupCols) fixture.componentInstance.groupCols.set(params.groupCols);
+    // Propagate the two-way `[(kbqAgGridRowGroupCols)]` binding into the directive's own model
+    // signal before gridReady — the host/directive signals only sync during change detection.
+    fixture.detectChanges();
+    const grid = fixture.componentInstance.grid();
+    grid.emitGridReady();
+    return { fixture, grid, directive: fixture.componentInstance.directive() };
 };
 
 describe(KbqAgGridRowGroup.name, () => {
@@ -1873,6 +1943,372 @@ describe(KbqAgGridRowGroup.name, () => {
             expect(emitSpy).toHaveBeenCalledTimes(1);
             const [[emitted]] = emitSpy.mock.calls;
             expect(emitted.map((row) => String(row.id))).toEqual(['1']);
+        });
+    });
+
+    describe('collapsed state persistence', () => {
+        it('restores collapsed paths from the store on init when groupCols already matches', async () => {
+            const storedPaths = [groupPath('USA')];
+            const store: KbqAgGridRowGroupCollapsedStateStore = {
+                getItem: jest.fn(() => storedPaths),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+
+            const { directive } = await setupWithState({
+                key: 'grid-row-group-state-1',
+                store,
+                groupCols: ['country']
+            });
+
+            await waitFor(() => {
+                expect(store.getItem).toHaveBeenCalledWith('grid-row-group-state-1');
+                expect(directive.collapsedPaths()).toEqual(new Set(storedPaths));
+            });
+        });
+
+        it('falls back to the default top-level auto-collapse when the store returns null', async () => {
+            const store: KbqAgGridRowGroupCollapsedStateStore = {
+                getItem: jest.fn(() => null),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+
+            const { directive, grid, fixture } = await setupWithState({
+                key: 'grid-row-group-state-2',
+                store,
+                groupCols: ['country']
+            });
+
+            await waitFor(() => expect(store.getItem).toHaveBeenCalledWith('grid-row-group-state-2'));
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+
+            expect(directive.collapsedPaths()).toEqual(new Set([groupPath('USA'), groupPath('GBR')]));
+        });
+
+        it('a restored path is inert once groupCols no longer matches what it was saved under', async () => {
+            const storedPaths = [groupPath('USA')];
+            const store: KbqAgGridRowGroupCollapsedStateStore = {
+                getItem: jest.fn(() => storedPaths),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+
+            // groupCols is left at its default ([]) — simulates a consumer that restores
+            // collapsedPaths via the store but doesn't also restore the grouping fields
+            // themselves (see the class-level "Persisting collapsed/expanded state" note).
+            const { directive, grid } = await setupWithState({ key: 'grid-row-group-state-x', store });
+
+            await waitFor(() => {
+                expect(store.getItem).toHaveBeenCalled();
+                expect(directive.collapsedPaths()).toEqual(new Set(storedPaths));
+            });
+            // With no matching grouping structure, rows pass through flat — the restored path
+            // has nothing to apply to.
+            expect(grid.mock.nodes.every((n) => !isGroupHeader(n.data))).toBe(true);
+        });
+
+        it('saves collapsedPaths to the store when a group is toggled', async () => {
+            const store: KbqAgGridRowGroupCollapsedStateStore = {
+                getItem: jest.fn(() => null),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+
+            const { directive, grid, fixture } = await setupWithState({
+                key: 'grid-row-group-state-3',
+                store,
+                groupCols: ['country']
+            });
+            // groupCols was already set at gridReady, so the default top-level auto-collapse
+            // (no stored value to restore) starts every top-level group collapsed — expand
+            // everything first so the toggle below has an unambiguous, single-path effect.
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+            directive.expandAll();
+
+            directive.toggleCollapse(groupPath('USA'));
+
+            await waitFor(() => {
+                expect(store.setItem).toHaveBeenCalledWith('grid-row-group-state-3', [groupPath('USA')]);
+            });
+        });
+
+        it('persists an empty array when everything is expanded, rather than removing the item', async () => {
+            const store: KbqAgGridRowGroupCollapsedStateStore = {
+                getItem: jest.fn(() => null),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+
+            const { directive, grid, fixture } = await setupWithState({
+                key: 'grid-row-group-state-4',
+                store,
+                groupCols: ['country']
+            });
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+
+            directive.expandAll();
+
+            await waitFor(() => {
+                expect(store.setItem).toHaveBeenCalledWith('grid-row-group-state-4', []);
+            });
+            expect(store.removeItem).not.toHaveBeenCalled();
+        });
+
+        it('does not persist while ungrouped', async () => {
+            const store: KbqAgGridRowGroupCollapsedStateStore = {
+                getItem: jest.fn(() => null),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+
+            await setupWithState({ key: 'grid-row-group-state-5', store });
+
+            await waitFor(() => expect(store.getItem).toHaveBeenCalled());
+            expect(store.setItem).not.toHaveBeenCalled();
+        });
+
+        it('clearGroupColumns removes the stored state', async () => {
+            const store: KbqAgGridRowGroupCollapsedStateStore = {
+                getItem: jest.fn(() => null),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+
+            const { directive, grid, fixture } = await setupWithState({
+                key: 'grid-row-group-state-6',
+                store,
+                groupCols: ['country']
+            });
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+
+            directive.clearGroupColumns();
+
+            expect(store.removeItem).toHaveBeenCalledWith('grid-row-group-state-6');
+        });
+
+        it('supports async store methods', async () => {
+            const storedPaths = [groupPath('USA')];
+            const store: KbqAgGridRowGroupCollapsedStateStore = {
+                // eslint-disable-next-line @typescript-eslint/promise-function-async
+                getItem: jest.fn(() => Promise.resolve(storedPaths)),
+                // eslint-disable-next-line @typescript-eslint/promise-function-async
+                setItem: jest.fn(() => Promise.resolve(undefined)),
+                // eslint-disable-next-line @typescript-eslint/promise-function-async
+                removeItem: jest.fn(() => Promise.resolve(undefined))
+            };
+
+            const { directive } = await setupWithState({
+                key: 'grid-row-group-state-7',
+                store,
+                groupCols: ['country']
+            });
+
+            await waitFor(() => {
+                expect(directive.collapsedPaths()).toEqual(new Set(storedPaths));
+            });
+        });
+    });
+
+    describe('selection persistence', () => {
+        const noopStateStore: KbqAgGridRowGroupCollapsedStateStore = {
+            getItem: () => null,
+            setItem: () => undefined,
+            removeItem: () => undefined
+        };
+
+        it('restores selected row ids from the store on init, including native node selection', async () => {
+            const selectionStore: KbqAgGridRowGroupSelectionStateStore = {
+                getItem: jest.fn(() => ['1']),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+
+            const { directive, grid, fixture } = await setupWithState({
+                key: 'grid-row-group-selection-1',
+                store: noopStateStore,
+                selectionKey: 'grid-row-group-selection-1-sel',
+                selectionStore,
+                groupCols: ['country']
+            });
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+
+            expect(selectionStore.getItem).toHaveBeenCalledWith('grid-row-group-selection-1-sel');
+            expect(directive.overallSelectionState()).toBe('indeterminate');
+
+            // The default top-level auto-collapse (see "collapsed state persistence") hides row
+            // '1' inside a collapsed "USA" group initially — expand to materialize it as an AG
+            // node and confirm the restored selection was synced onto it.
+            directive.expandAll();
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => !isGroupHeader(n.data)));
+            const row1 = grid.mock.nodes.find((n) => n.data.id === '1')!;
+            expect(row1.isSelected()).toBe(true);
+        });
+
+        it('saves selectedRowIds to the store when setRowSelected is called', async () => {
+            const selectionStore: KbqAgGridRowGroupSelectionStateStore = {
+                getItem: jest.fn(() => null),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+
+            const { directive } = await setupWithState({
+                key: 'grid-row-group-selection-2',
+                store: noopStateStore,
+                selectionKey: 'grid-row-group-selection-2-sel',
+                selectionStore
+            });
+            await waitFor(() => expect(selectionStore.getItem).toHaveBeenCalled());
+
+            directive.setRowSelected('1', true);
+
+            await waitFor(() => {
+                expect(selectionStore.setItem).toHaveBeenCalledWith('grid-row-group-selection-2-sel', ['1']);
+            });
+        });
+
+        it('removes stored selection once everything is deselected', async () => {
+            const selectionStore: KbqAgGridRowGroupSelectionStateStore = {
+                getItem: jest.fn(() => null),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+
+            const { directive } = await setupWithState({
+                key: 'grid-row-group-selection-3',
+                store: noopStateStore,
+                selectionKey: 'grid-row-group-selection-3-sel',
+                selectionStore
+            });
+            await waitFor(() => expect(selectionStore.getItem).toHaveBeenCalled());
+
+            directive.setRowSelected('1', true);
+            await waitFor(() => expect(selectionStore.setItem).toHaveBeenCalled());
+
+            directive.setRowSelected('1', false);
+
+            await waitFor(() => {
+                expect(selectionStore.removeItem).toHaveBeenCalledWith('grid-row-group-selection-3-sel');
+            });
+        });
+
+        it('does not persist selection when no [kbqAgGridRowGroupSelectionState] key is bound', async () => {
+            const selectionStore: KbqAgGridRowGroupSelectionStateStore = {
+                getItem: jest.fn(() => null),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+
+            // selectionKey intentionally omitted — the directive's own default (undefined).
+            const { directive } = await setupWithState({
+                key: 'grid-row-group-selection-6',
+                store: noopStateStore,
+                selectionStore
+            });
+
+            directive.setRowSelected('1', true);
+
+            expect(selectionStore.getItem).not.toHaveBeenCalled();
+            expect(selectionStore.setItem).not.toHaveBeenCalled();
+        });
+
+        it('clearGroupColumns does not clear the persisted selection — selection is independent of grouping', async () => {
+            const selectionStore: KbqAgGridRowGroupSelectionStateStore = {
+                getItem: jest.fn(() => null),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+
+            const { directive, grid, fixture } = await setupWithState({
+                key: 'grid-row-group-selection-4',
+                store: noopStateStore,
+                selectionKey: 'grid-row-group-selection-4-sel',
+                selectionStore,
+                groupCols: ['country']
+            });
+            await waitForNodes(grid, fixture, (nodes) => nodes.some((n) => isGroupHeader(n.data)));
+
+            directive.setRowSelected('1', true);
+            await waitFor(() =>
+                expect(selectionStore.setItem).toHaveBeenCalledWith('grid-row-group-selection-4-sel', ['1'])
+            );
+
+            // removeItem legitimately fires once already on mount (empty selection at init,
+            // before setRowSelected above) — clear that baseline call so the assertion below
+            // is only about what clearGroupColumns() itself does.
+            jest.mocked(selectionStore.removeItem).mockClear();
+
+            directive.clearGroupColumns();
+
+            expect(selectionStore.removeItem).not.toHaveBeenCalled();
+        });
+
+        it('supports async selection store methods', async () => {
+            const selectionStore: KbqAgGridRowGroupSelectionStateStore = {
+                // eslint-disable-next-line @typescript-eslint/promise-function-async
+                getItem: jest.fn(() => Promise.resolve(['1', '2'])),
+                // eslint-disable-next-line @typescript-eslint/promise-function-async
+                setItem: jest.fn(() => Promise.resolve(undefined)),
+                // eslint-disable-next-line @typescript-eslint/promise-function-async
+                removeItem: jest.fn(() => Promise.resolve(undefined))
+            };
+
+            const { directive } = await setupWithState({
+                key: 'grid-row-group-selection-5',
+                store: noopStateStore,
+                selectionKey: 'grid-row-group-selection-5-sel',
+                selectionStore,
+                groupCols: ['country']
+            });
+
+            // DATA has 3 rows total; ids '1' and '2' (both 'USA') restored as selected — the
+            // third ('3', 'GBR') is not, so the overall selection is partial.
+            await waitFor(() => {
+                expect(directive.overallSelectionState()).toBe('indeterminate');
+            });
+        });
+
+        it('restores selection even when data arrives after gridReady, and notifies rowSelectionChanged once it does', async () => {
+            const selectionStore: KbqAgGridRowGroupSelectionStateStore = {
+                getItem: jest.fn(() => ['1']),
+                setItem: jest.fn(),
+                removeItem: jest.fn()
+            };
+
+            const { fixture } = await render(TestRowGroupStateGrid, {
+                componentProperties: {
+                    collapsedStateKey: 'grid-row-group-selection-late',
+                    store: noopStateStore,
+                    selectionStateKey: 'grid-row-group-selection-late-sel',
+                    selectionStore
+                }
+            });
+            const directive = fixture.componentInstance.directive();
+            const emitSpy = jest.spyOn(directive.rowSelectionChanged, 'emit');
+
+            // Emit gridReady BEFORE rowData is available — simulates an async HTTP response
+            // (e.g. devInjectRowData()) arriving after the grid has already initialized.
+            fixture.componentInstance.grid().emitGridReady();
+
+            // waitFor's macrotask-based polling flushes every pending microtask in between
+            // checks, so by the time this resolves onGridReady's queueMicrotask (which stages
+            // pendingRestoredSelectedIds) is guaranteed to have already run too.
+            await waitFor(() => expect(selectionStore.getItem).toHaveBeenCalled());
+            expect(emitSpy).not.toHaveBeenCalled();
+            // The persist effect must not treat the still-empty selectedRowIds() (data() is []
+            // at this point) as "nothing selected" and wipe the restore that's staged but not
+            // yet applied — this is the exact race the pendingRestoredSelectedIds guard prevents.
+            expect(selectionStore.removeItem).not.toHaveBeenCalled();
+
+            // Data arrives after the microtask (simulates the HTTP response resolving)
+            fixture.componentInstance.rowData.set(DATA);
+            fixture.detectChanges();
+
+            await waitFor(() => {
+                expect(emitSpy).toHaveBeenCalledTimes(1);
+                const [[emitted]] = emitSpy.mock.calls;
+                expect(emitted.map((row) => String(row.id))).toEqual(['1']);
+            });
         });
     });
 });

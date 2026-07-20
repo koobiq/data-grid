@@ -79,6 +79,24 @@ if (isDevMode()) {
                 loadComponent: async () => import('./tests/row-actions.ng').then((m) => m.DevRowActions)
             },
             {
+                path: 'row-selection-state',
+                loadComponent: async () => import('./tests/row-selection-state.ng').then((m) => m.DevRowSelectionState)
+            },
+            {
+                path: 'row-selection-state-query-params',
+                loadComponent: async () =>
+                    import('./tests/row-selection-state.ng').then((m) => m.DevRowSelectionStateQueryParams)
+            },
+            {
+                path: 'row-focus-state',
+                loadComponent: async () => import('./tests/row-focus-state.ng').then((m) => m.DevRowFocusState)
+            },
+            {
+                path: 'row-focus-state-query-params',
+                loadComponent: async () =>
+                    import('./tests/row-focus-state.ng').then((m) => m.DevRowFocusStateQueryParams)
+            },
+            {
                 path: 'column-menu',
                 loadComponent: async () => import('./tests/column-menu.ng').then((m) => m.DevColumnMenu)
             },

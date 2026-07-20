@@ -8,7 +8,9 @@ import { KbqAgGridInfiniteSelection } from './infinite-selection.ng';
 import { KbqAgGridLoadingOverlay } from './loading-overlay.ng';
 import { KbqAgGridQuickFilterState } from './quick-filter-state.ng';
 import { KbqAgGridRowActions } from './row-actions.ng';
+import { KbqAgGridRowFocusState } from './row-focus-state.ng';
 import { KbqAgGridRowGroup } from './row-group.ng';
+import { KbqAgGridRowSelectionState } from './row-selection-state.ng';
 import { KbqAgGridSelectAllRowsByCtrlA } from './select-all-rows-by-ctrl-a.ng';
 import { KbqAgGridSelectRowsByCtrlClick } from './select-rows-by-ctrl-click.ng';
 import { KbqAgGridSelectRowsByShiftArrow } from './select-rows-by-shift-arrow.ng';
@@ -36,7 +38,9 @@ const COMPONENTS = [
     KbqAgGridQuickFilterState,
     KbqAgGridExternalFilterState,
     KbqAgGridLoadingOverlay,
-    KbqAgGridRowGroup
+    KbqAgGridRowGroup,
+    KbqAgGridRowSelectionState,
+    KbqAgGridRowFocusState
 ];
 
 @NgModule({
