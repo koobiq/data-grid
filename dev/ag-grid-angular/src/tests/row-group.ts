@@ -1,11 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, input, model, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, model, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
     KbqAgGridRowGroup,
     KbqAgGridRowGroupCellContent,
+    KbqAgGridRowGroupCollapsedStateLocalStorageStore,
     kbqAgGridRowGroupColOptionsProvider,
     KbqAgGridRowGroupInfo,
     KbqAgGridRowGroupRowId,
+    KbqAgGridRowGroupSelectionStateLocalStorageStore,
     KbqAgGridThemeModule
 } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
@@ -101,6 +103,9 @@ class DevRowGroupCustomCellContent implements KbqAgGridRowGroupCellContent {
             <button type="button" data-testid="clearGroupColSortBtn" (click)="clearGroupColSort()">
                 Clear group column sort
             </button>
+            <button type="button" data-testid="resetRowGroupStateBtn" (click)="resetGroupState()">
+                Reset group state
+            </button>
             <label>
                 <input type="checkbox" data-testid="useCustomCellContentCheckbox" [(ngModel)]="useCustomCellContent" />
                 Use custom group cell content
@@ -117,6 +122,10 @@ class DevRowGroupCustomCellContent implements KbqAgGridRowGroupCellContent {
             [columnDefs]="columnDefs"
             [(kbqAgGridRowGroupCols)]="groupCols"
             [kbqAgGridRowGroupCellContent]="cellContent()"
+            [kbqAgGridRowGroupCollapsedState]="collapsedStateKey"
+            [kbqAgGridRowGroupCollapsedStateStore]="collapsedStateStore"
+            [kbqAgGridRowGroupSelectionState]="selectionStateKey"
+            [kbqAgGridRowGroupSelectionStateStore]="selectionStateStore"
             [defaultColDef]="defaultColDef"
             [rowSelection]="rowSelection"
             [animateRows]="false"
@@ -144,7 +153,15 @@ export class DevRowGroup {
     protected readonly groupCols = signal<string[]>(['country', 'sport']);
     protected readonly rowSelection = { mode: 'multiRow', checkboxes: true } as const;
     protected readonly selectedRows = signal<Record<string, unknown>[]>([]);
+    protected readonly collapsedStateKey = 'dev-ag-grid-row-group-collapsed-state';
+    protected readonly collapsedStateStore = inject(KbqAgGridRowGroupCollapsedStateLocalStorageStore);
+    protected readonly selectionStateKey = 'dev-ag-grid-row-group-selection-state';
+    protected readonly selectionStateStore = inject(KbqAgGridRowGroupSelectionStateLocalStorageStore);
     private readonly group = viewChild.required(KbqAgGridRowGroup);
+
+    protected resetGroupState(): void {
+        this.group().clearGroupColumns();
+    }
 
     protected expandAll(): void {
         this.group().expandAll();
