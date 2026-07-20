@@ -1401,14 +1401,21 @@ export class KbqAgGridRowGroup {
         });
 
         // Persists selectedRowIds whenever it changes (see kbqAgGridRowGroupSelectionState).
-        // Gated on `api()` for the same reason as the collapsedPaths persist effect above — by
-        // the time api() is set, onGridReady has already applied any restored selection.
+        // Unlike the collapsedPaths persist effect above, gating on `api()` alone isn't enough
+        // here: onGridReady only *stages* a restored selection in pendingRestoredSelectedIds —
+        // applying it is deferred to the "update rowData" effect until data() is non-empty (see
+        // there). If this effect ran in between (api() set, but data() still []), it would see
+        // the still-default-empty selectedRowIds() and call removeItem(key), wiping the very
+        // selection that's waiting to be applied — permanently, for a URL-based store, if data
+        // never actually arrives. Deferring this effect the same way sidesteps that entirely.
         effect(() => {
             const api = this.api();
             if (!api) return;
 
             const key = this.selectionStateKey();
             if (!key) return;
+
+            if (this.pendingRestoredSelectedIds !== null) return;
 
             const selected = this.selectedRowIds();
             if (selected.size === 0) {

@@ -2295,6 +2295,10 @@ describe(KbqAgGridRowGroup.name, () => {
             // pendingRestoredSelectedIds) is guaranteed to have already run too.
             await waitFor(() => expect(selectionStore.getItem).toHaveBeenCalled());
             expect(emitSpy).not.toHaveBeenCalled();
+            // The persist effect must not treat the still-empty selectedRowIds() (data() is []
+            // at this point) as "nothing selected" and wipe the restore that's staged but not
+            // yet applied — this is the exact race the pendingRestoredSelectedIds guard prevents.
+            expect(selectionStore.removeItem).not.toHaveBeenCalled();
 
             // Data arrives after the microtask (simulates the HTTP response resolving)
             fixture.componentInstance.rowData.set(DATA);

@@ -120,6 +120,53 @@ describe(KbqAgGridRowSelectionState.name, () => {
         });
     });
 
+    it('deselects a node that is selected but not in the persisted set', async () => {
+        // Simulates a default rowSelection config, or a click that raced ahead of
+        // firstDataRendered — either way, a node selected before restore runs that isn't part
+        // of the persisted set must not survive the restore.
+        const nodeA = makeNode('a', true);
+        const nodeB = makeNode('b');
+        const store: KbqAgGridRowSelectionStateStore = {
+            getItem: jest.fn(() => ['b']),
+            setItem: jest.fn(),
+            removeItem: jest.fn()
+        };
+        const apiMock = createApiMock([nodeA, nodeB]);
+
+        const { fixture } = await render(TestRowSelectionStateGrid, {
+            componentProperties: { key: 'grid-row-selection-stale', store }
+        });
+
+        fixture.componentInstance.grid().emitGridReady(apiMock.api);
+        apiMock.dispatch('firstDataRendered');
+
+        await waitFor(() => {
+            expect(nodeA.isSelected()).toBe(false);
+            expect(nodeB.isSelected()).toBe(true);
+        });
+    });
+
+    it('clears a pre-existing selection when nothing is persisted', async () => {
+        const nodeA = makeNode('a', true);
+        const store: KbqAgGridRowSelectionStateStore = {
+            getItem: jest.fn(() => null),
+            setItem: jest.fn(),
+            removeItem: jest.fn()
+        };
+        const apiMock = createApiMock([nodeA]);
+
+        const { fixture } = await render(TestRowSelectionStateGrid, {
+            componentProperties: { key: 'grid-row-selection-clear', store }
+        });
+
+        fixture.componentInstance.grid().emitGridReady(apiMock.api);
+        apiMock.dispatch('firstDataRendered');
+
+        await waitFor(() => {
+            expect(nodeA.isSelected()).toBe(false);
+        });
+    });
+
     it('does not select anything when store returns null', async () => {
         const nodeA = makeNode('a');
         const store: KbqAgGridRowSelectionStateStore = {

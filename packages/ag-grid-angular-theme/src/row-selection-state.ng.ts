@@ -199,18 +199,29 @@ export class KbqAgGridRowSelectionState {
 
     private async restore(api: GridApi, key: string, store: KbqAgGridRowSelectionStateStore): Promise<void> {
         const ids = await store.getItem(key);
+        const idSet = new Set(ids ?? []);
 
-        if (!ids || ids.length === 0) return;
-
-        const idSet = new Set(ids);
-        const nodes: IRowNode[] = [];
+        // Persisted selection is the source of truth — reconcile the grid's current selection to
+        // match it exactly, rather than only adding matches. Only adding would leave any
+        // pre-existing selection (e.g. a default rowSelection config, or a click that raced ahead
+        // of firstDataRendered) stuck selected alongside the restored rows.
+        const toSelect: IRowNode[] = [];
+        const toDeselect: IRowNode[] = [];
 
         api.forEachNode((node) => {
-            if (node.id !== undefined && idSet.has(node.id)) nodes.push(node);
+            const shouldBeSelected = node.id !== undefined && idSet.has(node.id);
+            if (shouldBeSelected && !node.isSelected()) {
+                toSelect.push(node);
+            } else if (!shouldBeSelected && node.isSelected()) {
+                toDeselect.push(node);
+            }
         });
 
-        if (nodes.length > 0) {
-            api.setNodesSelected({ nodes, newValue: true, source: 'api' });
+        if (toDeselect.length > 0) {
+            api.setNodesSelected({ nodes: toDeselect, newValue: false, source: 'api' });
+        }
+        if (toSelect.length > 0) {
+            api.setNodesSelected({ nodes: toSelect, newValue: true, source: 'api' });
         }
     }
 }
