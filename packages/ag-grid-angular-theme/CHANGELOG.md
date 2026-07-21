@@ -1,3 +1,14 @@
+## 34.5.0 (2026-07-21)
+
+### 🚀 Features
+
+- **ag-grid-angular-theme:** added row (row group) state and store directives (#DS-5046) ([#195](https://github.com/koobiq/data-grid/pull/195))
+- **ag-grid-angular-theme:** added `KbqAgGridRowGroup` directive (#DS-4970) ([#190](https://github.com/koobiq/data-grid/pull/190))
+
+### ❤️ Thank You
+
+- Artem Belik @artembelik
+
 ## 34.4.0 (2026-07-01)
 
 ### 🚀 Features
