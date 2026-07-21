@@ -124,6 +124,10 @@ if (isDevMode()) {
             {
                 path: 'row-group',
                 loadComponent: async () => import('./tests/row-group').then((m) => m.DevRowGroup)
+            },
+            {
+                path: 'export',
+                loadComponent: async () => import('./tests/export.ng').then((m) => m.DevExport)
             }
         ]
     };
