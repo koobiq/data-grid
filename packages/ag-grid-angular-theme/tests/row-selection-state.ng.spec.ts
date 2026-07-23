@@ -357,4 +357,38 @@ describe('KbqAgGridRowSelectionState', () => {
 
         expect(store.getItem).not.toHaveBeenCalled();
     });
+
+    it('does not touch grid selection when destroyed while store.getItem is still pending', async () => {
+        const nodeB = makeNode('b');
+        let resolveGetItem: (value: string[] | null) => void = () => undefined;
+        const pendingItem = new Promise<string[] | null>((resolve) => {
+            resolveGetItem = resolve;
+        });
+        const store: KbqAgGridRowSelectionStateStore = {
+            getItem: jest.fn(async () => pendingItem),
+            setItem: jest.fn(),
+            removeItem: jest.fn()
+        };
+        const apiMock = createApiMock([nodeB]);
+
+        const { fixture } = await render(TestRowSelectionStateGrid, {
+            componentProperties: { key: 'grid-row-selection-9', store }
+        });
+
+        const grid = fixture.componentInstance.grid();
+
+        grid.emitGridReady(apiMock.api);
+        grid.emitFirstDataRendered(apiMock.api);
+
+        await waitFor(() => expect(store.getItem).toHaveBeenCalledWith('grid-row-selection-9'));
+
+        // Destroy while the store's Promise is still pending — mirrors a slow, consumer-provided
+        // async store (e.g. a network round trip) resolving after the directive has torn down.
+        fixture.destroy();
+        resolveGetItem(['b']);
+        await Promise.resolve();
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(apiMock.api.setNodesSelected).not.toHaveBeenCalled();
+    });
 });

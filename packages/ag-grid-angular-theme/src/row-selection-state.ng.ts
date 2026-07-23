@@ -150,7 +150,13 @@ export class KbqAgGridRowSelectionState {
         alias: 'kbqAgGridRowSelectionStateStore'
     });
 
+    private destroyed = false;
+
     constructor() {
+        this.destroyRef.onDestroy(() => {
+            this.destroyed = true;
+        });
+
         this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => this.initSave(api));
 
         // Subscribes here, in the constructor, rather than registering a native
@@ -208,6 +214,12 @@ export class KbqAgGridRowSelectionState {
         const store = this.store();
 
         const ids = await store.getItem(key);
+
+        // The store's `getItem` can be a slow, consumer-provided Promise (e.g. a network round
+        // trip) that resolves after this directive — and the grid api along with it — has already
+        // been torn down; bail out before touching either.
+        if (this.destroyed) return;
+
         const idSet = new Set(ids ?? []);
 
         // Persisted selection is the source of truth — reconcile the grid's current selection to

@@ -155,8 +155,13 @@ export class KbqAgGridRowFocusState {
     readonly store = input(inject(KBQ_AG_GRID_ROW_FOCUS_STATE_STORE), { alias: 'kbqAgGridRowFocusStateStore' });
 
     private restoring = false;
+    private destroyed = false;
 
     constructor() {
+        this.destroyRef.onDestroy(() => {
+            this.destroyed = true;
+        });
+
         this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => this.initSave(api));
 
         // Subscribes here, in the constructor, rather than registering a native
@@ -188,7 +193,10 @@ export class KbqAgGridRowFocusState {
 
         const item = await store.getItem(key);
 
-        if (!item) return;
+        // The store's `getItem` can be a slow, consumer-provided Promise (e.g. a network round
+        // trip) that resolves after this directive — and the grid api along with it — has already
+        // been torn down; bail out before touching either.
+        if (this.destroyed || !item) return;
 
         const node = api.getRowNode(item.rowId);
 
