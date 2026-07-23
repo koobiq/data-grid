@@ -64,10 +64,19 @@ const createApiMock = (
 })
 class TestAgGridAngularStub {
     readonly gridReady = new Subject<{ api: GridApi }>();
-    readonly api = createApiMock().api;
+    readonly firstDataRendered = new Subject<{ api: GridApi }>();
+    // Mirrors real ag-grid-angular, which assigns its `api` property synchronously before either
+    // output fires, so directives reading `this.grid.api` see the right instance.
+    api = createApiMock().api;
 
     emitGridReady(api: GridApi = this.api): void {
+        this.api = api;
         this.gridReady.next({ api });
+    }
+
+    emitFirstDataRendered(api: GridApi = this.api): void {
+        this.api = api;
+        this.firstDataRendered.next({ api });
     }
 }
 
@@ -107,7 +116,7 @@ describe('KbqAgGridRowSelectionState', () => {
         });
 
         fixture.componentInstance.grid().emitGridReady(apiMock.api);
-        apiMock.dispatch('firstDataRendered');
+        fixture.componentInstance.grid().emitFirstDataRendered(apiMock.api);
 
         await waitFor(() => {
             expect(store.getItem).toHaveBeenCalledWith('grid-row-selection-1');
@@ -138,7 +147,7 @@ describe('KbqAgGridRowSelectionState', () => {
         });
 
         fixture.componentInstance.grid().emitGridReady(apiMock.api);
-        apiMock.dispatch('firstDataRendered');
+        fixture.componentInstance.grid().emitFirstDataRendered(apiMock.api);
 
         await waitFor(() => {
             expect(nodeA.isSelected()).toBe(false);
@@ -160,7 +169,7 @@ describe('KbqAgGridRowSelectionState', () => {
         });
 
         fixture.componentInstance.grid().emitGridReady(apiMock.api);
-        apiMock.dispatch('firstDataRendered');
+        fixture.componentInstance.grid().emitFirstDataRendered(apiMock.api);
 
         await waitFor(() => {
             expect(nodeA.isSelected()).toBe(false);
@@ -181,7 +190,7 @@ describe('KbqAgGridRowSelectionState', () => {
         });
 
         fixture.componentInstance.grid().emitGridReady(apiMock.api);
-        apiMock.dispatch('firstDataRendered');
+        fixture.componentInstance.grid().emitFirstDataRendered(apiMock.api);
 
         await waitFor(() => {
             expect(store.getItem).toHaveBeenCalledWith('grid-row-selection-2');
@@ -291,7 +300,7 @@ describe('KbqAgGridRowSelectionState', () => {
         expect(fixture.componentInstance.grid().api.deselectAll).toHaveBeenCalled();
     });
 
-    it('removes all event listeners on destroy', async () => {
+    it('removes the selectionChanged listener on destroy', async () => {
         const store: KbqAgGridRowSelectionStateStore = {
             getItem: jest.fn(() => null),
             setItem: jest.fn(),
@@ -322,13 +331,64 @@ describe('KbqAgGridRowSelectionState', () => {
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(apiMock.api.removeEventListener).toHaveBeenCalledWith(
-            'firstDataRendered',
-            getHandler('firstDataRendered')
-        );
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(apiMock.api.removeEventListener).toHaveBeenCalledWith(
             'selectionChanged',
             getHandler('selectionChanged')
         );
+    });
+
+    it('stops restoring from firstDataRendered on destroy', async () => {
+        const nodeB = makeNode('b');
+        const store: KbqAgGridRowSelectionStateStore = {
+            getItem: jest.fn(() => ['b']),
+            setItem: jest.fn(),
+            removeItem: jest.fn()
+        };
+        const apiMock = createApiMock([nodeB]);
+
+        const { fixture } = await render(TestRowSelectionStateGrid, {
+            componentProperties: { key: 'grid-row-selection-8', store }
+        });
+
+        const grid = fixture.componentInstance.grid();
+
+        grid.emitGridReady(apiMock.api);
+        fixture.destroy();
+        grid.emitFirstDataRendered(apiMock.api);
+
+        expect(store.getItem).not.toHaveBeenCalled();
+    });
+
+    it('does not touch grid selection when destroyed while store.getItem is still pending', async () => {
+        const nodeB = makeNode('b');
+        let resolveGetItem: (value: string[] | null) => void = () => undefined;
+        const pendingItem = new Promise<string[] | null>((resolve) => {
+            resolveGetItem = resolve;
+        });
+        const store: KbqAgGridRowSelectionStateStore = {
+            getItem: jest.fn(async () => pendingItem),
+            setItem: jest.fn(),
+            removeItem: jest.fn()
+        };
+        const apiMock = createApiMock([nodeB]);
+
+        const { fixture } = await render(TestRowSelectionStateGrid, {
+            componentProperties: { key: 'grid-row-selection-9', store }
+        });
+
+        const grid = fixture.componentInstance.grid();
+
+        grid.emitGridReady(apiMock.api);
+        grid.emitFirstDataRendered(apiMock.api);
+
+        await waitFor(() => expect(store.getItem).toHaveBeenCalledWith('grid-row-selection-9'));
+
+        // Destroy while the store's Promise is still pending — mirrors a slow, consumer-provided
+        // async store (e.g. a network round trip) resolving after the directive has torn down.
+        fixture.destroy();
+        resolveGetItem(['b']);
+        await Promise.resolve();
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(apiMock.api.setNodesSelected).not.toHaveBeenCalled();
     });
 });

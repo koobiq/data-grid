@@ -150,8 +150,26 @@ export class KbqAgGridRowSelectionState {
         alias: 'kbqAgGridRowSelectionStateStore'
     });
 
+    private destroyed = false;
+
     constructor() {
-        this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => this.init(api));
+        this.destroyRef.onDestroy(() => {
+            this.destroyed = true;
+        });
+
+        this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => this.initSave(api));
+
+        // Subscribes here, in the constructor, rather than registering a native
+        // `api.addEventListener('firstDataRendered', ...)` from inside the `gridReady` callback above.
+        // ag-grid-angular defers emitting both `gridReady` and `firstDataRendered` until after its own
+        // `ngAfterViewInit`, but only for outputs that already have a subscriber at the moment the
+        // *native* grid event fires. Since directive constructors always run before the host
+        // component's `ngAfterViewInit`, this subscription is guaranteed to be attached in time. Doing
+        // this from inside the `gridReady` callback instead is not safe: when row data is available at
+        // grid creation, the native `firstDataRendered` event fires synchronously inside `createGrid()`
+        // — before `gridReady`'s own deferred emission (and therefore this listener registration) ever
+        // runs — so the event would be missed permanently.
+        this.grid.firstDataRendered.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => void this.restore());
     }
 
     /** Removes the stored row selection state for the current key and clears the current selection. */
@@ -163,15 +181,9 @@ export class KbqAgGridRowSelectionState {
         this.grid.api.deselectAll();
     }
 
-    private init(api: GridApi): void {
+    private initSave(api: GridApi): void {
         const key = this.key();
         const store = this.store();
-
-        const restore: AgEventListener = () => void this.restore(api, key, store);
-
-        // Row nodes only exist once data has actually been rendered, so restoring selection has
-        // to wait for `firstDataRendered` rather than running straight after `gridReady`.
-        api.addEventListener('firstDataRendered', restore);
 
         const save: AgEventListener<unknown, unknown, 'selectionChanged'> = (event) => {
             // Skips saves triggered by our own restore call to avoid redundant writes.
@@ -192,13 +204,22 @@ export class KbqAgGridRowSelectionState {
         api.addEventListener('selectionChanged', save);
 
         this.destroyRef.onDestroy(() => {
-            api.removeEventListener('firstDataRendered', restore);
             api.removeEventListener('selectionChanged', save);
         });
     }
 
-    private async restore(api: GridApi, key: string, store: KbqAgGridRowSelectionStateStore): Promise<void> {
+    private async restore(): Promise<void> {
+        const { api } = this.grid;
+        const key = this.key();
+        const store = this.store();
+
         const ids = await store.getItem(key);
+
+        // The store's `getItem` can be a slow, consumer-provided Promise (e.g. a network round
+        // trip) that resolves after this directive — and the grid api along with it — has already
+        // been torn down; bail out before touching either.
+        if (this.destroyed) return;
+
         const idSet = new Set(ids ?? []);
 
         // Persisted selection is the source of truth — reconcile the grid's current selection to

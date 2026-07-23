@@ -61,10 +61,19 @@ const createApiMock = (
 })
 class TestAgGridAngularStub {
     readonly gridReady = new Subject<{ api: GridApi }>();
-    readonly api = createApiMock().api;
+    readonly firstDataRendered = new Subject<{ api: GridApi }>();
+    // Mirrors real ag-grid-angular, which assigns its `api` property synchronously before either
+    // output fires, so directives reading `this.grid.api` see the right instance.
+    api = createApiMock().api;
 
     emitGridReady(api: GridApi = this.api): void {
+        this.api = api;
         this.gridReady.next({ api });
+    }
+
+    emitFirstDataRendered(api: GridApi = this.api): void {
+        this.api = api;
+        this.firstDataRendered.next({ api });
     }
 }
 
@@ -104,7 +113,7 @@ describe('KbqAgGridRowFocusState', () => {
         });
 
         fixture.componentInstance.grid().emitGridReady(apiMock.api);
-        apiMock.dispatch('firstDataRendered');
+        fixture.componentInstance.grid().emitFirstDataRendered(apiMock.api);
 
         await waitFor(() => {
             expect(store.getItem).toHaveBeenCalledWith('grid-row-focus-1');
@@ -126,7 +135,7 @@ describe('KbqAgGridRowFocusState', () => {
         });
 
         fixture.componentInstance.grid().emitGridReady(apiMock.api);
-        apiMock.dispatch('firstDataRendered');
+        fixture.componentInstance.grid().emitFirstDataRendered(apiMock.api);
 
         await waitFor(() => {
             expect(store.getItem).toHaveBeenCalledWith('grid-row-focus-2');
@@ -149,7 +158,7 @@ describe('KbqAgGridRowFocusState', () => {
         });
 
         fixture.componentInstance.grid().emitGridReady(apiMock.api);
-        apiMock.dispatch('firstDataRendered');
+        fixture.componentInstance.grid().emitFirstDataRendered(apiMock.api);
 
         await waitFor(() => {
             expect(store.getItem).toHaveBeenCalledWith('grid-row-focus-3');
@@ -240,7 +249,7 @@ describe('KbqAgGridRowFocusState', () => {
         });
 
         fixture.componentInstance.grid().emitGridReady(apiMock.api);
-        apiMock.dispatch('firstDataRendered');
+        fixture.componentInstance.grid().emitFirstDataRendered(apiMock.api);
 
         await waitFor(() => {
             // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -268,7 +277,7 @@ describe('KbqAgGridRowFocusState', () => {
         expect(fixture.componentInstance.grid().api.clearFocusedCell).toHaveBeenCalled();
     });
 
-    it('removes all event listeners on destroy', async () => {
+    it('removes the cellFocused listener on destroy', async () => {
         const store: KbqAgGridRowFocusStateStore = {
             getItem: jest.fn(() => null),
             setItem: jest.fn(),
@@ -298,11 +307,64 @@ describe('KbqAgGridRowFocusState', () => {
         fixture.destroy();
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(apiMock.api.removeEventListener).toHaveBeenCalledWith(
-            'firstDataRendered',
-            getHandler('firstDataRendered')
-        );
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(apiMock.api.removeEventListener).toHaveBeenCalledWith('cellFocused', getHandler('cellFocused'));
+    });
+
+    it('stops restoring from firstDataRendered on destroy', async () => {
+        const savedValue: KbqAgGridRowFocusStateValue = { rowId: 'b', colId: 'athlete' };
+        const nodeB = makeNode('b', 1);
+        const store: KbqAgGridRowFocusStateStore = {
+            getItem: jest.fn(() => savedValue),
+            setItem: jest.fn(),
+            removeItem: jest.fn()
+        };
+        const apiMock = createApiMock({ b: nodeB });
+
+        const { fixture } = await render(TestRowFocusStateGrid, {
+            componentProperties: { key: 'grid-row-focus-9', store }
+        });
+
+        const grid = fixture.componentInstance.grid();
+
+        grid.emitGridReady(apiMock.api);
+        fixture.destroy();
+        grid.emitFirstDataRendered(apiMock.api);
+
+        expect(store.getItem).not.toHaveBeenCalled();
+    });
+
+    it('does not touch grid focus when destroyed while store.getItem is still pending', async () => {
+        const savedValue: KbqAgGridRowFocusStateValue = { rowId: 'b', colId: 'athlete' };
+        const nodeB = makeNode('b', 1);
+        let resolveGetItem: (value: KbqAgGridRowFocusStateValue | null) => void = () => undefined;
+        const pendingItem = new Promise<KbqAgGridRowFocusStateValue | null>((resolve) => {
+            resolveGetItem = resolve;
+        });
+        const store: KbqAgGridRowFocusStateStore = {
+            getItem: jest.fn(async () => pendingItem),
+            setItem: jest.fn(),
+            removeItem: jest.fn()
+        };
+        const apiMock = createApiMock({ b: nodeB });
+
+        const { fixture } = await render(TestRowFocusStateGrid, {
+            componentProperties: { key: 'grid-row-focus-10', store }
+        });
+
+        const grid = fixture.componentInstance.grid();
+
+        grid.emitGridReady(apiMock.api);
+        grid.emitFirstDataRendered(apiMock.api);
+
+        await waitFor(() => expect(store.getItem).toHaveBeenCalledWith('grid-row-focus-10'));
+
+        // Destroy while the store's Promise is still pending — mirrors a slow, consumer-provided
+        // async store (e.g. a network round trip) resolving after the directive has torn down.
+        fixture.destroy();
+        resolveGetItem(savedValue);
+        await Promise.resolve();
+
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(apiMock.api.setFocusedCell).not.toHaveBeenCalled();
     });
 });
