@@ -1,3 +1,13 @@
+## 34.5.1 (2026-07-23)
+
+### 🩹 Fixes
+
+- **ag-grid-angular-theme:** restore selection/focus state (#DS-5312,#DS-5046) ([#198](https://github.com/koobiq/data-grid/pull/198))
+
+### ❤️ Thank You
+
+- Artem Belik @artembelik
+
 ## 34.5.0 (2026-07-21)
 
 ### 🚀 Features
