@@ -154,8 +154,22 @@ export class KbqAgGridRowFocusState {
     /** Store used to persist and restore the active cell state. Defaults to {@link KBQ_AG_GRID_ROW_FOCUS_STATE_STORE}. */
     readonly store = input(inject(KBQ_AG_GRID_ROW_FOCUS_STATE_STORE), { alias: 'kbqAgGridRowFocusStateStore' });
 
+    private restoring = false;
+
     constructor() {
-        this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => this.init(api));
+        this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => this.initSave(api));
+
+        // Subscribes here, in the constructor, rather than registering a native
+        // `api.addEventListener('firstDataRendered', ...)` from inside the `gridReady` callback above.
+        // ag-grid-angular defers emitting both `gridReady` and `firstDataRendered` until after its own
+        // `ngAfterViewInit`, but only for outputs that already have a subscriber at the moment the
+        // *native* grid event fires. Since directive constructors always run before the host
+        // component's `ngAfterViewInit`, this subscription is guaranteed to be attached in time. Doing
+        // this from inside the `gridReady` callback instead is not safe: when row data is available at
+        // grid creation, the native `firstDataRendered` event fires synchronously inside `createGrid()`
+        // — before `gridReady`'s own deferred emission (and therefore this listener registration) ever
+        // runs — so the event would be missed permanently.
+        this.grid.firstDataRendered.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => void this.restore());
     }
 
     /** Removes the stored active cell state for the current key and clears grid focus. */
@@ -167,35 +181,31 @@ export class KbqAgGridRowFocusState {
         this.grid.api.clearFocusedCell();
     }
 
-    private init(api: GridApi): void {
+    private async restore(): Promise<void> {
+        const { api } = this.grid;
         const key = this.key();
         const store = this.store();
 
-        // Restoring focus needs a resolvable row index, which only exists once row nodes have
-        // actually been rendered — so this waits for `firstDataRendered` rather than `gridReady`.
-        let restoring = false;
+        const item = await store.getItem(key);
 
-        const restore: AgEventListener = () => {
-            void (async (): Promise<void> => {
-                const item = await store.getItem(key);
+        if (!item) return;
 
-                if (!item) return;
+        const node = api.getRowNode(item.rowId);
 
-                const node = api.getRowNode(item.rowId);
+        if (node?.rowIndex === null || node?.rowIndex === undefined) return;
 
-                if (node?.rowIndex === null || node?.rowIndex === undefined) return;
+        this.restoring = true;
+        api.setFocusedCell(node.rowIndex, item.colId);
+        this.restoring = false;
+    }
 
-                restoring = true;
-                api.setFocusedCell(node.rowIndex, item.colId);
-                restoring = false;
-            })();
-        };
-
-        api.addEventListener('firstDataRendered', restore);
+    private initSave(api: GridApi): void {
+        const key = this.key();
+        const store = this.store();
 
         const save: AgEventListener<unknown, unknown, 'cellFocused'> = (event) => {
             // Skips saves triggered by our own restore call to avoid redundant writes.
-            if (restoring) return;
+            if (this.restoring) return;
 
             if (event.rowIndex === null || event.column === null || event.rowPinned) {
                 void store.removeItem(key);
@@ -217,7 +227,6 @@ export class KbqAgGridRowFocusState {
         api.addEventListener('cellFocused', save);
 
         this.destroyRef.onDestroy(() => {
-            api.removeEventListener('firstDataRendered', restore);
             api.removeEventListener('cellFocused', save);
         });
     }
