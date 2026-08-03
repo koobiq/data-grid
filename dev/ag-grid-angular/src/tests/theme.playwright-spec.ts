@@ -62,9 +62,13 @@ test.describe('KbqAgGridAngularTheme', () => {
     test('with opened filter popup', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/e2e/theme');
+        // Wait for async row data and the generated selection column before capturing the grid.
+        await page.locator('.ag-row[row-index]').first().waitFor();
+        await page.locator('.ag-header-cell input[type="checkbox"]').first().waitFor();
         await page.locator('.ag-header-cell[col-id="athlete"]').hover();
         await page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-filter-button').click();
         await page.locator('.ag-menu .ag-filter-select').click();
+        await page.getByRole('option', { name: 'Contains', exact: true }).waitFor();
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-filter-popup-light.png');
         await enableDarkTheme(page);
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-filter-popup-dark.png');
