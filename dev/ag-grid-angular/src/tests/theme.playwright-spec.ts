@@ -64,7 +64,7 @@ test.describe('KbqAgGridAngularTheme', () => {
         await page.goto('/e2e/theme');
         // Wait for async row data and the generated selection column before capturing the grid.
         await page.locator('.ag-row[row-index]').first().waitFor();
-        await page.getByRole('checkbox', { name: 'Column with Header Selection' }).waitFor();
+        await page.locator('.ag-header-cell input[type="checkbox"]').first().waitFor();
         await page.locator('.ag-header-cell[col-id="athlete"]').hover();
         await page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-filter-button').click();
         await page.locator('.ag-menu .ag-filter-select').click();
