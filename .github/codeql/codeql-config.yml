@@ -1,0 +1,9 @@
+name: Koobiq data-grid CodeQL configuration
+
+# Include the default high-precision queries and additional security queries.
+queries:
+  - uses: security-extended
+
+# Yarn is vendored for package management and is not maintained by this project.
+paths-ignore:
+  - '.yarn/**'
