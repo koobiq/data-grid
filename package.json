@@ -10,6 +10,27 @@
         "url": "https://github.com/koobiq/data-grid.git"
     },
     "packageManager": "yarn@4.1.1",
+    "resolutions": {
+        "@babel/core@npm:7.25.2": "npm:7.29.7",
+        "@babel/core@npm:7.26.10": "npm:7.29.7",
+        "ajv@npm:8.17.1": "npm:8.20.0",
+        "body-parser@npm:1.20.3": "npm:1.20.6",
+        "http-proxy-middleware@npm:3.0.5": "npm:3.0.7",
+        "koa@npm:2.15.4": "npm:2.16.4",
+        "minimatch@npm:9.0.3": "npm:9.0.7",
+        "path-to-regexp@npm:0.1.12": "npm:0.1.13",
+        "picomatch@npm:4.0.2": "npm:4.0.4",
+        "piscina@npm:4.6.1": "npm:4.9.3",
+        "postcss@npm:8.4.41": "npm:8.5.23",
+        "qs@npm:6.13.0": "npm:6.15.2",
+        "rollup@npm:4.22.4": "npm:4.59.0",
+        "shell-quote@npm:1.8.4": "npm:1.9.0",
+        "webpack@npm:5.94.0": "npm:5.104.1",
+        "webpack@npm:5.98.0": "npm:5.104.1",
+        "webpack-dev-server@npm:5.2.0": "npm:5.2.6",
+        "webpack-dev-server@npm:5.2.2": "npm:5.2.6",
+        "ws@npm:8.18.0": "npm:8.21.0"
+    },
     "scripts": {
         "prepare": "husky",
         "clean": "yarn cache clean && nx reset && rimraf .angular dist tmp playwright-report test-results .playwright-mcp --verbose",
@@ -58,8 +79,8 @@
         "jspdf": "^4.2.1",
         "jspdf-autotable": "^5.0.8",
         "rxjs": "~7.8.0",
-        "xlsx": "^0.18.5",
-        "zone.js": "~0.16.2"
+        "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+        "zone.js": "~0.14.10"
     },
     "devDependencies": {
         "@angular-devkit/build-angular": "^18.2.21",
@@ -73,6 +94,7 @@
         "@angular/language-service": "^18.2.14",
         "@commitlint/cli": "^19.8.1",
         "@commitlint/config-conventional": "^19.8.1",
+        "@jest/globals": "^29.7.0",
         "@nx/angular": "^20.8.4",
         "@nx/jest": "^20.8.4",
         "@nx/js": "^20.8.4",
@@ -87,6 +109,8 @@
         "@types/node": "^24.10.4",
         "@typescript-eslint/eslint-plugin": "^8.65.0",
         "@typescript-eslint/parser": "^8.65.0",
+        "@typescript-eslint/types": "^8.65.0",
+        "@typescript-eslint/utils": "^8.65.0",
         "concurrently": "^9.2.3",
         "eslint": "^8.57.0",
         "eslint-config-prettier": "^10.1.8",
