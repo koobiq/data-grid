@@ -13,14 +13,14 @@ jobs:
     if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.head.repo.full_name == github.repository && contains(fromJSON('["OWNER", "MEMBER", "CONTRIBUTOR"]'), github.event.pull_request.author_association) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup-node
       # Run dev mode build to generate the `e2eRoute`
       # @see dev/ag-grid-angular/src/main.ts
       - run: yarn run build --configuration=development
-      - uses: FirebaseExtended/action-hosting-deploy@v0.11.0
+      - uses: FirebaseExtended/action-hosting-deploy@500ac625ca2dd40cbd15f7659af953801858032a # v0.11.0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KOOBIQ }}
