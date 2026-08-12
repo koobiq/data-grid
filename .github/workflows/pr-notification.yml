@@ -9,6 +9,8 @@ on:
     types:
       - opened
 
+permissions: {}
+
 jobs:
   notify:
     runs-on: ubuntu-latest
@@ -18,7 +20,7 @@ jobs:
     steps:
       - name: Notification to main channel
         if: ${{ github.actor != 'dependabot[bot]' }}
-        uses: mattermost/action-mattermost-notify@v2.1.0
+        uses: mattermost/action-mattermost-notify@ae31bb6f9e26a54336e79696f108a2c91cf55b4e # v2.1.0
         env:
           NODE_TLS_REJECT_UNAUTHORIZED: '0'
         with:
@@ -28,7 +30,7 @@ jobs:
           TEXT: ${{ env.TEXT }}
 
       - name: Notification to dev channel
-        uses: mattermost/action-mattermost-notify@v2.1.0
+        uses: mattermost/action-mattermost-notify@ae31bb6f9e26a54336e79696f108a2c91cf55b4e # v2.1.0
         env:
           NODE_TLS_REJECT_UNAUTHORIZED: '0'
         with:

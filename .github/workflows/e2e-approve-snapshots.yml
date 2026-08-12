@@ -19,16 +19,16 @@ jobs:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 10
     steps:
-      - uses: xt0rted/pull-request-comment-branch@v3
+      - uses: xt0rted/pull-request-comment-branch@e8b8daa837e8ea7331c0003c9c316a64c6d8b0b1 # v3.0.0
         id: comment-branch
-      - uses: thollander/actions-comment-pull-request@v3
+      - uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
         with:
           message: 🔄 [Updating](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) snapshots.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ steps.comment-branch.outputs.head_ref }}
+          ref: ${{ steps.comment-branch.outputs.head_sha }}
       - run: npm run e2e:docker:update-snapshots
-      - uses: stefanzweifel/git-auto-commit-action@v7
+      - uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v7.2.0
         id: commit-and-push
         with:
           commit_message: 'test: updated e2e snapshots'
@@ -37,11 +37,11 @@ jobs:
         if: ${{ steps.commit-and-push.outputs.changes_detected == 'true' }}
         with:
           message: ✅ Snapshots [updated](https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}/commits/${{ steps.commit-and-push.outputs.commit_hash }})!
-      - uses: thollander/actions-comment-pull-request@v3
+      - uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
         if: ${{ steps.commit-and-push.outputs.changes_detected != 'true' }}
         with:
           message: ⚠️ No snapshots changes detected.
-      - uses: thollander/actions-comment-pull-request@v3
+      - uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
         if: ${{ failure() }}
         with:
           message: 🚨 Failed to [update](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) snapshots.
