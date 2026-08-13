@@ -389,23 +389,36 @@
 @mixin _ag-svg-icons() {
     .ag-checkbox-input-wrapper {
         --ag-theme-koobiq-checkbox-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1H4C2.34315 1 1 2.34315 1 4V12C1 13.6569 2.34315 15 4 15H12C13.6569 15 15 13.6569 15 12V4C15 2.34315 13.6569 1 12 1ZM4 0C1.79086 0 0 1.79086 0 4V12C0 14.2091 1.79086 16 4 16H12C14.2091 16 16 14.2091 16 12V4C16 1.79086 14.2091 0 12 0H4Z" fill="currentColor"/></svg>');
-        --ag-theme-koobiq-checkbox-fill: var(--ag-checkbox-unchecked-color);
+        --ag-theme-koobiq-checkbox-background: var(--ag-checkbox-background-color);
+        --ag-theme-koobiq-checkbox-icon-fill: var(--ag-checkbox-unchecked-color);
+
+        background-color: var(--ag-theme-koobiq-checkbox-background);
 
         &::after {
             mask: var(--ag-theme-koobiq-checkbox-svg) center / contain no-repeat;
             width: var(--ag-icon-size);
             height: var(--ag-icon-size);
-            background-color: var(--ag-theme-koobiq-checkbox-fill);
+            background-color: var(--ag-theme-koobiq-checkbox-icon-fill);
         }
 
         &.ag-checked {
-            --ag-theme-koobiq-checkbox-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M4 0C1.79086 0 0 1.79086 0 4V12C0 14.2091 1.79086 16 4 16H12C14.2091 16 16 14.2091 16 12V4C16 1.79086 14.2091 0 12 0H4ZM13.6899 5.1589C13.768 5.237 13.768 5.36363 13.6899 5.44174L7.14137 11.9903C7.06327 12.0684 6.93664 12.0684 6.85853 11.9903L2.84137 7.9731C2.76327 7.895 2.76327 7.76836 2.84137 7.69026L3.6899 6.84173C3.76801 6.76362 3.89464 6.76362 3.97274 6.84173L6.99995 9.86894L12.5585 4.31037C12.6366 4.23226 12.7633 4.23226 12.8414 4.31037L13.6899 5.1589Z"/></svg>');
-            --ag-theme-koobiq-checkbox-fill: var(--ag-checkbox-checked-color);
+            --ag-theme-koobiq-checkbox-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.6899 5.1589C13.768 5.237 13.768 5.36363 13.6899 5.44174L7.14137 11.9903C7.06327 12.0684 6.93664 12.0684 6.85853 11.9903L2.84137 7.9731C2.76327 7.895 2.76327 7.76836 2.84137 7.69026L3.6899 6.84173C3.76801 6.76362 3.89464 6.76362 3.97274 6.84173L6.99995 9.86894L12.5585 4.31037C12.6366 4.23226 12.7633 4.23226 12.8414 4.31037L13.6899 5.1589Z" fill="currentColor"/></svg>');
+            --ag-theme-koobiq-checkbox-background: var(--ag-checkbox-checked-color);
+            --ag-theme-koobiq-checkbox-icon-fill: var(--kbq-icon-white);
         }
 
         &.ag-indeterminate {
-            --ag-theme-koobiq-checkbox-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M4 0C1.79086 0 0 1.79086 0 4V12C0 14.2091 1.79086 16 4 16H12C14.2091 16 16 14.2091 16 12V4C16 1.79086 14.2091 0 12 0H4ZM13 7.4002V8.60019C13 8.71065 12.9105 8.80019 12.8 8.80019H3.2C3.08954 8.8002 3 8.71065 3 8.60019V7.4002C3 7.28974 3.08954 7.2002 3.2 7.2002H12.8C12.9105 7.2002 13 7.28974 13 7.4002Z" fill="currentColor"/></svg>');
-            --ag-theme-koobiq-checkbox-fill: var(--ag-checkbox-indeterminate-color);
+            --ag-theme-koobiq-checkbox-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 7.4002V8.60019C13 8.71065 12.9105 8.80019 12.8 8.80019H3.2C3.08954 8.8002 3 8.71065 3 8.60019V7.4002C3 7.28974 3.08954 7.2002 3.2 7.2002H12.8C12.9105 7.2002 13 7.28974 13 7.4002Z" fill="currentColor"/></svg>');
+            --ag-theme-koobiq-checkbox-background: var(--ag-checkbox-indeterminate-color);
+            --ag-theme-koobiq-checkbox-icon-fill: var(--kbq-icon-white);
+        }
+
+        &.ag-disabled {
+            --ag-theme-koobiq-checkbox-background: var(--kbq-states-background-disabled);
+            --ag-theme-koobiq-checkbox-icon-fill: var(--kbq-states-icon-disabled);
+
+            opacity: 1;
+            box-shadow: inset 0 0 0 1px var(--kbq-states-line-disabled);
         }
     }
 
@@ -1244,12 +1257,15 @@
     .kbq-column-menu-checkbox {
         // stylelint-disable-next-line scss/operator-no-newline-after
         --kbq-column-menu-checkbox-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 1H4C2.34315 1 1 2.34315 1 4V12C1 13.6569 2.34315 15 4 15H12C13.6569 15 15 13.6569 15 12V4C15 2.34315 13.6569 1 12 1ZM4 0C1.79086 0 0 1.79086 0 4V12C0 14.2091 1.79086 16 4 16H12C14.2091 16 16 14.2091 16 12V4C16 1.79086 14.2091 0 12 0H4Z" fill="currentColor"/></svg>');
-        --kbq-column-menu-checkbox-fill: var(--ag-checkbox-unchecked-color, var(--kbq-line-contrast-fade));
+        --kbq-column-menu-checkbox-background: transparent;
+        --kbq-column-menu-checkbox-icon-fill: var(--ag-checkbox-unchecked-color, var(--kbq-line-contrast-fade));
 
         width: var(--ag-icon-size, var(--kbq-size-l));
         height: var(--ag-icon-size, var(--kbq-size-l));
         flex-shrink: 0;
         position: relative;
+        border-radius: var(--ag-checkbox-border-radius, var(--kbq-size-xxs));
+        background-color: var(--kbq-column-menu-checkbox-background);
 
         &::after {
             content: '';
@@ -1260,18 +1276,22 @@
             width: 100%;
             height: 100%;
             mask: var(--kbq-column-menu-checkbox-svg) center / contain no-repeat;
-            background-color: var(--kbq-column-menu-checkbox-fill);
+            background-color: var(--kbq-column-menu-checkbox-icon-fill);
         }
 
         &.kbq-column-menu-checkbox--checked {
             // stylelint-disable-next-line scss/operator-no-newline-after
-            --kbq-column-menu-checkbox-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M4 0C1.79086 0 0 1.79086 0 4V12C0 14.2091 1.79086 16 4 16H12C14.2091 16 16 14.2091 16 12V4C16 1.79086 14.2091 0 12 0H4ZM13.6899 5.1589C13.768 5.237 13.768 5.36363 13.6899 5.44174L7.14137 11.9903C7.06327 12.0684 6.93664 12.0684 6.85853 11.9903L2.84137 7.9731C2.76327 7.895 2.76327 7.76836 2.84137 7.69026L3.6899 6.84173C3.76801 6.76362 3.89464 6.76362 3.97274 6.84173L6.99995 9.86894L12.5585 4.31037C12.6366 4.23226 12.7633 4.23226 12.8414 4.31037L13.6899 5.1589Z"/></svg>');
-            --kbq-column-menu-checkbox-fill: var(--ag-checkbox-checked-color, var(--kbq-background-theme));
+            --kbq-column-menu-checkbox-svg: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.6899 5.1589C13.768 5.237 13.768 5.36363 13.6899 5.44174L7.14137 11.9903C7.06327 12.0684 6.93664 12.0684 6.85853 11.9903L2.84137 7.9731C2.76327 7.895 2.76327 7.76836 2.84137 7.69026L3.6899 6.84173C3.76801 6.76362 3.89464 6.76362 3.97274 6.84173L6.99995 9.86894L12.5585 4.31037C12.6366 4.23226 12.7633 4.23226 12.8414 4.31037L13.6899 5.1589Z" fill="currentColor"/></svg>');
+            --kbq-column-menu-checkbox-background: var(--ag-checkbox-checked-color, var(--kbq-background-theme));
+            --kbq-column-menu-checkbox-icon-fill: var(--kbq-icon-white);
         }
 
         &.kbq-column-menu-checkbox--disabled {
-            opacity: 0.4;
+            --kbq-column-menu-checkbox-background: var(--kbq-states-background-disabled);
+            --kbq-column-menu-checkbox-icon-fill: var(--kbq-states-icon-disabled);
+
             cursor: not-allowed;
+            box-shadow: inset 0 0 0 1px var(--kbq-states-line-disabled);
         }
     }
 
