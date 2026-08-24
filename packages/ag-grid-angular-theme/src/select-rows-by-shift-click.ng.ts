@@ -37,6 +37,18 @@ export class KbqAgGridSelectRowsByShiftClick {
     private init(api: GridApi): void {
         const root = this.elementRef.nativeElement;
 
+        const mouseDownHandler = (event: MouseEvent): void => {
+            if (!this.enabled() || !event.shiftKey) return;
+
+            const { target } = event;
+
+            if (!(target instanceof Element) || !target.closest('.ag-selection-checkbox')) return;
+
+            // Firefox starts extending the native text selection on mousedown, before the
+            // subsequent click handler can intercept AG Grid's Shift+Click behaviour.
+            event.preventDefault();
+        };
+
         const handler = (event: MouseEvent): void => {
             if (!this.enabled()) return;
 
@@ -93,7 +105,13 @@ export class KbqAgGridSelectRowsByShiftClick {
             this.anchorIntent = !shouldSelect;
         };
 
-        this.zone.runOutsideAngular(() => root.addEventListener('click', handler, true));
-        this.destroyRef.onDestroy(() => root.removeEventListener('click', handler, true));
+        this.zone.runOutsideAngular(() => {
+            root.addEventListener('mousedown', mouseDownHandler, true);
+            root.addEventListener('click', handler, true);
+        });
+        this.destroyRef.onDestroy(() => {
+            root.removeEventListener('mousedown', mouseDownHandler, true);
+            root.removeEventListener('click', handler, true);
+        });
     }
 }

@@ -9,6 +9,27 @@ const shiftClickCheckbox = async (page: Page, rowIndex: number): Promise<void> =
         .click({ modifiers: ['Shift'] });
 
 test.describe('KbqAgGridSelectRowsByShiftClick', () => {
+    test('Shift+Click does not extend the browser text selection', async ({ page }) => {
+        await page.goto('/e2e/select-rows-by-shift-click');
+        await toggleRowSelection(page, 1);
+
+        const grid = page.locator('ag-grid-angular');
+
+        await grid.evaluate((element) => {
+            element.addEventListener(
+                'mousedown',
+                (event) => {
+                    element.toggleAttribute('data-shift-mousedown-prevented', event.defaultPrevented);
+                },
+                true
+            );
+        });
+        await shiftClickCheckbox(page, 3);
+
+        await expect(grid).toHaveAttribute('data-shift-mousedown-prevented', '');
+        expect(await page.evaluate(() => window.getSelection()?.toString())).toBe('');
+    });
+
     test('Shift+Click selects a range between anchor and clicked row', async ({ page }) => {
         await page.goto('/e2e/select-rows-by-shift-click');
         await toggleRowSelection(page, 1);
