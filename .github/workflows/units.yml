@@ -18,3 +18,4 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup-node
       - run: yarn run unit
+      - run: yarn run release:notify:test

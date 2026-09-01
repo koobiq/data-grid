@@ -1,14 +1,16 @@
 name: Publish
 
 on:
-  release:
-    types:
-      - created
+  push:
+    tags:
+      # Matches project-scoped tags ({projectName}@{version}), e.g. ag-grid-angular-theme@1.2.3.
+      - '*@*.*.*'
   # Allows you to run this workflow manually
   workflow_dispatch:
 
 permissions:
   contents: read
+  packages: write
   # Needed for provenance data generation
   # https://nx.dev/recipes/nx-release/publish-in-ci-cd#npm-provenance
   id-token: write
