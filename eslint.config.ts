@@ -1,32 +1,29 @@
-// @ts-check
+import eslintComments from '@eslint-community/eslint-plugin-eslint-comments/configs';
+import js from '@eslint/js';
+import angular from 'angular-eslint';
+import type { Linter } from 'eslint';
+import jest from 'eslint-plugin-jest';
+import playwright from 'eslint-plugin-playwright';
+import prettier from 'eslint-plugin-prettier/recommended';
+import promise from 'eslint-plugin-promise';
+import rxjs from 'eslint-plugin-rxjs-x';
+import { defineConfig } from 'eslint/config';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
-const eslintComments = require('@eslint-community/eslint-plugin-eslint-comments/configs');
-const js = require('@eslint/js');
-const angular = require('angular-eslint');
-const prettier = require('eslint-plugin-prettier/recommended');
-const jest = require('eslint-plugin-jest');
-/** @type {{ configs: Record<string, import('eslint').Linter.Config> }} */
-const playwright = require('eslint-plugin-playwright');
-const promise = require('eslint-plugin-promise');
-/** @type {{ configs: Record<string, import('eslint').Linter.Config> }} */
-const rxjs = require('eslint-plugin-rxjs-x');
-const globals = require('globals');
-const tseslint = require('typescript-eslint');
+const capitalizeFirst = (str: string): string => str.charAt(0).toUpperCase() + str.slice(1);
 
-/**
- * @param {string} str
- * @returns {string}
- */
-const capitalizeFirst = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+/** @see https://typescript-eslint.io/rules/naming-convention/#options */
+type NamingConventionOption = {
+    selector: string;
+    format: string[];
+    modifiers?: string[];
+    prefix?: string[];
+    leadingUnderscore?: 'allow';
+};
 
-/**
- * @see https://typescript-eslint.io/rules/naming-convention/#options
- *
- * @param {string | undefined} prefix
- */
-const makeNamingConventionOptions = (prefix = undefined) => {
-    /** @type {unknown[]} */
-    const rules = [
+const makeNamingConventionOptions = (prefix?: string): NamingConventionOption[] => {
+    const rules: NamingConventionOption[] = [
         { selector: 'variable', format: ['camelCase', 'UPPER_CASE'], leadingUnderscore: 'allow' },
         { selector: 'function', format: ['camelCase'] },
         { selector: 'interface', format: ['PascalCase'] },
@@ -72,7 +69,7 @@ const makeNamingConventionOptions = (prefix = undefined) => {
     return rules;
 };
 
-module.exports = tseslint.config([
+export default defineConfig([
     {
         name: 'kbq/ignores',
         ignores: ['dist', 'node_modules', 'tmp', '.angular', '.nx', '.yarn', 'playwright-report', '**/index.html']
@@ -122,7 +119,7 @@ module.exports = tseslint.config([
         languageOptions: {
             parserOptions: {
                 project: './tsconfig.eslint.json',
-                tsconfigRootDir: __dirname
+                tsconfigRootDir: import.meta.dirname
             }
         },
         rules: {
@@ -147,7 +144,10 @@ module.exports = tseslint.config([
         files: ['**/*.ng.ts'],
         extends: [
             /** @see https://github.com/angular-eslint/angular-eslint/blob/main/packages/angular-eslint/src/configs/ts-all.ts */
-            angular.configs.tsAll
+            // angular-eslint 18 types its flat configs with `@typescript-eslint/utils`,
+            // whose `LanguageOptions` is not assignable to the one `defineConfig()` expects
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            angular.configs.tsAll as Linter.Config[]
         ],
         processor: angular.processInlineTemplates,
         rules: {
@@ -200,7 +200,10 @@ module.exports = tseslint.config([
         files: ['**/*.html'],
         extends: [
             /** @see https://github.com/angular-eslint/angular-eslint/blob/main/packages/angular-eslint/src/configs/template-all.ts */
-            angular.configs.templateAll
+            // angular-eslint 18 types its flat configs with `@typescript-eslint/utils`,
+            // whose `LanguageOptions` is not assignable to the one `defineConfig()` expects
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            angular.configs.templateAll as Linter.Config[]
         ],
         rules: {
             '@angular-eslint/template/i18n': 0,

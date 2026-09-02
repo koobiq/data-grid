@@ -125,6 +125,7 @@
         "jest-environment-jsdom": "^29.7.0",
         "jest-fail-on-console": "^3.3.4",
         "jest-preset-angular": "14.6.2",
+        "jiti": "^2.7.0",
         "lint-staged": "^15.5.2",
         "ng-packagr": "^18.2.0",
         "nx": "^20.8.4",
