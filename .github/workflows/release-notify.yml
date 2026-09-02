@@ -19,7 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.repository_owner == 'koobiq' }}
     steps:
-      - uses: mattermost/action-mattermost-notify@v2.1.0
+      - uses: mattermost/action-mattermost-notify@ae31bb6f9e26a54336e79696f108a2c91cf55b4e # v2.1.0
+        env:
+          NODE_TLS_REJECT_UNAUTHORIZED: '0'
         with:
           MATTERMOST_WEBHOOK_URL: ${{ secrets.MM_WEBHOOK_URL }}
           MATTERMOST_CHANNEL: ${{ secrets.MM_CHANNEL_NAME }}
