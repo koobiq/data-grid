@@ -20,9 +20,12 @@ updates:
       eslint:
         patterns:
           - 'eslint*'
+          - '@eslint/*'
+          - '@eslint-community/*'
           - '@types/eslint'
-          - '@typescript-eslint/*'
-          - '@angular-eslint/*'
+          - 'typescript-eslint'
+          - 'angular-eslint'
+          - 'globals'
       commitlint:
         patterns:
           - '@commitlint/*'
