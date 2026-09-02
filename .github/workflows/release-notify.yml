@@ -1,0 +1,27 @@
+name: Release Notify
+
+on:
+  # Fires once `nx release` (run locally via `yarn release:theme`) has successfully created the
+  # GitHub Release — separate from `publish.yml`'s tag-push trigger, which is what actually
+  # publishes to npm. Decoupled on purpose: if this release-creation step fails (e.g. a GitHub
+  # auth issue on the machine running `yarn release:theme`), the tag was already pushed
+  # beforehand, so npm publish still happens even though this notification wouldn't fire.
+  release:
+    types:
+      - created
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    name: Notify Mattermost
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'koobiq' }}
+    steps:
+      - uses: mattermost/action-mattermost-notify@v2.1.0
+        with:
+          MATTERMOST_WEBHOOK_URL: ${{ secrets.MM_WEBHOOK_URL }}
+          MATTERMOST_CHANNEL: ${{ secrets.MM_CHANNEL_NAME }}
+          MATTERMOST_USERNAME: ${{ secrets.MM_BOT_NAME }}
+          TEXT: ${{ github.event.release.body }}
