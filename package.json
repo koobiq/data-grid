@@ -75,7 +75,7 @@
         "@angular/platform-browser": "^18.2.14",
         "@angular/platform-browser-dynamic": "^18.2.14",
         "@angular/router": "^18.2.14",
-        "@fontsource/inter": "^5.2.8",
+        "@fontsource/inter": "^5.3.0",
         "@koobiq/design-tokens": "^3.19.0",
         "@koobiq/icons": "^10.10.3",
         "ag-grid-angular": "^34.3.1",
