@@ -3713,10 +3713,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@koobiq/design-tokens@npm:^3.18.0":
-  version: 3.18.0
-  resolution: "@koobiq/design-tokens@npm:3.18.0"
-  checksum: 10c0/970c20552b9c491d04bf7afbe6efcd4c1abd746a4477fa02e915aec0addcdd1f58c165089281e7c6c62d1cabc686236617db856154df4a235cbca2a89434664d
+"@koobiq/design-tokens@npm:^3.19.0":
+  version: 3.19.0
+  resolution: "@koobiq/design-tokens@npm:3.19.0"
+  checksum: 10c0/5489be2185d90c004e11295cac7169cb53268bd061a6108685a70b759741b1c89615e31192f9d4d1bec01ffe06cc7d31e15c2ae039925102bfb158cb07fea52c
   languageName: node
   linkType: hard
 
@@ -9736,7 +9736,7 @@ __metadata:
     "@commitlint/config-conventional": "npm:^19.8.1"
     "@fontsource/inter": "npm:^5.2.8"
     "@jest/globals": "npm:^29.7.0"
-    "@koobiq/design-tokens": "npm:^3.18.0"
+    "@koobiq/design-tokens": "npm:^3.19.0"
     "@koobiq/icons": "npm:^10.10.3"
     "@nx/angular": "npm:^20.8.4"
     "@nx/jest": "npm:^20.8.4"
