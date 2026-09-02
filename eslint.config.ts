@@ -93,7 +93,7 @@ export default defineConfig([
     },
     {
         name: 'kbq/tools',
-        files: ['tools/**/*.js', 'tools/**/*.cjs'],
+        files: ['tools/**/*.js', 'tools/**/*.cjs', 'tools/**/*.ts'],
         rules: {
             // plugin:eslint
             // CLI scripts report their progress to stdout
