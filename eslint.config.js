@@ -79,7 +79,7 @@ module.exports = tseslint.config([
     },
     {
         name: 'kbq/js-and-ts',
-        files: ['**/*.js', '**/*.ts'],
+        files: ['**/*.js', '**/*.cjs', '**/*.ts'],
         extends: [js.configs.recommended, promise.configs['flat/recommended']],
         languageOptions: {
             globals: { ...globals.node, ...globals.commonjs, ...globals.es2022 }
@@ -91,8 +91,17 @@ module.exports = tseslint.config([
     },
     {
         name: 'kbq/js',
-        files: ['**/*.js'],
+        files: ['**/*.js', '**/*.cjs'],
         languageOptions: { sourceType: 'commonjs' }
+    },
+    {
+        name: 'kbq/tools',
+        files: ['tools/**/*.js', 'tools/**/*.cjs'],
+        rules: {
+            // plugin:eslint
+            // CLI scripts report their progress to stdout
+            'no-console': 0
+        }
     },
     {
         name: 'kbq/eslint-comments',
@@ -220,7 +229,7 @@ module.exports = tseslint.config([
     {
         // should be last
         name: 'kbq/prettier',
-        files: ['**/*.js', '**/*.ts', '**/*.html'],
+        files: ['**/*.js', '**/*.cjs', '**/*.ts', '**/*.html'],
         extends: [prettier]
     }
 ]);
