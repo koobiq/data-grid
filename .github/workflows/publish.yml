@@ -10,7 +10,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
   # Needed for provenance data generation
   # https://nx.dev/recipes/nx-release/publish-in-ci-cd#npm-provenance
   id-token: write
