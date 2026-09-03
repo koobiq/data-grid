@@ -1,9 +1,9 @@
 name: Publish
 
 on:
-  release:
-    types:
-      - created
+  push:
+    tags:
+      - 'ag-grid-angular-theme@*.*.*'
   # Allows you to run this workflow manually
   workflow_dispatch:
 
@@ -27,11 +27,3 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-      - uses: mattermost/action-mattermost-notify@ae31bb6f9e26a54336e79696f108a2c91cf55b4e # v2.1.0
-        env:
-          NODE_TLS_REJECT_UNAUTHORIZED: '0'
-        with:
-          MATTERMOST_WEBHOOK_URL: ${{ secrets.MM_WEBHOOK_URL }}
-          MATTERMOST_CHANNEL: ${{ secrets.MM_CHANNEL_NAME }}
-          MATTERMOST_USERNAME: ${{ secrets.MM_BOT_NAME }}
-          TEXT: ${{ github.event.release.body }}
