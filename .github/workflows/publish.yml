@@ -3,8 +3,7 @@ name: Publish
 on:
   push:
     tags:
-      # Matches project-scoped tags ({projectName}@{version}), e.g. ag-grid-angular-theme@1.2.3.
-      - '*@*.*.*'
+      - 'ag-grid-angular-theme@*.*.*'
   # Allows you to run this workflow manually
   workflow_dispatch:
 
