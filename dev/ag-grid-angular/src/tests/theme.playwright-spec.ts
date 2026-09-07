@@ -69,6 +69,14 @@ test.describe('KbqAgGridAngularTheme', () => {
         await page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-filter-button').click();
         await page.locator('.ag-menu .ag-filter-select').click();
         await page.getByRole('option', { name: 'Contains', exact: true }).waitFor();
+        // Navigate to "Equals" by keyboard (rather than hover) to deterministically capture
+        // the select item's highlighted state regardless of pointer/layout timing.
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('ArrowDown');
+        await expect(page.getByRole('option', { name: 'Equals', exact: true })).toHaveClass(/ag-active-item/);
+        // The selection checkbox column can still be settling at this point; re-check right before
+        // capturing to avoid a race where it briefly disappears and shifts every column.
+        await expect(page.locator('.ag-header-cell input[type="checkbox"]').first()).toBeVisible();
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-filter-popup-light.png');
         await enableDarkTheme(page);
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-filter-popup-dark.png');

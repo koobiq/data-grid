@@ -515,6 +515,34 @@
 
         .ag-select-list-item {
             padding: 0 10px;
+            border-radius: var(--ag-border-radius);
+
+            // Marks both the currently chosen value (on open) and the hovered/keyboard-navigated item
+            &.ag-active-item {
+                background-color: var(--kbq-states-background-transparent-hover);
+            }
+
+            &:active {
+                background-color: var(--kbq-states-background-transparent-active);
+            }
+        }
+    }
+
+    .ag-rich-select-row {
+        border-radius: var(--ag-border-radius);
+
+        &.ag-rich-select-row-selected {
+            background-color: var(--kbq-states-background-transparent-hover);
+        }
+
+        &:hover,
+        &.ag-rich-select-row-highlighted {
+            background-image: none;
+            background-color: var(--kbq-states-background-transparent-active);
+        }
+
+        &:active {
+            background-color: var(--kbq-states-background-transparent-active);
         }
     }
 }
