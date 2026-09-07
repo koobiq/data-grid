@@ -92,14 +92,14 @@ dev/
 
 ### One Directive per Feature
 
-Every feature of `@koobiq/ag-grid-angular-theme` is a standalone attribute directive on the grid host (`selector: 'ag-grid-angular[kbqAgGrid...]'`) that calls `inject(AgGridAngular)` and either subscribes to grid outputs (`gridReady`, `firstDataRendered`, `cellKeyDown`, `cellClicked`, `cellMouseOver`) or sets grid options directly (`grid.theme`, `grid.tabToNextCell`, `grid.loadingOverlayComponent`). Directives compose freely on one `<ag-grid-angular>` element. `kbqAgGridTheme` is the base: it adds the `ag-theme-koobiq` host class (all package styles are scoped under it) and forces `grid.theme = 'legacy'`, because `theme.scss` uses AG Grid's legacy SCSS theming API and the AG Grid 33+ Theming API would conflict with it.
+Nearly every feature of `@koobiq/ag-grid-angular-theme` is a standalone attribute directive on the grid host (`selector: 'ag-grid-angular[kbqAgGrid...]'`) that calls `inject(AgGridAngular)` and either subscribes to grid outputs (`gridReady`, `firstDataRendered`, `cellKeyDown`, `cellClicked`, `cellMouseOver`) or sets grid options directly (`grid.theme`, `grid.tabToNextCell`, `grid.loadingOverlayComponent`). Directives compose freely on one `<ag-grid-angular>` element. `kbqAgGridTheme` is the base: it adds the `ag-theme-koobiq` host class (all package styles are scoped under it) and forces `grid.theme = 'legacy'`, because `theme.scss` uses AG Grid's legacy SCSS theming API and the AG Grid 33+ Theming API would conflict with it.
 
 Feature families, all in `packages/ag-grid-angular-theme/src/`:
 
 - Shortcuts (`select-rows-by-*`, `copy-by-ctrl-c`, `to-next-row-by-tab`): an `enabled` boolean input aliased to the selector, so `[kbqAgGridCopyByCtrlC]="false"` disables it.
 - State persistence (`column-state`, `filter-state`, `quick-filter-state`, `external-filter-state`, `row-selection-state`, `row-focus-state`, plus the collapsed/selection stores inside `row-group`): see [State Persistence Pattern](#state-persistence-pattern).
 - Host-component injection (`status-bar`, `row-actions`): the directive takes a component `Type` as input, instantiates it with `createComponent()` and an element injector that provides a `KBQ_AG_GRID_*_PARAMS` token (grid api, row node, ...), attaches it to `ApplicationRef`, and inserts its element into AG Grid's own DOM (`.ag-root-wrapper`, `.ag-row`).
-- Renderers and Community-edition replacements for Enterprise features: `skeleton-cell-renderer`, `loading-overlay`, `infinite-selection` (inverse select-all for the infinite row model), `column-menu` (column management panel on CDK drag-drop), `row-group` (client-side row grouping).
+- Renderers and Community-edition replacements for Enterprise features: `skeleton-cell-renderer`, `loading-overlay`, `infinite-selection` (inverse select-all for the infinite row model), `column-menu` (column management panel on CDK drag-drop), `row-group` (client-side row grouping). These ship their own components but still expose a host directive as the entry point and keep the components internal. `skeleton-cell-renderer` is the one exception in the package: it exports a standalone component only, with no directive, because the consumer wires it in through `cellRendererSelector` on a `ColDef`.
 
 `shortcuts.ng.ts` (`KbqAgGridShortcuts` service) and `select-all-rows-by-ctrl-a.ng.ts` are deprecated and kept for backward compatibility only. Do not extend them; new behaviour is always a directive.
 
@@ -145,7 +145,7 @@ Directives that persist per-row state (selection, focus, group collapse) require
 3. Styles as a mixin in `src/theme.scss`, included in `.ag-theme-koobiq`.
 4. Unit test in `packages/ag-grid-angular-theme/tests/<feature>.ng.spec.ts`. Tests are not colocated; Jest only matches `tests/**/*.spec.ts`.
 5. Dev component `dev/ag-grid-angular/src/tests/<feature>.ng.ts`, a route in `dev/ag-grid-angular/src/main.ts`, and `<feature>.playwright-spec.ts` next to the component.
-6. Document it in the shortcut or state-persistence table of `packages/ag-grid-angular-theme/README.md`. Never edit `CHANGELOG.md`; `nx release` generates it from commits.
+6. Document it in `packages/ag-grid-angular-theme/README.md`. Shortcuts and state persistence each have a table there; the host-component and renderer families have no section yet, so add one rather than shipping the feature undocumented. Never edit `CHANGELOG.md`; `nx release` generates it from commits.
 
 ## Testing
 
