@@ -174,18 +174,15 @@
             background: unset;
         }
 
-        &:not(.ag-row-focus),
-        &:not(.ag-row-selected) {
-            &.ag-row-hover {
-                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-transparent-hover);
-            }
-
-            &:active {
-                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-transparent-active);
-            }
+        &.ag-row-hover {
+            --ag-theme-koobiq-row-background-color: var(--kbq-states-background-transparent-hover);
         }
 
-        &:not(.ag-row-focus).ag-row-selected {
+        &:active {
+            --ag-theme-koobiq-row-background-color: var(--kbq-states-background-transparent-active);
+        }
+
+        &.ag-row-selected {
             --ag-theme-koobiq-row-background-color: var(--kbq-background-contrast-less);
 
             &.ag-row-hover {
@@ -196,17 +193,20 @@
                 --ag-theme-koobiq-row-background-color: var(--kbq-states-background-contrast-less-active);
             }
         }
+    }
 
-        &.ag-row-focus {
-            --ag-theme-koobiq-row-background-color: var(--kbq-background-theme-less);
+    // ag-grid keeps `ag-row-focus` on the last focused row after focus leaves it, so the row is highlighted only
+    // while it contains focus. The check runs on the root, because pinned columns split a row into several `.ag-row`.
+    // The selector is more specific than the selected row rules above, so the focus background wins over selection.
+    .ag-root-wrapper:has(.ag-row-focus:focus-within) .ag-row-focus {
+        --ag-theme-koobiq-row-background-color: var(--kbq-background-theme-less);
 
-            &.ag-row-hover {
-                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-theme-less-hover);
-            }
+        &.ag-row-hover {
+            --ag-theme-koobiq-row-background-color: var(--kbq-states-background-theme-less-hover);
+        }
 
-            &:active {
-                --ag-theme-koobiq-row-background-color: var(--kbq-states-background-theme-less-active);
-            }
+        &:active {
+            --ag-theme-koobiq-row-background-color: var(--kbq-states-background-theme-less-active);
         }
     }
 }
@@ -253,6 +253,18 @@
     }
 }
 
+@mixin _ag-row-join-highlighted($selectors) {
+    &:is(#{$selectors}):has(+ :is(#{$selectors})) {
+        --ag-theme-koobiq-row-border-bottom-right-radius: 0;
+        --ag-theme-koobiq-row-border-bottom-left-radius: 0;
+    }
+
+    &:is(#{$selectors}) + :is(#{$selectors}) {
+        --ag-theme-koobiq-row-border-top-left-radius: 0;
+        --ag-theme-koobiq-row-border-top-right-radius: 0;
+    }
+}
+
 @mixin _ag-row-border-radius() {
     .ag-row {
         --ag-theme-koobiq-row-border-top-left-radius: var(--ag-border-radius);
@@ -274,17 +286,13 @@
             --ag-theme-koobiq-row-border-bottom-left-radius: 0;
         }
 
-        $selectors: '.ag-row-selected, .ag-row-focus';
+        @include _ag-row-join-highlighted('.ag-row-selected');
+    }
 
-        &:is(#{$selectors}):has(+ :is(#{$selectors})) {
-            --ag-theme-koobiq-row-border-bottom-right-radius: 0;
-            --ag-theme-koobiq-row-border-bottom-left-radius: 0;
-        }
-
-        &:is(#{$selectors}) + :is(#{$selectors}) {
-            --ag-theme-koobiq-row-border-top-left-radius: 0;
-            --ag-theme-koobiq-row-border-top-right-radius: 0;
-        }
+    // The focused row is highlighted only while it contains focus (see `_ag-row-highlight`), and only then it joins
+    // the highlighted rows next to it.
+    .ag-root-wrapper:has(.ag-row-focus:focus-within) .ag-row {
+        @include _ag-row-join-highlighted('.ag-row-selected, .ag-row-focus');
     }
 
     .ag-body-viewport {
