@@ -1,3 +1,7 @@
+// The suite covers the deprecated `KbqAgGridColumnMenu` directive on purpose.
+// eslint-disable-next-line @eslint-community/eslint-comments/disable-enable-pair
+/* eslint-disable @typescript-eslint/no-deprecated */
+
 import { SharedResizeObserver } from '@angular/cdk/observers/private';
 import { Component, Directive, forwardRef, viewChild } from '@angular/core';
 import { fireEvent, render, waitFor } from '@testing-library/angular';
@@ -54,6 +58,9 @@ const createApiMock = (columns: Column[] = []) => {
     const listeners = new Map<AgEventType, AnyEventHandler[]>();
 
     const api = {
+        getColumns: jest.fn(() => columns),
+        getDisplayNameForColumn: jest.fn((col: Column) => col.getColDef().headerName ?? ''),
+        isDestroyed: jest.fn(() => false),
         addEventListener: jest.fn((eventName: AgEventType, handler: AnyEventHandler) => {
             const existing = listeners.get(eventName) ?? [];
             existing.push(handler);
@@ -713,11 +720,13 @@ describe('KbqAgGridColumnMenu', () => {
     });
 
     describe('grid event listeners', () => {
-        it('subscribes to columnVisible, columnMoved, and columnPinned events after gridReady', async () => {
+        it('subscribes to columnVisible, columnMoved, and columnPinned events when the panel opens', async () => {
             const { api } = createApiMock();
-            const { fixture } = await render(TestColumnMenuGrid);
+            const { fixture, container } = await render(TestColumnMenuGrid);
             fixture.componentInstance.grid().emitGridReady(api);
             fixture.detectChanges();
+
+            await openPanel(container);
 
             await waitFor(() => {
                 // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -750,9 +759,11 @@ describe('KbqAgGridColumnMenu', () => {
 
         it('removes all event listeners on destroy', async () => {
             const { api } = createApiMock();
-            const { fixture } = await render(TestColumnMenuGrid);
+            const { fixture, container } = await render(TestColumnMenuGrid);
             fixture.componentInstance.grid().emitGridReady(api);
             fixture.detectChanges();
+
+            await openPanel(container);
 
             await waitFor(() => {
                 // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -864,6 +875,29 @@ describe('KbqAgGridColumnMenu', () => {
             await waitFor(() => {
                 expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row'));
             });
+        });
+
+        it('Space on a pin button pins the column instead of toggling its visibility', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name' });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age' });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(
+                container.querySelector(`[title="${KBQ_AG_GRID_COLUMN_MENU_LABELS_RU.pinLeftButton}"]`)!,
+                { key: ' ' }
+            );
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsPinned).toHaveBeenCalledWith(['name'], 'left');
+            });
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(api.setColumnsVisible).not.toHaveBeenCalled();
         });
 
         it('Enter on a row calls setColumnsVisible to toggle visibility', async () => {

@@ -1468,6 +1468,282 @@
     }
 }
 
+@mixin _ag-settings-menu() {
+    @keyframes kbq-settings-menu-level-forward {
+        from {
+            opacity: 0;
+            transform: translateX(var(--kbq-size-l));
+        }
+
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    @keyframes kbq-settings-menu-level-back {
+        from {
+            opacity: 0;
+            transform: translateX(calc(var(--kbq-size-l) * -1));
+        }
+
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    &:has(.kbq-ag-grid-settings-menu-overlay) {
+        --ag-theme-koobiq-settings-menu-width: var(--kbq-size-7xl);
+
+        position: relative;
+
+        .ag-column-last {
+            padding-right: var(--ag-theme-koobiq-settings-menu-width);
+        }
+    }
+
+    // Based on `KbqAgGridSettingsMenu`
+    .kbq-ag-grid-settings-menu-overlay {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: var(--ag-header-height);
+        background:
+            linear-gradient(to right, transparent 0%, var(--kbq-background-bg) 70%),
+            linear-gradient(to right, transparent 0%, var(--kbq-background-bg) 80%);
+        width: var(--ag-theme-koobiq-settings-menu-width);
+        display: flex;
+        align-items: center;
+        justify-content: end;
+        pointer-events: none;
+        z-index: 1;
+
+        // .ag-header-cell-resize width
+        padding-right: var(--kbq-size-s);
+    }
+
+    // Based on `KbqAgGridSettingsMenuPanel`
+    .kbq-ag-grid-settings-menu-panel {
+        display: block;
+        height: 100%;
+        pointer-events: auto;
+    }
+
+    .kbq-settings-menu {
+        position: relative;
+        height: 100%;
+        display: flex;
+        align-items: center;
+
+        .kbq-icon {
+            color: var(--kbq-icon-contrast-fade);
+        }
+    }
+
+    .kbq-settings-menu-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        padding: 0 var(--kbq-size-s);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+
+        &:hover .kbq-icon {
+            color: var(--kbq-states-icon-contrast-fade-hover);
+        }
+
+        &.kbq-settings-menu-trigger_active .kbq-icon {
+            color: var(--kbq-states-icon-contrast-fade-active);
+        }
+    }
+
+    .kbq-settings-menu-panel {
+        position: absolute;
+        top: calc(100% + var(--kbq-size-xxs));
+        right: 0;
+        width: 320px;
+        background: var(--kbq-background-card);
+        box-shadow: var(--kbq-shadow-popup);
+        border-radius: var(--kbq-size-border-radius);
+        border: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        max-height: calc(var(--kbq-settings-menu-panel-max-height, 60vh) - var(--kbq-size-xxs));
+    }
+
+    .kbq-settings-menu-panel-header {
+        display: flex;
+        align-items: center;
+        gap: var(--kbq-size-xxs);
+        flex-shrink: 0;
+        height: var(--kbq-size-4xl);
+        padding: 0 var(--kbq-size-xxs);
+        border-bottom: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
+    }
+
+    .kbq-settings-menu-panel-title {
+        flex: 1;
+        text-align: center;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-family: var(--kbq-font-family-base);
+        font-size: var(--kbq-typography-text-normal-font-size);
+        font-weight: 600;
+        color: var(--kbq-foreground-contrast);
+    }
+
+    .kbq-settings-menu-header-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--kbq-size-3xl);
+        height: var(--kbq-size-3xl);
+        flex-shrink: 0;
+        padding: 0;
+        background: transparent;
+        border: none;
+        border-radius: var(--kbq-size-border-radius);
+        cursor: pointer;
+
+        &:hover {
+            background: var(--kbq-states-background-transparent-hover);
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--kbq-states-line-focus-theme);
+            outline-offset: -2px;
+        }
+    }
+
+    // Keeps the title centered when only one of the header buttons is rendered.
+    .kbq-settings-menu-panel-header:not(:has(.kbq-settings-menu-reset-btn)) .kbq-settings-menu-panel-title {
+        padding-right: var(--kbq-size-3xl);
+    }
+
+    .kbq-settings-menu-panel-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        animation: kbq-settings-menu-level-forward 200ms cubic-bezier(0, 0, 0.2, 1) both;
+    }
+
+    .kbq-settings-menu-panel-body_back {
+        animation-name: kbq-settings-menu-level-back;
+    }
+
+    .kbq-settings-menu-list {
+        overflow-y: auto;
+        padding: var(--kbq-size-xxs) 0;
+    }
+
+    .kbq-settings-menu-item {
+        display: flex;
+        align-items: center;
+        gap: var(--kbq-size-s);
+        height: var(--kbq-size-3xl);
+        margin: 0 var(--kbq-size-xxs);
+        padding: 0 var(--kbq-size-m);
+        border-radius: var(--kbq-size-border-radius);
+        cursor: pointer;
+        user-select: none;
+        font-family: var(--kbq-typography-text-normal-font-family);
+        font-size: var(--kbq-typography-text-normal-font-size);
+        line-height: var(--kbq-typography-text-normal-line-height);
+        letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
+        color: var(--kbq-foreground-contrast);
+
+        &:hover,
+        &:focus {
+            background: var(--kbq-states-background-transparent-hover);
+            outline: none;
+        }
+
+        // Overrides the menu-wide icon colour set on `.kbq-settings-menu .kbq-icon`.
+        .kbq-settings-menu-item-icon {
+            flex-shrink: 0;
+            color: var(--kbq-icon-contrast);
+        }
+
+        &.kbq-settings-menu-item_disabled {
+            color: var(--kbq-states-foreground-disabled);
+            cursor: not-allowed;
+        }
+
+        &.kbq-settings-menu-item_disabled .kbq-settings-menu-item-icon {
+            color: var(--kbq-states-icon-disabled);
+        }
+    }
+
+    .kbq-settings-menu-item-label {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .kbq-settings-menu-item-value {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 50%;
+        color: var(--kbq-foreground-contrast-secondary);
+    }
+
+    .kbq-settings-menu-item-counter {
+        flex-shrink: 0;
+        color: var(--kbq-foreground-contrast-secondary);
+    }
+
+    // Secondary text falls below WCAG AA contrast on the hover and focus background of the item.
+    .kbq-settings-menu-item:is(:hover, :focus) :is(.kbq-settings-menu-item-value, .kbq-settings-menu-item-counter) {
+        color: var(--kbq-foreground-contrast);
+    }
+
+    .kbq-settings-menu-item-value-icon,
+    .kbq-settings-menu-item-chevron,
+    .kbq-settings-menu-item-check {
+        flex-shrink: 0;
+        color: var(--kbq-icon-contrast-fade);
+    }
+
+    .kbq-settings-menu-item-value-icon,
+    .kbq-settings-menu-item-counter {
+        margin-left: calc(var(--kbq-size-s) * -1 + var(--kbq-size-xxs));
+    }
+
+    .kbq-settings-menu-separator {
+        height: var(--kbq-size-border-width);
+        margin: var(--kbq-size-xxs) 0;
+        background: var(--kbq-line-contrast-less);
+    }
+
+    // Screens are laid out by the panel itself, their host element only groups the markup.
+    .kbq-ag-grid-columns-panel,
+    .kbq-ag-grid-sort-panel {
+        display: contents;
+    }
+
+    // The sort direction button keeps its tooltip when the direction is locked, so it stays
+    // interactive and is only styled as disabled.
+    .kbq-column-menu-action-btn_disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .kbq-settings-menu-panel-body {
+            animation: none;
+        }
+    }
+}
+
 @mixin _ag-row-group-cell-renderer() {
     // Based on `KbqAgGridRowGroupCellRenderer` component
     .kbq-ag-grid-group-cell-renderer {
@@ -1544,6 +1820,7 @@
     @include _ag-loading-overlay();
     @include _ag-row-actions-overlay();
     @include _ag-column-menu();
+    @include _ag-settings-menu();
     @include _ag-row-group-cell-renderer();
 
     &.ag-theme-koobiq_disable-cell-focus-styles {

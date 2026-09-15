@@ -15,6 +15,7 @@ export * from './src/select-all-rows-by-ctrl-a.ng';
 export * from './src/select-rows-by-ctrl-click.ng';
 export * from './src/select-rows-by-shift-arrow.ng';
 export * from './src/select-rows-by-shift-click.ng';
+export * from './src/settings-menu.ng';
 export * from './src/shortcuts.ng';
 export * from './src/skeleton-cell-renderer.ng';
 export * from './src/status-bar.ng';
