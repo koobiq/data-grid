@@ -28,14 +28,11 @@ export class KbqAgGridToNextRowByTab {
 
     private toNextRowByTab({ previousCellPosition, api, backwards }: TabToNextCellParams): CellPosition | boolean {
         const { rowIndex, column, rowPinned } = previousCellPosition;
-        const rowsCount = api.getDisplayedRowCount();
-        let nextRowIndex = backwards ? rowIndex - 1 : rowIndex + 1;
 
-        if (nextRowIndex < 0) nextRowIndex = -1;
-        if (nextRowIndex >= rowsCount) nextRowIndex = rowsCount - 1;
+        // Moving forward from the last row leaves Tab to the browser. Moving backwards from the first row
+        // returns row -1, which AG Grid resolves to the header.
+        if (!backwards && rowIndex >= api.getDisplayedRowCount() - 1) return false;
 
-        const isLastRow = nextRowIndex === rowsCount - 1;
-
-        return isLastRow ? false : { rowIndex: nextRowIndex, column, rowPinned };
+        return { rowIndex: backwards ? rowIndex - 1 : rowIndex + 1, column, rowPinned };
     }
 }

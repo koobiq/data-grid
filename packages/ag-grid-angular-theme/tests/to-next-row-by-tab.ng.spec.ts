@@ -76,11 +76,35 @@ describe('KbqAgGridToNextRowByTab', () => {
         expect(result).toEqual({ rowIndex: 2, column, rowPinned: null });
     });
 
-    it('should return false when reaching the last row', async () => {
+    it('should return the last row position when moving forward from the penultimate row', async () => {
         const { fixture } = await render(TestComponent);
 
         const result = fixture.componentInstance.grid().tabToNextCell!(makeParams(3, 5));
 
+        expect(result).toEqual({ rowIndex: 4, column: {}, rowPinned: null });
+    });
+
+    it('should return false when moving forward from the last row', async () => {
+        const { fixture } = await render(TestComponent);
+
+        const result = fixture.componentInstance.grid().tabToNextCell!(makeParams(4, 5));
+
         expect(result).toBe(false);
+    });
+
+    it('should return the previous row position when moving backwards from the last row', async () => {
+        const { fixture } = await render(TestComponent);
+
+        const result = fixture.componentInstance.grid().tabToNextCell!(makeParams(4, 5, true));
+
+        expect(result).toEqual({ rowIndex: 3, column: {}, rowPinned: null });
+    });
+
+    it('should return the header position (row -1) when moving backwards from the first row', async () => {
+        const { fixture } = await render(TestComponent);
+
+        const result = fixture.componentInstance.grid().tabToNextCell!(makeParams(0, 5, true));
+
+        expect(result).toEqual({ rowIndex: -1, column: {}, rowPinned: null });
     });
 });
