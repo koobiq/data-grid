@@ -175,15 +175,10 @@ export class KbqAgGridShortcuts {
      */
     toNextRowByTab({ previousCellPosition, api, backwards }: TabToNextCellParams): CellPosition | boolean {
         const { rowIndex, column, rowPinned } = previousCellPosition;
-        const rowsCount = api.getDisplayedRowCount();
-        let nextRowIndex = backwards ? rowIndex - 1 : rowIndex + 1;
 
-        if (nextRowIndex < 0) nextRowIndex = -1;
-        if (nextRowIndex >= rowsCount) nextRowIndex = rowsCount - 1;
+        if (!backwards && rowIndex >= api.getDisplayedRowCount() - 1) return false;
 
-        const isLastRow = nextRowIndex === rowsCount - 1;
-
-        return isLastRow ? false : { rowIndex: nextRowIndex, column, rowPinned };
+        return { rowIndex: backwards ? rowIndex - 1 : rowIndex + 1, column, rowPinned };
     }
 
     /**

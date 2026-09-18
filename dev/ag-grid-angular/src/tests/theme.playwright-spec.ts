@@ -1,9 +1,13 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 import { getAgGridApi } from './utils/api';
-import { getCell, toggleRowSelection } from './utils/helpers';
+import { getCell, getRow, toggleRowSelection } from './utils/helpers';
 import { enableDarkTheme } from './utils/theme';
 
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
+
+// Pinned columns split a row into one `.ag-row` element per container, so every part is returned.
+const getRowBackgrounds = async (page: Page, rowIndex: number): Promise<string[]> =>
+    getRow(page, rowIndex).evaluateAll((rows) => rows.map((row) => getComputedStyle(row).backgroundColor));
 
 test.describe('KbqAgGridAngularTheme', () => {
     // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
@@ -80,5 +84,83 @@ test.describe('KbqAgGridAngularTheme', () => {
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-filter-popup-light.png');
         await enableDarkTheme(page);
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-filter-popup-dark.png');
+    });
+
+    test('shades the columns hidden behind the pinned ones before the grid is scrolled', async ({ page }) => {
+        await page.setViewportSize({ width: 768, height: 500 });
+        await page.goto('/e2e/theme-pinned-columns');
+        // Wait for row data to load via HTTP before measuring the grid.
+        await page.locator('.ag-row[row-index]').first().waitFor();
+        const grid = getScreenshotTarget(page);
+
+        await expect(grid).toHaveClass(/ag-theme-koobiq_pinned-right-cols-overflow/);
+        await expect(grid).not.toHaveClass(/ag-theme-koobiq_pinned-left-cols-overflow/);
+
+        await page
+            .locator('.ag-center-cols-viewport')
+            .evaluate((element: HTMLElement) => element.scrollTo({ left: element.scrollWidth }));
+
+        await expect(grid).toHaveClass(/ag-theme-koobiq_pinned-left-cols-overflow/);
+        await expect(grid).not.toHaveClass(/ag-theme-koobiq_pinned-right-cols-overflow/);
+    });
+
+    test('drops the shadows of the pinned columns once every column fits the resized grid', async ({ page }) => {
+        await page.setViewportSize({ width: 768, height: 500 });
+        await page.goto('/e2e/theme-pinned-columns');
+        // Wait for row data to load via HTTP before measuring the grid.
+        await page.locator('.ag-row[row-index]').first().waitFor();
+        const grid = getScreenshotTarget(page);
+
+        await expect(grid).toHaveClass(/ag-theme-koobiq_pinned-right-cols-overflow/);
+
+        await page.setViewportSize({ width: 2400, height: 500 });
+
+        await expect(grid).not.toHaveClass(/ag-theme-koobiq_pinned-(left|right)-cols-overflow/);
+
+        await page.setViewportSize({ width: 768, height: 500 });
+
+        await expect(grid).toHaveClass(/ag-theme-koobiq_pinned-right-cols-overflow/);
+    });
+
+    test('highlights the focused row only while focus is inside it', async ({ page }) => {
+        await page.goto('/e2e/theme');
+        // Wait for row data to load via HTTP before manipulating grid state.
+        await page.locator('.ag-row[row-index]').first().waitFor();
+        await (
+            await getAgGridApi(page)
+        ).evaluate((api) => {
+            api.applyColumnState({ state: [{ colId: 'athlete', pinned: 'left' }] });
+            api.setFocusedCell(1, 'country');
+        });
+        await expect(getRow(page, 1)).toHaveCount(2);
+        const [unfocusedBackground] = await getRowBackgrounds(page, 2);
+        const focusedBackgrounds = await getRowBackgrounds(page, 1);
+
+        expect(focusedBackgrounds).toEqual([focusedBackgrounds[0], focusedBackgrounds[0]]);
+        expect(focusedBackgrounds[0]).not.toBe(unfocusedBackground);
+
+        await getCell(page, 1, 'country').blur();
+
+        expect(await getRowBackgrounds(page, 1)).toEqual([unfocusedBackground, unfocusedBackground]);
+    });
+
+    test('keeps the selection background after focus leaves a selected row', async ({ page }) => {
+        await page.goto('/e2e/theme');
+        // Wait for row data to load via HTTP before manipulating grid state.
+        await page.locator('.ag-row[row-index]').first().waitFor();
+        await (
+            await getAgGridApi(page)
+        ).evaluate((api) => {
+            api.getDisplayedRowAtIndex(1)?.setSelected(true);
+            api.getDisplayedRowAtIndex(3)?.setSelected(true);
+            api.setFocusedCell(1, 'athlete');
+        });
+        const selectedBackgrounds = await getRowBackgrounds(page, 3);
+
+        expect(await getRowBackgrounds(page, 1)).not.toEqual(selectedBackgrounds);
+
+        await getCell(page, 1, 'athlete').blur();
+
+        expect(await getRowBackgrounds(page, 1)).toEqual(selectedBackgrounds);
     });
 });
