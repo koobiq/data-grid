@@ -114,6 +114,7 @@ export class DevRowDetailSummary {
         <ag-grid-angular
             data-testid="e2eRowDetailGrid"
             kbqAgGridTheme
+            kbqAgGridThemeDisableCellFocusStyles
             domLayout="autoHeight"
             animateRows="false"
             [rowData]="rowData()"
@@ -198,6 +199,7 @@ const DETAIL_COMPONENT: KbqAgGridRowDetailComponent = ({ data }) => {
             #rowDetail="kbqAgGridRowDetail"
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
+            kbqAgGridThemeDisableCellFocusStyles
             kbqAgGridRowDetail
             animateRows="false"
             [getRowId]="getRowId"
@@ -248,6 +250,7 @@ const STATE_KEY = 'dev-ag-grid-row-detail-state';
             #rowDetail="kbqAgGridRowDetail"
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
+            kbqAgGridThemeDisableCellFocusStyles
             kbqAgGridRowDetail
             animateRows="false"
             [getRowId]="getRowId"
@@ -294,6 +297,7 @@ export class DevRowDetailState {
             #rowDetail="kbqAgGridRowDetail"
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
+            kbqAgGridThemeDisableCellFocusStyles
             kbqAgGridRowDetail
             animateRows="false"
             [getRowId]="getRowId"
@@ -338,6 +342,7 @@ export class DevRowDetailStateQueryParams {
         <ag-grid-angular
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
+            kbqAgGridThemeDisableCellFocusStyles
             kbqAgGridRowDetail
             animateRows="false"
             [getRowId]="getRowId"
