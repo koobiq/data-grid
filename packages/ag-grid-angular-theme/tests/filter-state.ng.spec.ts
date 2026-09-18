@@ -1,9 +1,18 @@
 import { Component, Directive, forwardRef, viewChild } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { render, waitFor } from '@testing-library/angular';
 import { AgGridAngular } from 'ag-grid-angular';
 import { AgEventType, FilterModel, GridApi } from 'ag-grid-community';
 import { Subject } from 'rxjs';
-import { KbqAgGridFilterState, KbqAgGridFilterStateStore } from '../src/filter-state.ng';
+import {
+    KBQ_AG_GRID_FILTER_STATE_STORE,
+    KbqAgGridFilterState,
+    KbqAgGridFilterStateLocalStorageStore,
+    KbqAgGridFilterStateQueryParamsStore,
+    KbqAgGridFilterStateStore,
+    kbqAgGridFilterStateStoreProvider
+} from '../src/filter-state.ng';
 
 type FilterChangedHandler = (event: { source?: string }) => void;
 
@@ -292,5 +301,134 @@ describe('KbqAgGridFilterState', () => {
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(apiMock.api.removeEventListener).toHaveBeenCalledWith('filterChanged', handler);
+    });
+
+    describe('built-in stores', () => {
+        const navigate = jest.fn();
+        const STATE_KEY = 'built-in-filters-state-key';
+        const MODEL: FilterModel = { athlete: { filterType: 'text', type: 'contains', filter: 'Michael' } };
+        const MODEL_JSON = '{"athlete":{"filterType":"text","type":"contains","filter":"Michael"}}';
+
+        beforeEach(() => {
+            navigate.mockClear();
+            localStorage.clear();
+            window.history.replaceState({}, '', '/');
+        });
+
+        afterEach(() => {
+            localStorage.clear();
+            window.history.replaceState({}, '', '/');
+        });
+
+        describe('KbqAgGridFilterStateLocalStorageStore', () => {
+            const makeStore = (): KbqAgGridFilterStateLocalStorageStore =>
+                TestBed.inject(KbqAgGridFilterStateLocalStorageStore);
+
+            it('writes the filter model as json', () => {
+                makeStore().setItem(STATE_KEY, MODEL);
+
+                expect(localStorage.getItem(STATE_KEY)).toBe(MODEL_JSON);
+            });
+
+            it('reads the filter model back', () => {
+                localStorage.setItem(STATE_KEY, MODEL_JSON);
+
+                expect(makeStore().getItem(STATE_KEY)).toEqual(MODEL);
+            });
+
+            it('returns null when nothing is stored', () => {
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('returns null for a malformed stored value', () => {
+                localStorage.setItem(STATE_KEY, 'not json');
+
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('removes the stored value', () => {
+                localStorage.setItem(STATE_KEY, MODEL_JSON);
+                makeStore().removeItem(STATE_KEY);
+
+                expect(localStorage.getItem(STATE_KEY)).toBeNull();
+            });
+        });
+
+        describe('KbqAgGridFilterStateQueryParamsStore', () => {
+            const makeStore = (): KbqAgGridFilterStateQueryParamsStore => {
+                TestBed.configureTestingModule({ providers: [{ provide: Router, useValue: { navigate } }] });
+
+                return TestBed.inject(KbqAgGridFilterStateQueryParamsStore);
+            };
+
+            it('reads the filter model from the query string', () => {
+                window.history.replaceState({}, '', `/?${STATE_KEY}=${encodeURIComponent(MODEL_JSON)}`);
+
+                expect(makeStore().getItem(STATE_KEY)).toEqual(MODEL);
+            });
+
+            it('returns null when the query param is absent', () => {
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('returns null for a malformed query param', () => {
+                window.history.replaceState({}, '', `/?${STATE_KEY}=not-json`);
+
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('writes the filter model into the query string', async () => {
+                await makeStore().setItem(STATE_KEY, MODEL);
+
+                expect(navigate).toHaveBeenCalledWith([], {
+                    queryParams: { [STATE_KEY]: MODEL_JSON },
+                    queryParamsHandling: 'merge',
+                    replaceUrl: true
+                });
+            });
+
+            it('drops the query param on remove', async () => {
+                await makeStore().removeItem(STATE_KEY);
+
+                expect(navigate).toHaveBeenCalledWith([], {
+                    queryParams: { [STATE_KEY]: null },
+                    queryParamsHandling: 'merge',
+                    replaceUrl: true
+                });
+            });
+        });
+
+        describe('store injection', () => {
+            it('defaults to the localStorage store', () => {
+                expect(TestBed.inject(KBQ_AG_GRID_FILTER_STATE_STORE)).toBeInstanceOf(
+                    KbqAgGridFilterStateLocalStorageStore
+                );
+            });
+
+            it('binds the store class passed to kbqAgGridFilterStateStoreProvider', () => {
+                TestBed.configureTestingModule({
+                    providers: [
+                        { provide: Router, useValue: { navigate } },
+                        kbqAgGridFilterStateStoreProvider(KbqAgGridFilterStateQueryParamsStore)
+                    ]
+                });
+
+                expect(TestBed.inject(KBQ_AG_GRID_FILTER_STATE_STORE)).toBeInstanceOf(
+                    KbqAgGridFilterStateQueryParamsStore
+                );
+            });
+
+            it('binds the store instance passed to kbqAgGridFilterStateStoreProvider', () => {
+                const store: KbqAgGridFilterStateStore = {
+                    getItem: () => null,
+                    setItem: () => undefined,
+                    removeItem: () => undefined
+                };
+
+                TestBed.configureTestingModule({ providers: [kbqAgGridFilterStateStoreProvider(store)] });
+
+                expect(TestBed.inject(KBQ_AG_GRID_FILTER_STATE_STORE)).toBe(store);
+            });
+        });
     });
 });

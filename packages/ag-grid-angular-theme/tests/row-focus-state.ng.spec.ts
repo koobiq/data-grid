@@ -1,12 +1,18 @@
 import { Component, Directive, forwardRef, viewChild } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { render, waitFor } from '@testing-library/angular';
 import { AgGridAngular } from 'ag-grid-angular';
 import { AgEventType, GridApi, IRowNode } from 'ag-grid-community';
 import { Subject } from 'rxjs';
 import {
+    KBQ_AG_GRID_ROW_FOCUS_STATE_STORE,
     KbqAgGridRowFocusState,
+    KbqAgGridRowFocusStateLocalStorageStore,
+    KbqAgGridRowFocusStateQueryParamsStore,
     KbqAgGridRowFocusStateStore,
-    KbqAgGridRowFocusStateValue
+    KbqAgGridRowFocusStateValue,
+    kbqAgGridRowFocusStateStoreProvider
 } from '../src/row-focus-state.ng';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -366,5 +372,134 @@ describe('KbqAgGridRowFocusState', () => {
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(apiMock.api.setFocusedCell).not.toHaveBeenCalled();
+    });
+
+    describe('built-in stores', () => {
+        const STATE_KEY = 'row-focus-state-key';
+        const STATE_VALUE: KbqAgGridRowFocusStateValue = { rowId: 'b', colId: 'athlete' };
+        const SERIALIZED_STATE_VALUE = '{"rowId":"b","colId":"athlete"}';
+        const navigate = jest.fn();
+
+        beforeEach(() => {
+            navigate.mockClear();
+            localStorage.clear();
+            window.history.replaceState({}, '', '/');
+        });
+
+        afterEach(() => {
+            localStorage.clear();
+            window.history.replaceState({}, '', '/');
+        });
+
+        describe('KbqAgGridRowFocusStateLocalStorageStore', () => {
+            const makeStore = (): KbqAgGridRowFocusStateLocalStorageStore =>
+                TestBed.inject(KbqAgGridRowFocusStateLocalStorageStore);
+
+            it('writes the active cell as json', () => {
+                makeStore().setItem(STATE_KEY, STATE_VALUE);
+
+                expect(localStorage.getItem(STATE_KEY)).toBe(SERIALIZED_STATE_VALUE);
+            });
+
+            it('reads the active cell back', () => {
+                localStorage.setItem(STATE_KEY, SERIALIZED_STATE_VALUE);
+
+                expect(makeStore().getItem(STATE_KEY)).toEqual(STATE_VALUE);
+            });
+
+            it('returns null when nothing is stored', () => {
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('returns null for a malformed stored value', () => {
+                localStorage.setItem(STATE_KEY, 'not json');
+
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('removes the stored value', () => {
+                localStorage.setItem(STATE_KEY, SERIALIZED_STATE_VALUE);
+                makeStore().removeItem(STATE_KEY);
+
+                expect(localStorage.getItem(STATE_KEY)).toBeNull();
+            });
+        });
+
+        describe('KbqAgGridRowFocusStateQueryParamsStore', () => {
+            const makeStore = (): KbqAgGridRowFocusStateQueryParamsStore => {
+                TestBed.configureTestingModule({ providers: [{ provide: Router, useValue: { navigate } }] });
+
+                return TestBed.inject(KbqAgGridRowFocusStateQueryParamsStore);
+            };
+
+            it('reads the active cell from the query string', () => {
+                window.history.replaceState({}, '', `/?${STATE_KEY}=${encodeURIComponent(SERIALIZED_STATE_VALUE)}`);
+
+                expect(makeStore().getItem(STATE_KEY)).toEqual(STATE_VALUE);
+            });
+
+            it('returns null when the query param is absent', () => {
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('returns null for a malformed query param', () => {
+                window.history.replaceState({}, '', `/?${STATE_KEY}=not-json`);
+
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('writes the active cell into the query string', async () => {
+                await makeStore().setItem(STATE_KEY, STATE_VALUE);
+
+                expect(navigate).toHaveBeenCalledWith([], {
+                    queryParams: { [STATE_KEY]: SERIALIZED_STATE_VALUE },
+                    queryParamsHandling: 'merge',
+                    replaceUrl: true
+                });
+            });
+
+            it('drops the query param on remove', async () => {
+                await makeStore().removeItem(STATE_KEY);
+
+                expect(navigate).toHaveBeenCalledWith([], {
+                    queryParams: { [STATE_KEY]: null },
+                    queryParamsHandling: 'merge',
+                    replaceUrl: true
+                });
+            });
+        });
+
+        describe('store injection', () => {
+            it('defaults to the localStorage store', () => {
+                expect(TestBed.inject(KBQ_AG_GRID_ROW_FOCUS_STATE_STORE)).toBeInstanceOf(
+                    KbqAgGridRowFocusStateLocalStorageStore
+                );
+            });
+
+            it('binds the store class passed to kbqAgGridRowFocusStateStoreProvider', () => {
+                TestBed.configureTestingModule({
+                    providers: [
+                        { provide: Router, useValue: { navigate } },
+                        kbqAgGridRowFocusStateStoreProvider(KbqAgGridRowFocusStateQueryParamsStore)
+                    ]
+                });
+
+                expect(TestBed.inject(KBQ_AG_GRID_ROW_FOCUS_STATE_STORE)).toBeInstanceOf(
+                    KbqAgGridRowFocusStateQueryParamsStore
+                );
+            });
+
+            it('binds the store instance passed to kbqAgGridRowFocusStateStoreProvider', () => {
+                const store: KbqAgGridRowFocusStateStore = {
+                    getItem: () => null,
+                    setItem: () => undefined,
+                    removeItem: () => undefined
+                };
+
+                TestBed.configureTestingModule({ providers: [kbqAgGridRowFocusStateStoreProvider(store)] });
+
+                expect(TestBed.inject(KBQ_AG_GRID_ROW_FOCUS_STATE_STORE)).toBe(store);
+            });
+        });
     });
 });
