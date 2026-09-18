@@ -1,7 +1,8 @@
+import { SharedResizeObserver } from '@angular/cdk/observers/private';
 import { booleanAttribute, DestroyRef, Directive, ElementRef, inject, input, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgGridAngular } from 'ag-grid-angular';
-import { EMPTY, filter, startWith, switchMap } from 'rxjs';
+import { filter, merge, switchMap } from 'rxjs';
 
 /** Default width (px) of AG Grid's auto-generated selection checkbox column, matching the
  * Koobiq design system's checkbox column sizing (AG's own default is wider). */
@@ -29,6 +30,7 @@ export class KbqAgGridTheme {
     private readonly grid = inject(AgGridAngular);
     private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly sharedResizeObserver = inject(SharedResizeObserver);
 
     /**
      * Disables ag-grid cell focus styles (e.g. border-color).
@@ -81,34 +83,43 @@ export class KbqAgGridTheme {
         this.grid.gridReady
             .pipe(
                 switchMap(() =>
-                    this.grid.columnPinned.pipe(
-                        startWith(null),
-                        switchMap(() => {
-                            if (!this.grid.api.isPinning()) {
-                                this.columnsOverflowLeft.set(false);
-                                this.columnsOverflowRight.set(false);
-                                return EMPTY;
-                            }
-                            return this.grid.bodyScroll.pipe(
-                                startWith({ direction: 'horizontal' }),
-                                filter(({ direction }) => direction === 'horizontal')
-                            );
-                        })
+                    merge(
+                        // The grid is still laying its body out when `gridReady` fires, so the columns
+                        // measure as fitting. The observer delivers the measurement of the finished layout,
+                        // and of every later one, so that the shadows do not wait for the first scroll.
+                        this.sharedResizeObserver.observe(this.elementRef.nativeElement),
+                        // Emitted once the grid has laid its own body out for the new size, which the
+                        // resize observer above reports before the grid reacts to it.
+                        this.grid.gridSizeChanged,
+                        this.grid.bodyScroll.pipe(filter(({ direction }) => direction === 'horizontal')),
+                        // Columns change what is scrollable without resizing the grid itself.
+                        this.grid.columnPinned,
+                        this.grid.columnResized,
+                        this.grid.displayedColumnsChanged
                     )
                 ),
                 takeUntilDestroyed(this.destroyRef)
             )
-            .subscribe(() => {
-                const viewport = this.elementRef.nativeElement.querySelector<HTMLElement>(
-                    '.ag-body-horizontal-scroll-viewport'
-                );
+            .subscribe(() => this.updateColumnsOverflow());
+    }
 
-                if (!viewport) return;
+    /** Marks the sides where pinned columns cover scrolled-out ones, which the theme shades. */
+    private updateColumnsOverflow(): void {
+        // The scrollable columns are measured on their own viewport rather than on the grid's horizontal
+        // scrollbar, which only takes the width of the columns once they have been rendered.
+        const viewport = this.elementRef.nativeElement.querySelector<HTMLElement>('.ag-center-cols-viewport');
+        const { scrollLeft, scrollWidth, clientWidth } = viewport ?? { scrollLeft: 0, scrollWidth: 0, clientWidth: 0 };
 
-                const { scrollLeft, scrollWidth, clientWidth } = viewport;
+        // A grid without pinned columns has nothing to shade, and a hidden one reports no width, which
+        // would otherwise read as columns hidden behind both sides.
+        if (!this.grid.api.isPinning() || clientWidth === 0) {
+            this.columnsOverflowLeft.set(false);
+            this.columnsOverflowRight.set(false);
 
-                this.columnsOverflowLeft.set(scrollLeft > 0);
-                this.columnsOverflowRight.set(Math.round(scrollLeft + clientWidth) < scrollWidth);
-            });
+            return;
+        }
+
+        this.columnsOverflowLeft.set(scrollLeft > 0);
+        this.columnsOverflowRight.set(Math.round(scrollLeft + clientWidth) < scrollWidth);
     }
 }

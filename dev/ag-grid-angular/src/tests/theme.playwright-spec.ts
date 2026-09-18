@@ -86,6 +86,42 @@ test.describe('KbqAgGridAngularTheme', () => {
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-filter-popup-dark.png');
     });
 
+    test('shades the columns hidden behind the pinned ones before the grid is scrolled', async ({ page }) => {
+        await page.setViewportSize({ width: 768, height: 500 });
+        await page.goto('/e2e/theme-pinned-columns');
+        // Wait for row data to load via HTTP before measuring the grid.
+        await page.locator('.ag-row[row-index]').first().waitFor();
+        const grid = getScreenshotTarget(page);
+
+        await expect(grid).toHaveClass(/ag-theme-koobiq_pinned-right-cols-overflow/);
+        await expect(grid).not.toHaveClass(/ag-theme-koobiq_pinned-left-cols-overflow/);
+
+        await page
+            .locator('.ag-center-cols-viewport')
+            .evaluate((element: HTMLElement) => element.scrollTo({ left: element.scrollWidth }));
+
+        await expect(grid).toHaveClass(/ag-theme-koobiq_pinned-left-cols-overflow/);
+        await expect(grid).not.toHaveClass(/ag-theme-koobiq_pinned-right-cols-overflow/);
+    });
+
+    test('drops the shadows of the pinned columns once every column fits the resized grid', async ({ page }) => {
+        await page.setViewportSize({ width: 768, height: 500 });
+        await page.goto('/e2e/theme-pinned-columns');
+        // Wait for row data to load via HTTP before measuring the grid.
+        await page.locator('.ag-row[row-index]').first().waitFor();
+        const grid = getScreenshotTarget(page);
+
+        await expect(grid).toHaveClass(/ag-theme-koobiq_pinned-right-cols-overflow/);
+
+        await page.setViewportSize({ width: 2400, height: 500 });
+
+        await expect(grid).not.toHaveClass(/ag-theme-koobiq_pinned-(left|right)-cols-overflow/);
+
+        await page.setViewportSize({ width: 768, height: 500 });
+
+        await expect(grid).toHaveClass(/ag-theme-koobiq_pinned-right-cols-overflow/);
+    });
+
     test('highlights the focused row only while focus is inside it', async ({ page }) => {
         await page.goto('/e2e/theme');
         // Wait for row data to load via HTTP before manipulating grid state.
