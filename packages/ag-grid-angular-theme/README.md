@@ -8,6 +8,7 @@ Navigation:
 
 - [Installation](#installation)
 - [Usage](#usage)
+- [Expandable Rows](#expandable-rows)
 - [Custom Keyboard Shortcuts](#custom-keyboard-shortcuts)
 - [State Persistence](#state-persistence)
 - [Development](#development)
@@ -57,6 +58,60 @@ import { AgGridModule } from 'ag-grid-angular';
     template: `<ag-grid-angular kbqAgGridTheme />`
 })
 ```
+
+### Expandable rows
+
+`kbqAgGridRowDetail` expands a row to show your own component below its cells — a nested grid, a code block, plain text. It does not need AG Grid Enterprise's Master Detail: the expanded part belongs to the row itself, so row indexes, row counts, selection, sorting, filtering, pagination and CSV export stay exactly as they are without the directive.
+
+```ts
+import { KBQ_AG_GRID_ROW_DETAIL_PARAMS, KbqAgGridRowDetail, KbqAgGridTheme } from '@koobiq/ag-grid-angular-theme';
+import { AgGridModule } from 'ag-grid-angular';
+
+@Component({
+    template: `
+        <div>{{ athlete }}</div>
+    `
+})
+export class MyRowDetail {
+    private readonly params = inject(KBQ_AG_GRID_ROW_DETAIL_PARAMS);
+}
+
+@Component({
+    imports: [AgGridModule, KbqAgGridTheme, KbqAgGridRowDetail],
+    template: `
+        <ag-grid-angular
+            kbqAgGridTheme
+            kbqAgGridRowDetail
+            [getRowId]="getRowId"
+            [kbqAgGridRowDetailComponent]="detailComponent"
+        />
+    `
+})
+export class MyGrid {
+    protected readonly detailComponent = MyRowDetail;
+    protected readonly getRowId: GetRowIdFunc = ({ data }) => data.id;
+}
+```
+
+| Input                            | Description                                                                                                                  |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `kbqAgGridRowDetailComponent`    | Component rendered in the expanded part, or a function picking one per row (`null` makes the row non-expandable)             |
+| `kbqAgGridRowDetailSingleExpand` | Collapses the previously expanded row when another one is expanded. `false` by default                                       |
+| `kbqAgGridRowDetailToggleColumn` | `colId` of the column hosting the expand toggle. Defaults to the first non-pinned column                                     |
+| `kbqAgGridRowDetailHeight`       | Fixed height (px) of the expanded part. By default the detail component's own host height is measured instead                |
+| `kbqAgGridRowDetailExpanded`     | Ids of the expanded rows, supports two-way binding                                                                           |
+| `kbqAgGridRowDetailLabels`       | Screen reader labels of the expand/collapse toggle. Russian by default, English preset is `KBQ_AG_GRID_ROW_DETAIL_LABELS_EN` |
+| `kbqAgGridRowDetailState`        | Key under which the expanded rows are persisted (see [State persistence](#state-persistence))                                |
+
+The component is created on expand and destroyed on collapse, and receives `{ api, node, data, rowIndex }` through the `KBQ_AG_GRID_ROW_DETAIL_PARAMS` token. Its own host element defines the height of the expanded part, so a component that grows while loading its data grows the row with it. Expanding and collapsing from your own UI goes through `#rowDetail="kbqAgGridRowDetail"`, which exposes `expand()`, `collapse()`, `toggle()` and `collapseAll()`.
+
+Keep in mind:
+
+- Set `getRowId` — expanded rows are tracked by row id.
+- Not supported with the infinite row model, which gives every row the same height.
+- The toggle column must not use `cellRendererSelector`: AG Grid gives it precedence over the `cellRenderer` the directive injects, so the toggle would not be rendered.
+- With pinned columns the expanded part spans the center (non-pinned) section only; the pinned sections of the row stay empty.
+- Not combinable with `kbqAgGridRowGroup`: that directive rebuilds `columnDefs` from its own snapshot of your definitions, so the injected toggle would be rewritten on every grouping change.
 
 ### Custom keyboard shortcuts
 

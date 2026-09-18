@@ -38,6 +38,7 @@ import {
     SelectionColumnDef,
     SortDirection
 } from 'ag-grid-community';
+import { kbqMapColDefTree } from './col-defs';
 import { KbqAgGridStateStore } from './state-store';
 
 /** A plain input data row — any object with string keys. */
@@ -258,21 +259,6 @@ function sortGroupEntries(groups: ReadonlyMap<string, RowData[]>, sort: 'asc' | 
     const direction = sort === 'asc' ? 1 : -1;
     return [...groups].sort(
         ([a], [b]) => direction * a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })
-    );
-}
-
-/**
- * Recursively walks a `(ColDef | ColGroupDef)[]` tree, applying `transform` to every leaf
- * `ColDef` — including ones nested under `ColGroupDef.children` — and returns a new tree.
- * `ColGroupDef` nodes are shallow-cloned with their `children` replaced; they have no
- * `field`/`comparator` of their own to transform.
- */
-function mapColDefTree(
-    defs: readonly (ColDef | ColGroupDef)[],
-    transform: (def: ColDef) => ColDef
-): (ColDef | ColGroupDef)[] {
-    return defs.map((def) =>
-        'children' in def ? { ...def, children: mapColDefTree(def.children, transform) } : transform(def)
     );
 }
 
@@ -678,7 +664,6 @@ export type KbqAgGridRowGroupCollapsedStateStore = KbqAgGridStateStore<readonly 
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridRowGroupCollapsedStateLocalStorageStore implements KbqAgGridRowGroupCollapsedStateStore {
-    // TODO: Should use KBQ_WINDOW token
     private readonly localStorage = window.localStorage;
 
     getItem(key: string): readonly string[] | null {
@@ -714,7 +699,6 @@ export class KbqAgGridRowGroupCollapsedStateLocalStorageStore implements KbqAgGr
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridRowGroupCollapsedStateQueryParamsStore implements KbqAgGridRowGroupCollapsedStateStore {
     private readonly router = inject(Router);
-    // TODO: Should use KBQ_WINDOW token
     private readonly location = window.location;
 
     getItem(key: string): readonly string[] | null {
@@ -798,7 +782,6 @@ export type KbqAgGridRowGroupSelectionStateStore = KbqAgGridStateStore<readonly 
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridRowGroupSelectionStateLocalStorageStore implements KbqAgGridRowGroupSelectionStateStore {
-    // TODO: Should use KBQ_WINDOW token
     private readonly localStorage = window.localStorage;
 
     getItem(key: string): readonly string[] | null {
@@ -834,7 +817,6 @@ export class KbqAgGridRowGroupSelectionStateLocalStorageStore implements KbqAgGr
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridRowGroupSelectionStateQueryParamsStore implements KbqAgGridRowGroupSelectionStateStore {
     private readonly router = inject(Router);
-    // TODO: Should use KBQ_WINDOW token
     private readonly location = window.location;
 
     getItem(key: string): readonly string[] | null {
@@ -1830,7 +1812,7 @@ export class KbqAgGridRowGroup {
      * and data columns sort with AG's fully native behavior (no group-header rows to scatter).
      */
     private makeDataColDefs(): (ColDef | ColGroupDef)[] {
-        return mapColDefTree(this.originalColDefs, (def) => ({ ...def, comparator: (): number => 0 }));
+        return kbqMapColDefTree(this.originalColDefs, (def) => ({ ...def, comparator: (): number => 0 }));
     }
 
     /** Every columnDefs write this directive itself makes (adding/removing the Group column,

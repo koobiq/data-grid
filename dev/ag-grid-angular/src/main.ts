@@ -130,6 +130,22 @@ if (isDevMode()) {
                 loadComponent: async () => import('./tests/row-group').then((m) => m.DevRowGroup)
             },
             {
+                path: 'row-detail',
+                loadComponent: async () => import('./tests/row-detail.ng').then((m) => m.DevRowDetail)
+            },
+            {
+                path: 'row-detail-state',
+                loadComponent: async () => import('./tests/row-detail.ng').then((m) => m.DevRowDetailState)
+            },
+            {
+                path: 'row-detail-state-query-params',
+                loadComponent: async () => import('./tests/row-detail.ng').then((m) => m.DevRowDetailStateQueryParams)
+            },
+            {
+                path: 'row-detail-pinned-columns',
+                loadComponent: async () => import('./tests/row-detail.ng').then((m) => m.DevRowDetailPinnedColumns)
+            },
+            {
                 path: 'export',
                 loadComponent: async () => import('./tests/export.ng').then((m) => m.DevExport)
             }
