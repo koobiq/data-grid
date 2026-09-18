@@ -1746,13 +1746,10 @@
         color: var(--kbq-foreground-contrast-secondary);
     }
 
-    // The direction belongs to the value it follows, the counter is a value of its own.
+    // The direction belongs to the value it follows, so it keeps the 2px of the design instead of
+    // the gap of the item; the counter is a value of its own and keeps that gap.
     .kbq-settings-menu-item-value-suffix {
-        margin-left: calc(var(--kbq-size-s) * -1);
-    }
-
-    .kbq-settings-menu-item-counter {
-        margin-left: calc(var(--kbq-size-s) * -1 + var(--kbq-size-xxs));
+        margin-left: calc(var(--kbq-size-3xs) - var(--kbq-size-s));
     }
 
     .kbq-settings-menu-item-chevron {

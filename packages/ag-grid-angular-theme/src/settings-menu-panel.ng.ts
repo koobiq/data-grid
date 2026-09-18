@@ -1,4 +1,6 @@
 import { CdkTrapFocus, FocusableOption, FocusKeyManager } from '@angular/cdk/a11y';
+import { MediaMatcher } from '@angular/cdk/layout';
+import { SharedResizeObserver } from '@angular/cdk/observers/private';
 import { DOCUMENT, NgComponentOutlet } from '@angular/common';
 import {
     ChangeDetectionStrategy,
@@ -33,6 +35,10 @@ import {
 } from './settings-menu-types';
 
 const KBQ_SETTINGS_MENU_CONTEXT = new InjectionToken<KbqAgGridSettingsMenuPanel>('KBQ_SETTINGS_MENU_CONTEXT');
+
+/** Duration of the level transition, matching the animations of the level body in `theme.scss`. */
+const LEVEL_TRANSITION_DURATION = 200;
+const LEVEL_TRANSITION_EASING = 'cubic-bezier(0, 0, 0.2, 1)';
 
 /** Items of the root menu level, supplied by `KbqAgGridSettingsMenu` as a signal. */
 export const KBQ_AG_GRID_SETTINGS_MENU_ITEMS = new InjectionToken<Signal<KbqAgGridSettingsMenuItems>>(
@@ -168,6 +174,7 @@ export class KbqAgGridSettingsMenuItemRow implements FocusableOption {
 
             @if (isOpen()) {
                 <div
+                    #settingsMenuPanel
                     class="kbq-settings-menu-panel"
                     role="dialog"
                     cdkTrapFocus
@@ -244,7 +251,10 @@ export class KbqAgGridSettingsMenuPanel {
     private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly injector = inject(Injector);
     private readonly document = inject(DOCUMENT);
+    private readonly mediaMatcher = inject(MediaMatcher);
+    private readonly sharedResizeObserver = inject(SharedResizeObserver);
     private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('settingsMenuTrigger');
+    private readonly panel = viewChild<ElementRef<HTMLElement>>('settingsMenuPanel');
     private readonly rowItems = viewChildren(KbqAgGridSettingsMenuItemRow);
     private readonly keyManager = new FocusKeyManager(this.rowItems, this.injector)
         .withWrap()
@@ -259,6 +269,9 @@ export class KbqAgGridSettingsMenuPanel {
     protected readonly levelTransition = signal<'forward' | 'back' | null>(null);
     /** Row to focus once the next level renders: the one that opened the level the user returns from. */
     private pendingFocusIndex = 0;
+    /** Height the panel was last measured at, the one a resize animates from. */
+    private panelHeight: number | null = null;
+    private levelResizeAnimation: Animation | null = null;
 
     /** Root level items that are not hidden. */
     private readonly rootEntries = computed(() =>
@@ -365,6 +378,8 @@ export class KbqAgGridSettingsMenuPanel {
 
             onCleanup(() => clearTimeout(timer));
         });
+
+        this.observePanelResize();
     }
 
     /** Whether the given entry is a separator rather than an item. */
@@ -541,6 +556,50 @@ export class KbqAgGridSettingsMenuPanel {
 
         this.close();
         this.trigger().nativeElement.focus();
+    }
+
+    /**
+     * Grows and shrinks the panel along with its content instead of letting it jump: the observer
+     * reports the new size before the browser paints it, so the animation starts from the size the
+     * panel still has. Levels that render their content asynchronously, like the screens, are
+     * covered too, which a single measurement after the navigation would miss.
+     */
+    private observePanelResize(): void {
+        effect((onCleanup) => {
+            const element = this.panel()?.nativeElement;
+
+            this.panelHeight = null;
+
+            if (!element) return;
+
+            const subscription = this.sharedResizeObserver
+                .observe(element)
+                .subscribe(() => this.animatePanelResize(element));
+
+            onCleanup(() => subscription.unsubscribe());
+        });
+    }
+
+    private animatePanelResize(element: HTMLElement): void {
+        const from = this.panelHeight;
+        const to = element.getBoundingClientRect().height;
+
+        this.panelHeight = to;
+
+        // The first measurement of an opened menu has nothing to grow from, and the animation of the
+        // panel resizes it on its own.
+        if (from === null || Math.round(from) === Math.round(to)) return;
+        if (this.levelResizeAnimation?.playState === 'running') return;
+
+        // The Web Animations API is missing outside a browser, e.g. in unit tests.
+        if (typeof element.animate !== 'function') return;
+
+        if (this.mediaMatcher.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        this.levelResizeAnimation = element.animate([{ height: `${from}px` }, { height: `${to}px` }], {
+            duration: LEVEL_TRANSITION_DURATION,
+            easing: LEVEL_TRANSITION_EASING
+        });
     }
 
     private refreshItemStates(): void {
