@@ -17,7 +17,6 @@ export type KbqAgGridFilterStateStore = KbqAgGridStateStore<FilterModel>;
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridFilterStateLocalStorageStore implements KbqAgGridFilterStateStore {
-    // TODO: Should use KBQ_WINDOW token
     private readonly localStorage = window.localStorage;
 
     getItem(key: string): FilterModel | null {
@@ -53,7 +52,6 @@ export class KbqAgGridFilterStateLocalStorageStore implements KbqAgGridFilterSta
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridFilterStateQueryParamsStore implements KbqAgGridFilterStateStore {
     private readonly router = inject(Router);
-    // TODO: Should use KBQ_WINDOW token
     private readonly location = window.location;
 
     getItem(key: string): FilterModel | null {
