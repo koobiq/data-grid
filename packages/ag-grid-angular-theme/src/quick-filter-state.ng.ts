@@ -31,7 +31,6 @@ export type KbqAgGridQuickFilterStateStore = KbqAgGridStateStore<string>;
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridQuickFilterStateLocalStorageStore implements KbqAgGridQuickFilterStateStore {
-    // TODO: Should use KBQ_WINDOW token
     private readonly localStorage = window.localStorage;
 
     getItem(key: string): string | null {
@@ -58,7 +57,6 @@ export class KbqAgGridQuickFilterStateLocalStorageStore implements KbqAgGridQuic
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridQuickFilterStateQueryParamsStore implements KbqAgGridQuickFilterStateStore {
     private readonly router = inject(Router);
-    // TODO: Should use KBQ_WINDOW token
     private readonly location = window.location;
 
     getItem(key: string): string | null {

@@ -1,9 +1,18 @@
 import { Component, Directive, forwardRef, viewChild } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { render, waitFor } from '@testing-library/angular';
 import { AgGridAngular } from 'ag-grid-angular';
 import { AgEventType, GridApi, IRowNode } from 'ag-grid-community';
 import { Subject } from 'rxjs';
-import { KbqAgGridRowSelectionState, KbqAgGridRowSelectionStateStore } from '../src/row-selection-state.ng';
+import {
+    KBQ_AG_GRID_ROW_SELECTION_STATE_STORE,
+    KbqAgGridRowSelectionState,
+    KbqAgGridRowSelectionStateLocalStorageStore,
+    KbqAgGridRowSelectionStateQueryParamsStore,
+    KbqAgGridRowSelectionStateStore,
+    kbqAgGridRowSelectionStateStoreProvider
+} from '../src/row-selection-state.ng';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyEventHandler = (event?: any) => void;
@@ -390,5 +399,132 @@ describe('KbqAgGridRowSelectionState', () => {
 
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(apiMock.api.setNodesSelected).not.toHaveBeenCalled();
+    });
+
+    describe('built-in stores', () => {
+        const STATE_KEY = 'row-selection-state-key';
+        const navigate = jest.fn();
+
+        beforeEach(() => {
+            navigate.mockClear();
+            localStorage.clear();
+            window.history.replaceState({}, '', '/');
+        });
+
+        afterEach(() => {
+            localStorage.clear();
+            window.history.replaceState({}, '', '/');
+        });
+
+        describe('KbqAgGridRowSelectionStateLocalStorageStore', () => {
+            const makeStore = (): KbqAgGridRowSelectionStateLocalStorageStore =>
+                TestBed.inject(KbqAgGridRowSelectionStateLocalStorageStore);
+
+            it('writes the selected row ids as json', () => {
+                makeStore().setItem(STATE_KEY, ['a', 'b']);
+
+                expect(localStorage.getItem(STATE_KEY)).toBe('["a","b"]');
+            });
+
+            it('reads the selected row ids back', () => {
+                localStorage.setItem(STATE_KEY, '["a","b"]');
+
+                expect(makeStore().getItem(STATE_KEY)).toEqual(['a', 'b']);
+            });
+
+            it('returns null when nothing is stored', () => {
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('returns null for a malformed stored value', () => {
+                localStorage.setItem(STATE_KEY, 'not json');
+
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('removes the stored value', () => {
+                localStorage.setItem(STATE_KEY, '["a"]');
+                makeStore().removeItem(STATE_KEY);
+
+                expect(localStorage.getItem(STATE_KEY)).toBeNull();
+            });
+        });
+
+        describe('KbqAgGridRowSelectionStateQueryParamsStore', () => {
+            const makeStore = (): KbqAgGridRowSelectionStateQueryParamsStore => {
+                TestBed.configureTestingModule({ providers: [{ provide: Router, useValue: { navigate } }] });
+
+                return TestBed.inject(KbqAgGridRowSelectionStateQueryParamsStore);
+            };
+
+            it('reads the selected row ids from the query string', () => {
+                window.history.replaceState({}, '', `/?${STATE_KEY}=${encodeURIComponent('["a","b"]')}`);
+
+                expect(makeStore().getItem(STATE_KEY)).toEqual(['a', 'b']);
+            });
+
+            it('returns null when the query param is absent', () => {
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('returns null for a malformed query param', () => {
+                window.history.replaceState({}, '', `/?${STATE_KEY}=not-json`);
+
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('writes the selected row ids into the query string', async () => {
+                await makeStore().setItem(STATE_KEY, ['a']);
+
+                expect(navigate).toHaveBeenCalledWith([], {
+                    queryParams: { [STATE_KEY]: '["a"]' },
+                    queryParamsHandling: 'merge',
+                    replaceUrl: true
+                });
+            });
+
+            it('drops the query param on remove', async () => {
+                await makeStore().removeItem(STATE_KEY);
+
+                expect(navigate).toHaveBeenCalledWith([], {
+                    queryParams: { [STATE_KEY]: null },
+                    queryParamsHandling: 'merge',
+                    replaceUrl: true
+                });
+            });
+        });
+
+        describe('store injection', () => {
+            it('defaults to the localStorage store', () => {
+                expect(TestBed.inject(KBQ_AG_GRID_ROW_SELECTION_STATE_STORE)).toBeInstanceOf(
+                    KbqAgGridRowSelectionStateLocalStorageStore
+                );
+            });
+
+            it('binds the store class passed to kbqAgGridRowSelectionStateStoreProvider', () => {
+                TestBed.configureTestingModule({
+                    providers: [
+                        { provide: Router, useValue: { navigate } },
+                        kbqAgGridRowSelectionStateStoreProvider(KbqAgGridRowSelectionStateQueryParamsStore)
+                    ]
+                });
+
+                expect(TestBed.inject(KBQ_AG_GRID_ROW_SELECTION_STATE_STORE)).toBeInstanceOf(
+                    KbqAgGridRowSelectionStateQueryParamsStore
+                );
+            });
+
+            it('binds the store instance passed to kbqAgGridRowSelectionStateStoreProvider', () => {
+                const store: KbqAgGridRowSelectionStateStore = {
+                    getItem: () => null,
+                    setItem: () => undefined,
+                    removeItem: () => undefined
+                };
+
+                TestBed.configureTestingModule({ providers: [kbqAgGridRowSelectionStateStoreProvider(store)] });
+
+                expect(TestBed.inject(KBQ_AG_GRID_ROW_SELECTION_STATE_STORE)).toBe(store);
+            });
+        });
     });
 });

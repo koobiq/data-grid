@@ -8,6 +8,7 @@ import { KbqAgGridInfiniteSelection } from './infinite-selection.ng';
 import { KbqAgGridLoadingOverlay } from './loading-overlay.ng';
 import { KbqAgGridQuickFilterState } from './quick-filter-state.ng';
 import { KbqAgGridRowActions } from './row-actions.ng';
+import { KbqAgGridRowDetail } from './row-detail.ng';
 import { KbqAgGridRowFocusState } from './row-focus-state.ng';
 import { KbqAgGridRowGroup } from './row-group.ng';
 import { KbqAgGridRowSelectionState } from './row-selection-state.ng';
@@ -32,6 +33,7 @@ const COMPONENTS = [
     KbqAgGridCopyByCtrlC,
     KbqAgGridStatusBar,
     KbqAgGridRowActions,
+    KbqAgGridRowDetail,
     KbqAgGridInfiniteSelection,
     KbqAgGridColumnState,
     KbqAgGridFilterState,
