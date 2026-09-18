@@ -1700,8 +1700,10 @@
         letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
         color: var(--kbq-foreground-contrast);
 
+        // Focus is moved to an item as soon as a level renders, so the highlight follows
+        // `:focus-visible`: a menu opened with the mouse shows no active item.
         &:hover,
-        &:focus {
+        &:focus-visible {
             background: var(--kbq-states-background-transparent-hover);
             outline: none;
         }
@@ -1741,8 +1743,16 @@
     .kbq-settings-menu-item-value-suffix,
     .kbq-settings-menu-item-counter {
         flex-shrink: 0;
-        margin-left: calc(var(--kbq-size-s) * -1 + var(--kbq-size-xxs));
         color: var(--kbq-foreground-contrast-secondary);
+    }
+
+    // The direction belongs to the value it follows, the counter is a value of its own.
+    .kbq-settings-menu-item-value-suffix {
+        margin-left: calc(var(--kbq-size-s) * -1);
+    }
+
+    .kbq-settings-menu-item-counter {
+        margin-left: calc(var(--kbq-size-s) * -1 + var(--kbq-size-xxs));
     }
 
     .kbq-settings-menu-item-chevron {

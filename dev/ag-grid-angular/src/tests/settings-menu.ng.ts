@@ -26,6 +26,30 @@ const DEV_DENSITY_LABELS: Record<DevDensity, string> = {
 
 const DEV_DENSITIES: DevDensity[] = ['compact', 'normal', 'big'];
 
+/** Long enough for the level to scroll, which is what the demo shows. */
+const DEV_TIME_ZONES: string[] = [
+    'UTC-08:00',
+    'UTC-07:00',
+    'UTC-06:00',
+    'UTC-05:00',
+    'UTC-04:00',
+    'UTC-03:00',
+    'UTC-01:00',
+    'UTC+00:00',
+    'UTC+01:00',
+    'UTC+02:00',
+    'UTC+03:00',
+    'UTC+04:00',
+    'UTC+05:00',
+    'UTC+06:00',
+    'UTC+07:00',
+    'UTC+08:00',
+    'UTC+09:00',
+    'UTC+10:00',
+    'UTC+11:00',
+    'UTC+12:00'
+];
+
 @Component({
     selector: 'dev-settings-menu',
     imports: [AgGridModule, KbqAgGridThemeModule],
@@ -85,6 +109,7 @@ export class DevSettingsMenu {
 
     protected readonly density = signal<DevDensity>('normal');
     protected readonly wordWrap = signal(false);
+    protected readonly timeZone = signal('UTC+03:00');
 
     // The `(dev)` suffix marks the items defined by this demo, so that they are not read as
     // built-in items of the package.
@@ -104,6 +129,20 @@ export class DevSettingsMenu {
                 checked: computed(() => this.density() === density),
                 keepOpen: true,
                 action: (): void => this.density.set(density)
+            }))
+        },
+        {
+            id: 'time-zone',
+            label: 'Time zone (dev)',
+            icon: 'kbq-globe_16',
+            mode: 'single',
+            value: this.timeZone,
+            items: DEV_TIME_ZONES.map((timeZone) => ({
+                id: timeZone,
+                label: timeZone,
+                checked: computed(() => this.timeZone() === timeZone),
+                keepOpen: true,
+                action: (): void => this.timeZone.set(timeZone)
             }))
         },
         {
