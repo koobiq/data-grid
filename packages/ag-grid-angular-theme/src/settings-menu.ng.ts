@@ -97,12 +97,12 @@ export const kbqAgGridSettingsMenuSortItem = (
 
             return sorted.length > 0 ? kbqResolveColumnName(api, sorted[0]) : undefined;
         },
-        valueIcon: (api: GridApi): string | undefined => {
+        valueSuffix: (api: GridApi): string | undefined => {
             const sorted = kbqSortedColumns(api);
 
             if (sorted.length === 0) return undefined;
 
-            return sorted[0].getSort() === 'desc' ? 'kbq-arrow-down_16' : 'kbq-arrow-up_16';
+            return sorted[0].getSort() === 'desc' ? '↓' : '↑';
         },
         counter: (api: GridApi): number => Math.max(0, kbqSortedColumns(api).length - 1),
         screen: KbqAgGridSortPanel,

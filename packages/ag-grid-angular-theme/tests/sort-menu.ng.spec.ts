@@ -389,6 +389,34 @@ describe('sort screen of KbqAgGridSettingsMenu', () => {
         });
     });
 
+    describe('accessibility', () => {
+        it('moves the keyboard focus to the row checkbox exposing the column name and sorting state', async () => {
+            const { container } = await openSortScreen([
+                createColumnMock({ colId: 'year', headerName: 'Year', sort: 'asc', sortIndex: 0 }),
+                createColumnMock({ colId: 'athlete', headerName: 'Athlete' })
+            ]);
+            const checkbox = rowByLabel(container, 'Year').querySelector('.kbq-column-menu-checkbox');
+
+            fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
+
+            await waitFor(() => {
+                expect(document.activeElement).toBe(checkbox);
+            });
+            expect(checkbox?.getAttribute('role')).toBe('checkbox');
+            expect(checkbox?.getAttribute('aria-label')).toBe('Year');
+            expect(checkbox?.getAttribute('aria-checked')).toBe('true');
+        });
+
+        it('redirects the focus a row receives from a pointer to its checkbox', async () => {
+            const { container } = await openSortScreen([createColumnMock({ colId: 'athlete', headerName: 'Athlete' })]);
+            const row = container.querySelector<HTMLElement>('kbq-sort-menu-row')!;
+
+            row.focus();
+
+            expect(document.activeElement).toBe(row.querySelector('.kbq-column-menu-checkbox'));
+        });
+    });
+
     describe('reset', () => {
         it('restores the sorting defined by the column definitions and clears the search query', async () => {
             const { container, api } = await openSortScreen([

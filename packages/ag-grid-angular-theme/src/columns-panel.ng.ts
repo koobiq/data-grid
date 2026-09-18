@@ -21,6 +21,7 @@ import {
     InjectionToken,
     input,
     signal,
+    viewChild,
     viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -43,6 +44,7 @@ type ColumnSection = 'pinnedLeft' | 'visible' | 'pinnedRight' | 'hidden';
     host: {
         class: 'kbq-column-menu-row',
         '[attr.tabindex]': '-1',
+        '(focus)': 'focus()',
         '(click)': 'onRowClick()',
         '(keydown.enter)': 'onRowClick()',
         '(keydown.space)': '$event.preventDefault(); onRowClick()',
@@ -56,7 +58,9 @@ type ColumnSection = 'pinnedLeft' | 'visible' | 'pinnedRight' | 'hidden';
 
         <div class="kbq-column-menu-row-wrapper">
             <span
+                #checkbox
                 role="checkbox"
+                tabindex="-1"
                 class="kbq-column-menu-checkbox"
                 [attr.aria-checked]="isChecked"
                 [class.kbq-column-menu-checkbox--checked]="isChecked"
@@ -165,6 +169,7 @@ export class KbqAgGridColumnMenuRow implements FocusableOption {
     private readonly drag = inject(CdkDrag);
     private readonly destroyRef = inject(DestroyRef);
     protected readonly labels = inject(KBQ_AG_GRID_COLUMN_MENU_LABELS);
+    private readonly checkbox = viewChild.required<ElementRef<HTMLElement>>('checkbox');
 
     constructor() {
         this.drag.previewContainer = 'parent';
@@ -178,8 +183,12 @@ export class KbqAgGridColumnMenuRow implements FocusableOption {
         this.drag.ended.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.context.isDragging.set(false));
     }
 
+    /**
+     * Moves the focus to the row checkbox, which carries the role, name and checked state for assistive
+     * technology. The row itself redirects the focus it receives from a pointer.
+     */
     focus(): void {
-        this.elementRef.nativeElement.focus();
+        this.checkbox().nativeElement.focus();
     }
 
     protected readonly highlightHtml = kbqHighlightSearchMatches;

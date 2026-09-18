@@ -33,8 +33,8 @@ export type KbqAgGridSettingsMenuItem = {
     icon?: string;
     /** Value rendered to the right of the title, e.g. `21 of 34`. */
     value?: KbqAgGridSettingsMenuItemState<string | undefined>;
-    /** CSS class of an icon rendered after the value, e.g. the sort direction arrow. */
-    valueIcon?: KbqAgGridSettingsMenuItemState<string | undefined>;
+    /** Text rendered after the value that stays visible when the value is truncated, e.g. the `↑` sort direction. */
+    valueSuffix?: KbqAgGridSettingsMenuItemState<string | undefined>;
     /** Counter rendered after the value as `+N`. Hidden when the value is less than 1. */
     counter?: KbqAgGridSettingsMenuItemState<number>;
     /** Marks the item with a check mark. Used by nested menus with `mode: 'single'`. */

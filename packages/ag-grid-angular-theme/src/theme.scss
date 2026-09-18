@@ -1077,7 +1077,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: var(--kbq-size-l);
+        padding: calc(var(--kbq-size-xxl) + var(--kbq-size-xxs)) var(--kbq-size-m) var(--kbq-size-3xl);
         font-family: var(--kbq-typography-text-normal-font-family);
         font-size: var(--kbq-typography-text-normal-font-size);
         line-height: var(--kbq-typography-text-normal-line-height);
@@ -1272,7 +1272,7 @@
         }
 
         &:hover .kbq-column-menu-row-wrapper,
-        &:focus .kbq-column-menu-row-wrapper {
+        &:has(.kbq-column-menu-checkbox:focus) .kbq-column-menu-row-wrapper {
             --kbq-column-menu-row-background: var(--kbq-states-background-transparent-active);
         }
 
@@ -1294,6 +1294,11 @@
         position: relative;
         border-radius: var(--ag-checkbox-border-radius, var(--kbq-size-xxs));
         background-color: var(--kbq-column-menu-checkbox-background);
+
+        // The focused row is highlighted by its background.
+        &:focus {
+            outline: none;
+        }
 
         &::after {
             content: '';
@@ -1576,18 +1581,18 @@
         max-height: calc(var(--kbq-settings-menu-panel-max-height, 60vh) - var(--kbq-size-xxs));
     }
 
+    // Equal side columns keep the title centered whichever header buttons are rendered.
     .kbq-settings-menu-panel-header {
-        display: flex;
+        display: grid;
+        grid-template-columns: var(--kbq-size-4xl) minmax(0, 1fr) var(--kbq-size-4xl);
         align-items: center;
-        gap: var(--kbq-size-xxs);
         flex-shrink: 0;
         height: var(--kbq-size-4xl);
-        padding: 0 var(--kbq-size-xxs);
         border-bottom: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
     }
 
     .kbq-settings-menu-panel-title {
-        flex: 1;
+        grid-column: 2;
         text-align: center;
         overflow: hidden;
         white-space: nowrap;
@@ -1598,32 +1603,57 @@
         color: var(--kbq-foreground-contrast);
     }
 
-    .kbq-settings-menu-header-btn {
+    .kbq-settings-menu-header-btn-bounds {
         display: flex;
         align-items: center;
         justify-content: center;
         width: var(--kbq-size-3xl);
         height: var(--kbq-size-3xl);
-        flex-shrink: 0;
+        border-radius: var(--kbq-size-border-radius);
+    }
+
+    // The click zone takes the full header height, the focus ring outlines the inner bounds of the icon.
+    .kbq-settings-menu-header-btn {
+        --kbq-settings-menu-header-btn-focus-width: 2px;
+
+        display: flex;
+        align-items: center;
+        height: 100%;
         padding: 0;
         background: transparent;
         border: none;
-        border-radius: var(--kbq-size-border-radius);
+        outline: none;
         cursor: pointer;
 
-        &:hover {
-            background: var(--kbq-states-background-transparent-hover);
+        // Overrides the menu-wide icon colour set on `.kbq-settings-menu .kbq-icon`.
+        .kbq-settings-menu-header-btn-icon {
+            color: var(--kbq-icon-contrast);
         }
 
-        &:focus-visible {
-            outline: 2px solid var(--kbq-states-line-focus-theme);
-            outline-offset: -2px;
+        &:hover .kbq-settings-menu-header-btn-icon {
+            color: var(--kbq-states-icon-contrast-hover);
+        }
+
+        &:active .kbq-settings-menu-header-btn-icon {
+            color: var(--kbq-states-icon-contrast-active);
+        }
+
+        &:focus-visible .kbq-settings-menu-header-btn-bounds {
+            outline: var(--kbq-settings-menu-header-btn-focus-width) solid var(--kbq-states-line-focus-theme);
+            outline-offset: calc(var(--kbq-settings-menu-header-btn-focus-width) / -2);
         }
     }
 
-    // Keeps the title centered when only one of the header buttons is rendered.
-    .kbq-settings-menu-panel-header:not(:has(.kbq-settings-menu-reset-btn)) .kbq-settings-menu-panel-title {
-        padding-right: var(--kbq-size-3xl);
+    .kbq-settings-menu-back-btn {
+        grid-column: 1;
+        justify-content: start;
+        padding-left: var(--kbq-size-s);
+    }
+
+    .kbq-settings-menu-reset-btn {
+        grid-column: 3;
+        justify-content: end;
+        padding-right: var(--kbq-size-s);
     }
 
     .kbq-settings-menu-panel-body {
@@ -1631,11 +1661,14 @@
         flex-direction: column;
         flex: 1;
         min-height: 0;
+    }
+
+    .kbq-settings-menu-panel-body_forward {
         animation: kbq-settings-menu-level-forward 200ms cubic-bezier(0, 0, 0.2, 1) both;
     }
 
     .kbq-settings-menu-panel-body_back {
-        animation-name: kbq-settings-menu-level-back;
+        animation: kbq-settings-menu-level-back 200ms cubic-bezier(0, 0, 0.2, 1) both;
     }
 
     .kbq-settings-menu-list {
@@ -1666,7 +1699,8 @@
         }
 
         // Overrides the menu-wide icon colour set on `.kbq-settings-menu .kbq-icon`.
-        .kbq-settings-menu-item-icon {
+        .kbq-settings-menu-item-icon,
+        .kbq-settings-menu-item-check {
             flex-shrink: 0;
             color: var(--kbq-icon-contrast);
         }
@@ -1696,26 +1730,16 @@
         color: var(--kbq-foreground-contrast-secondary);
     }
 
+    .kbq-settings-menu-item-value-suffix,
     .kbq-settings-menu-item-counter {
         flex-shrink: 0;
+        margin-left: calc(var(--kbq-size-s) * -1 + var(--kbq-size-xxs));
         color: var(--kbq-foreground-contrast-secondary);
     }
 
-    // Secondary text falls below WCAG AA contrast on the hover and focus background of the item.
-    .kbq-settings-menu-item:is(:hover, :focus) :is(.kbq-settings-menu-item-value, .kbq-settings-menu-item-counter) {
-        color: var(--kbq-foreground-contrast);
-    }
-
-    .kbq-settings-menu-item-value-icon,
-    .kbq-settings-menu-item-chevron,
-    .kbq-settings-menu-item-check {
+    .kbq-settings-menu-item-chevron {
         flex-shrink: 0;
         color: var(--kbq-icon-contrast-fade);
-    }
-
-    .kbq-settings-menu-item-value-icon,
-    .kbq-settings-menu-item-counter {
-        margin-left: calc(var(--kbq-size-s) * -1 + var(--kbq-size-xxs));
     }
 
     .kbq-settings-menu-separator {
@@ -1738,7 +1762,8 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .kbq-settings-menu-panel-body {
+        .kbq-settings-menu-panel-body_forward,
+        .kbq-settings-menu-panel-body_back {
             animation: none;
         }
     }

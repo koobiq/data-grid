@@ -86,13 +86,15 @@ export class DevSettingsMenu {
     protected readonly density = signal<DevDensity>('normal');
     protected readonly wordWrap = signal(false);
 
+    // The `(dev)` suffix marks the items defined by this demo, so that they are not read as
+    // built-in items of the package.
     readonly items: KbqAgGridSettingsMenuItems = [
         kbqAgGridSettingsMenuColumnsItem(),
         kbqAgGridSettingsMenuSortItem(),
         kbqAgGridSettingsMenuSeparator(),
         {
             id: 'density',
-            label: 'Density',
+            label: 'Density (dev)',
             icon: 'kbq-bars-sort-center_16',
             mode: 'single',
             value: computed(() => DEV_DENSITY_LABELS[this.density()]),
@@ -106,7 +108,7 @@ export class DevSettingsMenu {
         },
         {
             id: 'word-wrap',
-            label: 'Word wrap',
+            label: 'Word wrap (dev)',
             icon: 'kbq-wrap-text_16',
             checked: this.wordWrap,
             action: (): void => this.wordWrap.update((value) => !value)
@@ -114,7 +116,7 @@ export class DevSettingsMenu {
         kbqAgGridSettingsMenuSeparator(),
         {
             id: 'refresh',
-            label: 'Refresh',
+            label: 'Refresh (dev)',
             icon: 'kbq-arrows-rotate_16',
             action: (api): void => api.refreshCells({ force: true })
         }

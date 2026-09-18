@@ -51,6 +51,7 @@ type ActiveSort = {
     host: {
         class: 'kbq-column-menu-row kbq-sort-menu-row',
         '[attr.tabindex]': '-1',
+        '(focus)': 'focus()',
         '(click)': 'onRowClick()',
         '(keydown.enter)': 'onRowClick()',
         '(keydown.space)': '$event.preventDefault(); onRowClick()',
@@ -61,7 +62,9 @@ type ActiveSort = {
 
         <div class="kbq-column-menu-row-wrapper">
             <span
+                #checkbox
                 role="checkbox"
+                tabindex="-1"
                 class="kbq-column-menu-checkbox"
                 [attr.aria-checked]="active()"
                 [attr.aria-label]="name()"
@@ -130,9 +133,9 @@ export class KbqAgGridSortMenuRow implements FocusableOption {
     protected readonly labels = inject(KBQ_AG_GRID_SETTINGS_MENU_LABELS).sort;
     protected readonly highlightHtml = kbqHighlightSearchMatches;
     protected readonly name = computed(() => this.context.columnName(this.col()));
-    private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly drag = inject(CdkDrag);
     private readonly directionButton = viewChild<ElementRef<HTMLButtonElement>>('directionButton');
+    private readonly checkbox = viewChild.required<ElementRef<HTMLElement>>('checkbox');
 
     constructor() {
         this.drag.previewContainer = 'parent';
@@ -146,9 +149,12 @@ export class KbqAgGridSortMenuRow implements FocusableOption {
         this.drag.ended.pipe(takeUntilDestroyed()).subscribe(() => this.context.isDragging.set(false));
     }
 
-    /** Moves the focus to the row. */
+    /**
+     * Moves the focus to the row checkbox, which carries the role, name and checked state for assistive
+     * technology. The row itself redirects the focus it receives from a pointer.
+     */
     focus(): void {
-        this.elementRef.nativeElement.focus();
+        this.checkbox().nativeElement.focus();
     }
 
     protected directionLabel(): string {

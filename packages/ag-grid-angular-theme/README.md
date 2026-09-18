@@ -121,17 +121,17 @@ export class MyGrid {
 }
 ```
 
-| Property                        | Description                                                                               |
-| ------------------------------- | ----------------------------------------------------------------------------------------- |
-| `id`, `label`, `icon`           | Identifier, title and a [@koobiq/icons](https://github.com/koobiq/icons) class            |
-| `value`, `valueIcon`, `counter` | Value, icon and `+N` counter to the right of the title                                    |
-| `items`, `mode`                 | Nested list; with `mode: 'single'` it becomes a single-value selector marked by `checked` |
-| `screen`, `screenTitle`         | Nested level rendered by your component                                                   |
-| `action`, `keepOpen`            | Handler of a leaf item; the menu closes after it unless `keepOpen` is set                 |
-| `reset`                         | Handler of the `Reset to default` button of the nested level                              |
-| `disabled`, `hidden`            | Item state                                                                                |
+| Property                          | Description                                                                                    |
+| --------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `id`, `label`, `icon`             | Identifier, title and a [@koobiq/icons](https://github.com/koobiq/icons) class                 |
+| `value`, `valueSuffix`, `counter` | Value, text kept after a truncated value (e.g. `↑`) and `+N` counter to the right of the title |
+| `items`, `mode`                   | Nested list; with `mode: 'single'` it becomes a single-value selector marked by `checked`      |
+| `screen`, `screenTitle`           | Nested level rendered by your component                                                        |
+| `action`, `keepOpen`              | Handler of a leaf item; the menu closes after it unless `keepOpen` is set                      |
+| `reset`                           | Handler of the `Reset to default` button of the nested level                                   |
+| `disabled`, `hidden`              | Item state                                                                                     |
 
-`label`, `screenTitle`, `value`, `valueIcon`, `counter`, `checked`, `disabled` and `hidden` accept a value, a signal or a
+`label`, `screenTitle`, `value`, `valueSuffix`, `counter`, `checked`, `disabled` and `hidden` accept a value, a signal or a
 function `(api, labels) => value`. Functions are re-evaluated when the menu opens and when columns or sorting change; use
 signals for other state.
 
@@ -167,14 +167,14 @@ in CDK overlays opened from the screen do not close it.
 
 #### Keyboard
 
-| Key             | Action                                                   |
-| --------------- | -------------------------------------------------------- |
-| `↓` `↑`         | Move between items                                       |
-| `Enter` `Space` | Activate the item                                        |
-| `→`             | Open the nested level                                    |
-| `←`             | Return to the previous level                             |
-| `Esc`           | Return to the previous level, close the menu at the root |
-| `Tab`           | Close the menu; move between controls in a screen        |
+| Key                 | Action                                                                  |
+| ------------------- | ----------------------------------------------------------------------- |
+| `↓` `↑`             | Move between items                                                      |
+| `Enter` `Space`     | Activate the item                                                       |
+| `→`                 | Open the nested level                                                   |
+| `←`                 | Return to the previous level                                            |
+| `Esc`               | Return to the previous level, close the menu at the root                |
+| `Tab` `Shift + Tab` | Move between the header buttons and the current item or screen controls |
 
 #### Labels
 

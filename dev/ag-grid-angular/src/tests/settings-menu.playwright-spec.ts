@@ -6,7 +6,7 @@ import { enableDarkTheme } from './utils/theme';
 const MENU_TITLE = 'Table settings';
 const ITEM_COLUMNS = 'Columns';
 const ITEM_SORT = 'Sorting';
-const ITEM_DENSITY = 'Density';
+const ITEM_DENSITY = 'Density (dev)';
 const LABEL_BACK = 'Back';
 const LABEL_RESET = 'Reset to default';
 
@@ -20,6 +20,10 @@ const getItem = (page: Page, label: string): Locator =>
 
 const getSortRow = (page: Page, columnName: string): Locator =>
     page.locator('kbq-sort-menu-row').filter({ hasText: columnName });
+
+// The keyboard focus of a sort row lands on its checkbox, which carries the row's role and state.
+const getSortRowCheckbox = (page: Page, columnName: string): Locator =>
+    getSortRow(page, columnName).locator('.kbq-column-menu-checkbox');
 
 const openSortScreen = async (page: Page): Promise<void> => {
     await openMenu(page);
@@ -73,6 +77,17 @@ test.describe('KbqAgGridSettingsMenu', () => {
     // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('root level visual', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 700 });
+        const api = await getAgGridApi(page);
+
+        // Sorting applied up front, so that the item shows its value, direction and counter.
+        await api.evaluate((gridApi) =>
+            gridApi.applyColumnState({
+                state: [
+                    { colId: 'athlete', sort: 'asc', sortIndex: 0 },
+                    { colId: 'age', sort: 'desc', sortIndex: 1 }
+                ]
+            })
+        );
         await openMenu(page);
 
         await expect(page.getByTestId('e2eScreenshotTarget')).toHaveScreenshot('settings-menu-root-light.png');
@@ -265,7 +280,7 @@ test.describe('KbqAgGridSettingsMenu', () => {
 
     test('a leaf item without keepOpen closes the menu', async ({ page }) => {
         await openMenu(page);
-        await getItem(page, 'Refresh').click();
+        await getItem(page, 'Refresh (dev)').click();
 
         await expect(page.locator('.kbq-settings-menu-panel')).toBeHidden();
     });
@@ -294,19 +309,19 @@ test.describe('KbqAgGridSettingsMenu', () => {
         await openSortScreen(page);
         await page.keyboard.press('ArrowDown');
 
-        await expect(getSortRow(page, 'Age')).toBeFocused();
+        await expect(getSortRowCheckbox(page, 'Age')).toBeFocused();
 
         await page.keyboard.press('Enter');
 
         await expect.poll(async () => getSortState(page)).toEqual([{ colId: 'age', sort: 'asc', sortIndex: 0 }]);
-        await expect(getSortRow(page, 'Age')).toBeFocused();
+        await expect(getSortRowCheckbox(page, 'Age')).toBeFocused();
     });
 
     test('Enter on the direction button switches the direction without removing the sort', async ({ page }) => {
         await openSortScreen(page);
         await getSortRow(page, 'Athlete').click();
 
-        await expect(getSortRow(page, 'Athlete')).toBeFocused();
+        await expect(getSortRowCheckbox(page, 'Athlete')).toBeFocused();
 
         await page.keyboard.press('ArrowRight');
         await page.keyboard.press('Enter');
@@ -318,17 +333,39 @@ test.describe('KbqAgGridSettingsMenu', () => {
         await openMenu(page);
         // The menu focuses its first item once it has rendered; move on from there.
         await expect(getItem(page, ITEM_COLUMNS)).toBeFocused();
-        await getItem(page, 'Refresh').focus();
+        await getItem(page, 'Refresh (dev)').focus();
         await page.keyboard.press('Enter');
 
         await expect(page.locator('.kbq-settings-menu-panel')).toBeHidden();
         await expect(page.locator('.kbq-settings-menu-trigger')).toBeFocused();
     });
 
-    test('Tab closes the menu at a list level', async ({ page }) => {
+    test('Tab cycles between the header buttons and the active item of a list level', async ({ page }) => {
         await openMenu(page);
+        await getItem(page, ITEM_DENSITY).click();
+        await expect(getItem(page, 'Compact')).toBeFocused();
+        await page.keyboard.press('ArrowDown');
+        await expect(getItem(page, 'Normal')).toBeFocused();
+
+        await page.keyboard.press('Tab');
+        await expect(page.locator('.kbq-settings-menu-back-btn')).toBeFocused();
+
+        await page.keyboard.press('Tab');
+        await expect(getItem(page, 'Normal')).toBeFocused();
+
+        await page.keyboard.press('Shift+Tab');
+        await expect(page.locator('.kbq-settings-menu-back-btn')).toBeFocused();
+        await expect(page.locator('.kbq-settings-menu-panel')).toBeVisible();
+    });
+
+    test('Tab keeps the focus on the active item at the root level', async ({ page }) => {
+        await openMenu(page);
+        await expect(getItem(page, ITEM_COLUMNS)).toBeFocused();
+        await page.keyboard.press('ArrowDown');
+
         await page.keyboard.press('Tab');
 
-        await expect(page.locator('.kbq-settings-menu-panel')).toBeHidden();
+        await expect(getItem(page, ITEM_SORT)).toBeFocused();
+        await expect(page.locator('.kbq-settings-menu-panel')).toBeVisible();
     });
 });

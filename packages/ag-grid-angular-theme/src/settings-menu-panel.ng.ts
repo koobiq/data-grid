@@ -77,7 +77,7 @@ const isEditableElement = (target: EventTarget | null): boolean =>
     },
     template: `
         @let value = context.itemValue(item());
-        @let valueIcon = context.itemValueIcon(item());
+        @let valueSuffix = context.itemValueSuffix(item());
         @let counter = context.itemCounter(item());
 
         @if (item().icon; as icon) {
@@ -90,8 +90,8 @@ const isEditableElement = (target: EventTarget | null): boolean =>
             <span class="kbq-settings-menu-item-value">{{ value }}</span>
         }
 
-        @if (valueIcon) {
-            <i [class]="'kbq kbq-icon kbq-settings-menu-item-value-icon ' + valueIcon"></i>
+        @if (valueSuffix) {
+            <span class="kbq-settings-menu-item-value-suffix">{{ valueSuffix }}</span>
         }
 
         @if (counter > 0) {
@@ -173,18 +173,21 @@ export class KbqAgGridSettingsMenuItemRow implements FocusableOption {
                     cdkTrapFocus
                     [attr.aria-labelledby]="panelTitleId"
                     (keydown.tab)="onTab($event)"
+                    (keydown.shift.tab)="onTab($event)"
                     (keydown.arrowleft)="onArrowLeft($event)"
                 >
                     <div class="kbq-settings-menu-panel-header">
                         @if (canGoBack()) {
                             <button
                                 type="button"
-                                class="kbq-settings-menu-header-btn"
+                                class="kbq-settings-menu-header-btn kbq-settings-menu-back-btn"
                                 [title]="labels.backButton"
                                 [attr.aria-label]="labels.backButton"
                                 (click)="back()"
                             >
-                                <i class="kbq kbq-icon kbq-arrow-left_16"></i>
+                                <span class="kbq-settings-menu-header-btn-bounds">
+                                    <i class="kbq kbq-icon kbq-arrow-left_16 kbq-settings-menu-header-btn-icon"></i>
+                                </span>
                             </button>
                         }
 
@@ -198,7 +201,9 @@ export class KbqAgGridSettingsMenuItemRow implements FocusableOption {
                                 [attr.aria-label]="labels.resetButton"
                                 (click)="reset()"
                             >
-                                <i class="kbq kbq-icon kbq-undo_16"></i>
+                                <span class="kbq-settings-menu-header-btn-bounds">
+                                    <i class="kbq kbq-icon kbq-undo_16 kbq-settings-menu-header-btn-icon"></i>
+                                </span>
                             </button>
                         }
                     </div>
@@ -206,7 +211,8 @@ export class KbqAgGridSettingsMenuItemRow implements FocusableOption {
                     @for (level of [currentLevel()]; track level.key) {
                         <div
                             class="kbq-settings-menu-panel-body"
-                            [class.kbq-settings-menu-panel-body_back]="isBackTransition()"
+                            [class.kbq-settings-menu-panel-body_forward]="levelTransition() === 'forward'"
+                            [class.kbq-settings-menu-panel-body_back]="levelTransition() === 'back'"
                         >
                             @if (level.item?.screen; as screen) {
                                 <ng-container *ngComponentOutlet="screen; injector: screenInjector" />
@@ -249,7 +255,8 @@ export class KbqAgGridSettingsMenuPanel {
     private readonly gridStateVersion = signal(0);
     private readonly stack = signal<MenuLevel[]>([]);
     private readonly screenResetHandler = signal<(() => void) | null>(null);
-    protected readonly isBackTransition = signal(false);
+    /** Direction the current level was entered in; the level rendered when the menu opens is not animated. */
+    protected readonly levelTransition = signal<'forward' | 'back' | null>(null);
     /** Row to focus once the next level renders: the one that opened the level the user returns from. */
     private pendingFocusIndex = 0;
 
@@ -385,9 +392,9 @@ export class KbqAgGridSettingsMenuPanel {
         return this.resolveState(item.value, undefined);
     }
 
-    /** CSS class of the icon rendered after the item value. */
-    itemValueIcon(item: KbqAgGridSettingsMenuItem): string | undefined {
-        return this.resolveState(item.valueIcon, undefined);
+    /** Text rendered after the item value. */
+    itemValueSuffix(item: KbqAgGridSettingsMenuItem): string | undefined {
+        return this.resolveState(item.valueSuffix, undefined);
     }
 
     /** Counter rendered after the item value. */
@@ -425,7 +432,7 @@ export class KbqAgGridSettingsMenuPanel {
                 this.rowItems().findIndex((row) => row.item() === item)
             );
 
-            this.isBackTransition.set(false);
+            this.levelTransition.set('forward');
             this.pendingFocusIndex = 0;
             this.stack.update((levels) => [...levels, { item, returnIndex, key: `${levels.length + 1}:${item.id}` }]);
 
@@ -449,7 +456,7 @@ export class KbqAgGridSettingsMenuPanel {
         if (stack.length === 0) return;
 
         this.pendingFocusIndex = stack[stack.length - 1].returnIndex;
-        this.isBackTransition.set(true);
+        this.levelTransition.set('back');
         this.stack.set(stack.slice(0, -1));
     }
 
@@ -474,7 +481,7 @@ export class KbqAgGridSettingsMenuPanel {
             return;
         }
 
-        this.isBackTransition.set(false);
+        this.levelTransition.set(null);
         // Values derived from the grid api may be outdated after the menu has been closed.
         this.refreshItemStates();
         this.isOpen.set(true);
@@ -489,12 +496,31 @@ export class KbqAgGridSettingsMenuPanel {
     }
 
     protected onTab(event: Event): void {
-        // Screens run their own tab sequence (search field, list, row actions); only list levels
-        // treat Tab as "leave the menu".
-        if (this.currentLevel().item?.screen) return;
+        // Screens run their own tab sequence within the focus trap.
+        if (this.currentLevel().item?.screen || !(event instanceof KeyboardEvent)) return;
+
+        // The rows of a list level are not tabbable, so the level cycles the focus through the header
+        // buttons and the active row itself. Read from the DOM and the key manager rather than from
+        // bindings, which may not have been refreshed yet after a quick arrow key press.
+        const buttons = Array.from(
+            this.elementRef.nativeElement.querySelectorAll<HTMLElement>('.kbq-settings-menu-header-btn')
+        );
+        const { activeItem } = this.keyManager;
+        const count = buttons.length + (activeItem ? 1 : 0);
 
         event.preventDefault();
-        this.close();
+
+        if (count === 0) return;
+
+        const focusedButtonIndex = buttons.findIndex((button) => button === this.document.activeElement);
+        const currentIndex = focusedButtonIndex === -1 ? buttons.length : focusedButtonIndex;
+        const nextIndex = (currentIndex + (event.shiftKey ? -1 : 1) + count) % count;
+
+        if (nextIndex < buttons.length) {
+            buttons[nextIndex].focus();
+        } else {
+            activeItem?.focus();
+        }
     }
 
     protected onArrowLeft(event: Event): void {

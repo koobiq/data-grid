@@ -31,11 +31,13 @@ type AnyEventHandler = (event?: any) => void;
 const createColumnMock = ({
     colId,
     headerName = colId,
-    visible = true
+    visible = true,
+    sort
 }: {
     colId: string;
     headerName?: string;
     visible?: boolean;
+    sort?: 'asc' | 'desc';
 }): Column =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     ({
@@ -45,7 +47,7 @@ const createColumnMock = ({
         isPinnedLeft: jest.fn(() => false),
         isPinnedRight: jest.fn(() => false),
         isSortable: jest.fn(() => true),
-        getSort: jest.fn(() => undefined),
+        getSort: jest.fn(() => sort),
         getSortIndex: jest.fn(() => null)
     }) as unknown as Column;
 
@@ -271,6 +273,23 @@ describe('KbqAgGridSettingsMenu', () => {
 
             expect(container.querySelector('.kbq-settings-menu-item-value')?.textContent?.trim()).toBe('1 of 2');
         });
+
+        it('renders the applied sorting with the direction as a text symbol after the column name', async () => {
+            const columns = [
+                createColumnMock({ colId: 'athlete', headerName: 'Athlete', sort: 'desc' }),
+                createColumnMock({ colId: 'age', headerName: 'Age', sort: 'asc' })
+            ];
+            const { container } = await renderMenu(
+                [kbqAgGridSettingsMenuSortItem(), { id: 'refresh', label: 'Refresh' }],
+                columns
+            );
+
+            await openMenu(container);
+
+            expect(container.querySelector('.kbq-settings-menu-item-value')?.textContent?.trim()).toBe('Athlete');
+            expect(container.querySelector('.kbq-settings-menu-item-value-suffix')?.textContent?.trim()).toBe('↓');
+            expect(container.querySelector('.kbq-settings-menu-item-counter')?.textContent?.trim()).toBe('+1');
+        });
     });
 
     describe('items', () => {
@@ -387,6 +406,77 @@ describe('KbqAgGridSettingsMenu', () => {
                 expect(itemLabels(container)).toEqual(['Child']);
                 expect(container.querySelector('.kbq-settings-menu-header-btn')).toBeTruthy();
             });
+        });
+
+        it('animates the level transitions but not the level rendered when the menu opens', async () => {
+            const { container } = await renderMenu([
+                { id: 'a', label: 'Parent', items: [{ id: 'b', label: 'Child' }] },
+                { id: 'c', label: 'Sibling' }
+            ]);
+            const body = (): Element => container.querySelector('.kbq-settings-menu-panel-body')!;
+
+            await openMenu(container);
+
+            expect(body().classList).not.toContain('kbq-settings-menu-panel-body_forward');
+            expect(body().classList).not.toContain('kbq-settings-menu-panel-body_back');
+
+            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+
+            await waitFor(() => {
+                expect(body().classList).toContain('kbq-settings-menu-panel-body_forward');
+            });
+
+            fireEvent.click(container.querySelector('.kbq-settings-menu-header-btn')!);
+
+            await waitFor(() => {
+                expect(body().classList).toContain('kbq-settings-menu-panel-body_back');
+            });
+        });
+
+        it('cycles Tab between the header buttons and the active item of a list level', async () => {
+            const { container } = await renderMenu([
+                { id: 'a', label: 'Parent', reset: (): void => undefined, items: [{ id: 'b', label: 'Child' }] },
+                { id: 'c', label: 'Sibling' }
+            ]);
+            const panel = (): Element => container.querySelector('.kbq-settings-menu-panel')!;
+
+            await openMenu(container);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+
+            await waitFor(() => {
+                expect(document.activeElement?.textContent?.trim()).toBe('Child');
+            });
+
+            fireEvent.keyDown(document.activeElement!, { key: 'Tab' });
+            expect(document.activeElement).toBe(container.querySelector('.kbq-settings-menu-back-btn'));
+
+            fireEvent.keyDown(document.activeElement!, { key: 'Tab' });
+            expect(document.activeElement).toBe(container.querySelector('.kbq-settings-menu-reset-btn'));
+
+            fireEvent.keyDown(document.activeElement!, { key: 'Tab' });
+            expect(document.activeElement?.textContent?.trim()).toBe('Child');
+
+            fireEvent.keyDown(document.activeElement!, { key: 'Tab', shiftKey: true });
+            expect(document.activeElement).toBe(container.querySelector('.kbq-settings-menu-reset-btn'));
+            expect(panel()).toBeTruthy();
+        });
+
+        it('keeps the focus on the active item on Tab at the root level', async () => {
+            const { container } = await renderMenu([
+                { id: 'a', label: 'First' },
+                { id: 'b', label: 'Second' }
+            ]);
+
+            await openMenu(container);
+
+            await waitFor(() => {
+                expect(document.activeElement?.textContent?.trim()).toBe('First');
+            });
+
+            fireEvent.keyDown(document.activeElement!, { key: 'Tab' });
+
+            expect(document.activeElement?.textContent?.trim()).toBe('First');
+            expect(container.querySelector('.kbq-settings-menu-panel')).toBeTruthy();
         });
 
         it('returns to the previous level on back button click', async () => {
