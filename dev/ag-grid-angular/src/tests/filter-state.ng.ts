@@ -33,7 +33,9 @@ const STATE_KEY = 'dev-ag-grid-filter-state';
     imports: [AgGridModule, KbqAgGridThemeModule],
     selector: 'dev-filter-state',
     template: `
-        <button type="button" (click)="filterState.reset()">Reset state</button>
+        <div class="dev-toolbar">
+            <button type="button" (click)="filterState.reset()">Reset state</button>
+        </div>
         <ag-grid-angular
             #filterState="kbqAgGridFilterState"
             data-testid="e2eScreenshotTarget"
@@ -46,8 +48,14 @@ const STATE_KEY = 'dev-ag-grid-filter-state';
         />
     `,
     styles: `
+        :host {
+            display: flex;
+            flex-direction: column;
+        }
+
         ag-grid-angular {
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             max-width: 2036px;
         }
     `,
@@ -65,7 +73,9 @@ export class DevFilterState {
     imports: [AgGridModule, KbqAgGridThemeModule],
     selector: 'dev-filter-state-query-params',
     template: `
-        <button type="button" (click)="filterState.reset()">Reset state</button>
+        <div class="dev-toolbar">
+            <button type="button" (click)="filterState.reset()">Reset state</button>
+        </div>
         <ag-grid-angular
             #filterState="kbqAgGridFilterState"
             data-testid="e2eScreenshotTarget"
@@ -79,8 +89,14 @@ export class DevFilterState {
         />
     `,
     styles: `
+        :host {
+            display: flex;
+            flex-direction: column;
+        }
+
         ag-grid-angular {
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             max-width: 2036px;
         }
     `,
