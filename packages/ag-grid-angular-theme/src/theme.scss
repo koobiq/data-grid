@@ -1583,10 +1583,17 @@
         border-radius: var(--kbq-size-border-radius);
         border: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
         z-index: 100;
-        display: flex;
-        flex-direction: column;
         overflow: hidden;
         max-height: calc(var(--kbq-settings-menu-panel-max-height, 60vh) - var(--kbq-size-xxs));
+    }
+
+    // Lays the panel out at its natural size, which the panel animates to when a level changes.
+    .kbq-settings-menu-panel-content {
+        display: flex;
+        flex-direction: column;
+        max-height: calc(
+            var(--kbq-settings-menu-panel-max-height, 60vh) - var(--kbq-size-xxs) - var(--kbq-size-border-width) * 2
+        );
     }
 
     // Equal side columns keep the title centered whichever header buttons are rendered.

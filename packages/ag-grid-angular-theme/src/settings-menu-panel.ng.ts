@@ -183,59 +183,61 @@ export class KbqAgGridSettingsMenuItemRow implements FocusableOption {
                     (keydown.shift.tab)="onTab($event)"
                     (keydown.arrowleft)="onArrowLeft($event)"
                 >
-                    <div class="kbq-settings-menu-panel-header">
-                        @if (canGoBack()) {
-                            <button
-                                type="button"
-                                class="kbq-settings-menu-header-btn kbq-settings-menu-back-btn"
-                                [title]="labels.backButton"
-                                [attr.aria-label]="labels.backButton"
-                                (click)="back()"
-                            >
-                                <span class="kbq-settings-menu-header-btn-bounds">
-                                    <i class="kbq kbq-icon kbq-arrow-left_16 kbq-settings-menu-header-btn-icon"></i>
-                                </span>
-                            </button>
-                        }
+                    <div #settingsMenuPanelContent class="kbq-settings-menu-panel-content">
+                        <div class="kbq-settings-menu-panel-header">
+                            @if (canGoBack()) {
+                                <button
+                                    type="button"
+                                    class="kbq-settings-menu-header-btn kbq-settings-menu-back-btn"
+                                    [title]="labels.backButton"
+                                    [attr.aria-label]="labels.backButton"
+                                    (click)="back()"
+                                >
+                                    <span class="kbq-settings-menu-header-btn-bounds">
+                                        <i class="kbq kbq-icon kbq-arrow-left_16 kbq-settings-menu-header-btn-icon"></i>
+                                    </span>
+                                </button>
+                            }
 
-                        <div class="kbq-settings-menu-panel-title" [id]="panelTitleId">{{ currentTitle() }}</div>
+                            <div class="kbq-settings-menu-panel-title" [id]="panelTitleId">{{ currentTitle() }}</div>
 
-                        @if (resetHandler()) {
-                            <button
-                                type="button"
-                                class="kbq-settings-menu-header-btn kbq-settings-menu-reset-btn"
-                                [title]="labels.resetButton"
-                                [attr.aria-label]="labels.resetButton"
-                                (click)="reset()"
-                            >
-                                <span class="kbq-settings-menu-header-btn-bounds">
-                                    <i class="kbq kbq-icon kbq-undo_16 kbq-settings-menu-header-btn-icon"></i>
-                                </span>
-                            </button>
-                        }
-                    </div>
-
-                    @for (level of [currentLevel()]; track level.key) {
-                        <div
-                            class="kbq-settings-menu-panel-body"
-                            [class.kbq-settings-menu-panel-body_forward]="levelTransition() === 'forward'"
-                            [class.kbq-settings-menu-panel-body_back]="levelTransition() === 'back'"
-                        >
-                            @if (level.item?.screen; as screen) {
-                                <ng-container *ngComponentOutlet="screen; injector: screenInjector" />
-                            } @else {
-                                <div class="kbq-settings-menu-list" role="menu" (keydown)="onListKeydown($event)">
-                                    @for (entry of visibleEntries(); track $index) {
-                                        @if (isSeparator(entry)) {
-                                            <div class="kbq-settings-menu-separator"></div>
-                                        } @else {
-                                            <kbq-settings-menu-item [item]="entry" [mode]="currentMode()" />
-                                        }
-                                    }
-                                </div>
+                            @if (resetHandler()) {
+                                <button
+                                    type="button"
+                                    class="kbq-settings-menu-header-btn kbq-settings-menu-reset-btn"
+                                    [title]="labels.resetButton"
+                                    [attr.aria-label]="labels.resetButton"
+                                    (click)="reset()"
+                                >
+                                    <span class="kbq-settings-menu-header-btn-bounds">
+                                        <i class="kbq kbq-icon kbq-undo_16 kbq-settings-menu-header-btn-icon"></i>
+                                    </span>
+                                </button>
                             }
                         </div>
-                    }
+
+                        @for (level of [currentLevel()]; track level.key) {
+                            <div
+                                class="kbq-settings-menu-panel-body"
+                                [class.kbq-settings-menu-panel-body_forward]="levelTransition() === 'forward'"
+                                [class.kbq-settings-menu-panel-body_back]="levelTransition() === 'back'"
+                            >
+                                @if (level.item?.screen; as screen) {
+                                    <ng-container *ngComponentOutlet="screen; injector: screenInjector" />
+                                } @else {
+                                    <div class="kbq-settings-menu-list" role="menu" (keydown)="onListKeydown($event)">
+                                        @for (entry of visibleEntries(); track $index) {
+                                            @if (isSeparator(entry)) {
+                                                <div class="kbq-settings-menu-separator"></div>
+                                            } @else {
+                                                <kbq-settings-menu-item [item]="entry" [mode]="currentMode()" />
+                                            }
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
                 </div>
             }
         </div>
@@ -255,6 +257,7 @@ export class KbqAgGridSettingsMenuPanel {
     private readonly sharedResizeObserver = inject(SharedResizeObserver);
     private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('settingsMenuTrigger');
     private readonly panel = viewChild<ElementRef<HTMLElement>>('settingsMenuPanel');
+    private readonly panelContent = viewChild<ElementRef<HTMLElement>>('settingsMenuPanelContent');
     private readonly rowItems = viewChildren(KbqAgGridSettingsMenuItemRow);
     private readonly keyManager = new FocusKeyManager(this.rowItems, this.injector)
         .withWrap()
@@ -269,9 +272,9 @@ export class KbqAgGridSettingsMenuPanel {
     protected readonly levelTransition = signal<'forward' | 'back' | null>(null);
     /** Row to focus once the next level renders: the one that opened the level the user returns from. */
     private pendingFocusIndex = 0;
-    /** Height the panel was last measured at, the one a resize animates from. */
+    /** Height the panel had after the last change of its content, the one the next change animates from. */
     private panelHeight: number | null = null;
-    private levelResizeAnimation: Animation | null = null;
+    private panelResizeAnimation: Animation | null = null;
 
     /** Root level items that are not hidden. */
     private readonly rootEntries = computed(() =>
@@ -559,44 +562,56 @@ export class KbqAgGridSettingsMenuPanel {
     }
 
     /**
-     * Grows and shrinks the panel along with its content instead of letting it jump: the observer
-     * reports the new size before the browser paints it, so the animation starts from the size the
-     * panel still has. Levels that render their content asynchronously, like the screens, are
-     * covered too, which a single measurement after the navigation would miss.
+     * Grows and shrinks the panel along with its content instead of letting it jump. The observed
+     * element is the content rather than the panel: the panel is the one being animated, and
+     * observing it would report every frame of its own animation and restart it on the last one.
+     * The observer reports a new size before the browser paints it, and screens that render their
+     * content in steps retarget the running animation instead of snapping at its end.
      */
     private observePanelResize(): void {
         effect((onCleanup) => {
-            const element = this.panel()?.nativeElement;
+            const panel = this.panel()?.nativeElement;
+            const content = this.panelContent()?.nativeElement;
 
             this.panelHeight = null;
 
-            if (!element) return;
+            if (!panel || !content) return;
 
             const subscription = this.sharedResizeObserver
-                .observe(element)
-                .subscribe(() => this.animatePanelResize(element));
+                .observe(content)
+                .subscribe(() => this.animatePanelResize(panel, content));
 
-            onCleanup(() => subscription.unsubscribe());
+            onCleanup(() => {
+                subscription.unsubscribe();
+                this.panelResizeAnimation?.cancel();
+                this.panelResizeAnimation = null;
+            });
         });
     }
 
-    private animatePanelResize(element: HTMLElement): void {
-        const from = this.panelHeight;
-        const to = element.getBoundingClientRect().height;
+    private animatePanelResize(panel: HTMLElement, content: HTMLElement): void {
+        const borders = panel.offsetHeight - panel.clientHeight;
+        const to = content.getBoundingClientRect().height + borders;
+        // The panel takes the size of its content in the same layout, so by now it already has the new
+        // height: the animation starts from the height recorded after the previous change, or from the
+        // height a running animation has reached. Read before that animation is cancelled.
+        const from =
+            this.panelResizeAnimation?.playState === 'running'
+                ? panel.getBoundingClientRect().height
+                : this.panelHeight;
 
         this.panelHeight = to;
 
-        // The first measurement of an opened menu has nothing to grow from, and the animation of the
-        // panel resizes it on its own.
+        // The first size of an opened menu has nothing to grow from.
         if (from === null || Math.round(from) === Math.round(to)) return;
-        if (this.levelResizeAnimation?.playState === 'running') return;
 
         // The Web Animations API is missing outside a browser, e.g. in unit tests.
-        if (typeof element.animate !== 'function') return;
+        if (typeof panel.animate !== 'function') return;
 
         if (this.mediaMatcher.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-        this.levelResizeAnimation = element.animate([{ height: `${from}px` }, { height: `${to}px` }], {
+        this.panelResizeAnimation?.cancel();
+        this.panelResizeAnimation = panel.animate([{ height: `${from}px` }, { height: `${to}px` }], {
             duration: LEVEL_TRANSITION_DURATION,
             easing: LEVEL_TRANSITION_EASING
         });
