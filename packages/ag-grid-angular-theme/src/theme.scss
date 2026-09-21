@@ -254,12 +254,16 @@
 }
 
 @mixin _ag-row-join-highlighted($selectors) {
-    &:is(#{$selectors}):has(+ :is(#{$selectors})) {
+    // A filled expanded row (`kbqAgGridRowDetailFilled`) ignores selection and focus, so it never joins its neighbours.
+    // `:where()` keeps the exclusion out of the specificity, so the cascade stays exactly as it is for other rows.
+    $highlighted: ':is(#{$selectors}):where(:not(.kbq-ag-grid-row-detail-row_filled))';
+
+    &#{$highlighted}:has(+ #{$highlighted}) {
         --ag-theme-koobiq-row-border-bottom-right-radius: 0;
         --ag-theme-koobiq-row-border-bottom-left-radius: 0;
     }
 
-    &:is(#{$selectors}) + :is(#{$selectors}) {
+    &#{$highlighted} + #{$highlighted} {
         --ag-theme-koobiq-row-border-top-left-radius: 0;
         --ag-theme-koobiq-row-border-top-right-radius: 0;
     }
@@ -1528,6 +1532,13 @@
         .ag-cell {
             height: var(--kbq-ag-grid-row-detail-row-height, var(--ag-row-height));
         }
+    }
+
+    // `kbqAgGridRowDetailFilled`: an expanded row keeps one static fill instead of reacting to hover, active, selection
+    // and focus. `!important` because each of those states sets this same property with a more specific selector (see
+    // `_ag-row-highlight`), and every consumer of the property, such as the row actions overlay, has to see the fill too.
+    .ag-row.kbq-ag-grid-row-detail-row_filled {
+        --ag-theme-koobiq-row-background-color: var(--kbq-background-contrast-less) !important;
     }
 
     .kbq-ag-grid-row-detail {

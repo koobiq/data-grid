@@ -93,15 +93,16 @@ export class MyGrid {
 }
 ```
 
-| Input                            | Description                                                                                                                  |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `kbqAgGridRowDetailComponent`    | Component rendered in the expanded part, or a function picking one per row (`null` makes the row non-expandable)             |
-| `kbqAgGridRowDetailSingleExpand` | Collapses the previously expanded row when another one is expanded. `false` by default                                       |
-| `kbqAgGridRowDetailToggleColumn` | `colId` of the column hosting the expand toggle. Defaults to the first non-pinned column                                     |
-| `kbqAgGridRowDetailHeight`       | Fixed height (px) of the expanded part. By default the detail component's own host height is measured instead                |
-| `kbqAgGridRowDetailExpanded`     | Ids of the expanded rows, supports two-way binding                                                                           |
-| `kbqAgGridRowDetailLabels`       | Screen reader labels of the expand/collapse toggle. Russian by default, English preset is `KBQ_AG_GRID_ROW_DETAIL_LABELS_EN` |
-| `kbqAgGridRowDetailState`        | Key under which the expanded rows are persisted (see [State persistence](#state-persistence))                                |
+| Input                            | Description                                                                                                                                                                              |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `kbqAgGridRowDetailComponent`    | Component rendered in the expanded part, or a function picking one per row (`null` makes the row non-expandable)                                                                         |
+| `kbqAgGridRowDetailSingleExpand` | Collapses the previously expanded row when another one is expanded. `false` by default                                                                                                   |
+| `kbqAgGridRowDetailFilled`       | Fills an expanded row with `--kbq-background-contrast-less` and stops it from reacting to hover, active, selection and focus. Collapsed rows keep the default states. `false` by default |
+| `kbqAgGridRowDetailToggleColumn` | `colId` of the column hosting the expand toggle. Defaults to the first non-pinned column                                                                                                 |
+| `kbqAgGridRowDetailHeight`       | Fixed height (px) of the expanded part. By default the detail component's own host height is measured instead                                                                            |
+| `kbqAgGridRowDetailExpanded`     | Ids of the expanded rows, supports two-way binding                                                                                                                                       |
+| `kbqAgGridRowDetailLabels`       | Screen reader labels of the expand/collapse toggle. Russian by default, English preset is `KBQ_AG_GRID_ROW_DETAIL_LABELS_EN`                                                             |
+| `kbqAgGridRowDetailState`        | Key under which the expanded rows are persisted (see [State persistence](#state-persistence))                                                                                            |
 
 The component is created on expand and destroyed on collapse, and receives `{ api, node, data, rowIndex }` through the `KBQ_AG_GRID_ROW_DETAIL_PARAMS` token. Its own host element defines the height of the expanded part, so a component that grows while loading its data grows the row with it. Expanding and collapsing from your own UI goes through `#rowDetail="kbqAgGridRowDetail"`, which exposes `expand()`, `collapse()`, `toggle()` and `collapseAll()`.
 

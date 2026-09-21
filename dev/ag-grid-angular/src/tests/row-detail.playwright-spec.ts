@@ -20,6 +20,30 @@ const getDetail = (page: Page, rowIndex: number): Locator =>
 const getRowHeight = async (page: Page, rowIndex: number): Promise<number> =>
     getRow(page, rowIndex).evaluate((element: HTMLElement) => element.getBoundingClientRect().height);
 
+const getBackground = async (page: Page, rowIndex: number): Promise<string> =>
+    getRow(page, rowIndex).evaluate((element: HTMLElement) => getComputedStyle(element).backgroundColor);
+
+/** Resolves `--kbq-background-contrast-less` the same way the theme applies it to a row. */
+const getContrastLessColor = async (page: Page): Promise<string> =>
+    getScreenshotTarget(page).evaluate((grid: HTMLElement) => {
+        const probe = document.createElement('div');
+
+        probe.style.backgroundColor = 'var(--kbq-background-contrast-less)';
+        grid.appendChild(probe);
+
+        const color = getComputedStyle(probe).backgroundColor;
+
+        probe.remove();
+
+        return color;
+    });
+
+const expandFilledRow = async (page: Page): Promise<void> => {
+    await page.getByTestId('e2eFilledButton').click();
+    await getToggle(page, 0).click();
+    await expect(getDetail(page, 0)).toBeVisible();
+};
+
 const scrollBody = async (page: Page, top: number): Promise<void> =>
     getScreenshotTarget(page)
         .locator('.ag-body-viewport')
@@ -126,7 +150,89 @@ test.describe('KbqAgGridRowDetail', () => {
             await expect(getToggle(page, 0)).toBeFocused();
         });
 
+        test('keeps the default row states on an expanded row', async ({ page }) => {
+            await getToggle(page, 0).click();
+            await expect(getDetail(page, 0)).toBeVisible();
+            // Drops the focus the toggle click left on the row, so only hover differs below.
+            await page.evaluate(() => {
+                if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+            });
+            await getRow(page, 5).hover();
+
+            const idle = await getBackground(page, 0);
+
+            await getRow(page, 0).hover();
+            await expect(getRow(page, 0)).toHaveClass(/ag-row-hover/);
+
+            expect(await getBackground(page, 0)).not.toBe(idle);
+        });
+
+        test('keeps a static fill on the expanded row with kbqAgGridRowDetailFilled', async ({ page }) => {
+            await expandFilledRow(page);
+
+            const filled = await getBackground(page, 0);
+
+            expect(filled).toBe(await getContrastLessColor(page));
+            expect(await getBackground(page, 1)).not.toBe(filled);
+
+            await getRow(page, 0).hover();
+            await expect(getRow(page, 0)).toHaveClass(/ag-row-hover/);
+            expect(await getBackground(page, 0)).toBe(filled);
+
+            await getRow(page, 0).locator('.ag-checkbox-input').click();
+            await expect(getRow(page, 0)).toHaveClass(/ag-row-selected/);
+            expect(await getBackground(page, 0)).toBe(filled);
+        });
+
+        test('fills only the expanded rows with kbqAgGridRowDetailFilled', async ({ page }) => {
+            await expandFilledRow(page);
+            await getRow(page, 1).locator('.ag-checkbox-input').click();
+            await expect(getRow(page, 1)).toHaveClass(/ag-row-selected/);
+            await getRow(page, 1).hover();
+
+            // A collapsed row keeps its states: selected and hovered, it is not the static fill.
+            expect(await getBackground(page, 1)).not.toBe(await getBackground(page, 0));
+        });
+
         // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
+        test('renders the filled expanded row', async ({ page }) => {
+            await expandFilledRow(page);
+            await getRow(page, 0).locator('.ag-checkbox-input').click();
+            await getRow(page, 0).hover();
+            await expect(page.getByTestId('e2eRowDetailGrid')).toBeVisible();
+            await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-filled-light.png');
+        });
+
+        test('renders the filled expanded row in dark theme', async ({ page }) => {
+            await enableDarkTheme(page);
+            await expandFilledRow(page);
+            await getRow(page, 0).locator('.ag-checkbox-input').click();
+            await getRow(page, 0).hover();
+            await expect(page.getByTestId('e2eRowDetailGrid')).toBeVisible();
+            await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-filled-dark.png');
+        });
+
+        test('restores the default row states once kbqAgGridRowDetailFilled is turned off', async ({ page }) => {
+            await expandFilledRow(page);
+            await getRow(page, 0).locator('.ag-checkbox-input').click();
+            await expect(getRow(page, 0)).toHaveClass(/ag-row-selected/);
+
+            // Turned off on a row that is already expanded and selected.
+            await page.getByTestId('e2eFilledButton').click();
+            await expect(getRow(page, 0)).not.toHaveClass(/kbq-ag-grid-row-detail-row_filled/);
+
+            // The next row is expanded too and keeps the focus the toggle click leaves in it.
+            await getToggle(page, 1).click();
+            await expect(getDetail(page, 1)).toBeVisible();
+            await expect(getRow(page, 1)).toHaveClass(/ag-row-focus/);
+            await page.mouse.move(0, 0);
+
+            // A selected row is filled with the same color by default, so the focused one tells the states apart.
+            expect(await getBackground(page, 1)).not.toBe(await getContrastLessColor(page));
+            await expect(page.getByTestId('e2eRowDetailGrid')).toHaveCount(2);
+            await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-filled-off-light.png');
+        });
+
         test('renders the expanded row', async ({ page }) => {
             await getToggle(page, 0).click();
             await expect(page.getByTestId('e2eRowDetailGrid')).toBeVisible();

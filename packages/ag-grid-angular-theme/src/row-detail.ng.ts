@@ -40,6 +40,9 @@ const PANEL_CLASS = 'kbq-ag-grid-row-detail';
 /** Class set on every `.ag-row` element (one per pinned/center container) of an expanded row. */
 const EXPANDED_ROW_CLASS = 'kbq-ag-grid-row-detail-row';
 
+/** Modifier of {@link EXPANDED_ROW_CLASS} set while `kbqAgGridRowDetailFilled` is on. */
+const FILLED_ROW_CLASS = 'kbq-ag-grid-row-detail-row_filled';
+
 /** Custom property carrying the row's collapsed height, used by the theme to keep cells on top
  * of an expanded (taller) row and to position the detail panel below them. */
 const ROW_HEIGHT_PROPERTY = '--kbq-ag-grid-row-detail-row-height';
@@ -524,6 +527,14 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
     /** `colId` of the column hosting the expand toggle. Defaults to the first non-pinned column. */
     readonly toggleColumn = input<string | undefined>(undefined, { alias: 'kbqAgGridRowDetailToggleColumn' });
 
+    /**
+     * Fills an expanded row with `--kbq-background-contrast-less` and stops it from reacting to
+     * hover, active, selection and focus. Collapsed rows keep the default states.
+     *
+     * @default false
+     */
+    readonly filled = input(false, { transform: booleanAttribute, alias: 'kbqAgGridRowDetailFilled' });
+
     /** Fixed height (px) of the expanded part. Omit to measure the detail component's host instead. */
     readonly detailHeight = input<number | undefined>(undefined, { alias: 'kbqAgGridRowDetailHeight' });
 
@@ -582,13 +593,15 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
         effect(() => {
             this.expanded();
             this.component();
+            this.filled();
 
+            untracked(() => this.sync());
+        });
+
+        effect(() => {
             const detailHeight = this.detailHeight();
 
-            untracked(() => {
-                this.applyDetailHeight(detailHeight);
-                this.sync();
-            });
+            untracked(() => this.applyDetailHeight(detailHeight));
         });
 
         // The toggle lives in a column of its own choosing, so a new `kbqAgGridRowDetailToggleColumn`
@@ -803,7 +816,7 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
         panel.componentRef.destroy();
 
         for (const rowElement of this.rowElements(id)) {
-            rowElement.classList.remove(EXPANDED_ROW_CLASS);
+            rowElement.classList.remove(EXPANDED_ROW_CLASS, FILLED_ROW_CLASS);
             rowElement.style.removeProperty(ROW_HEIGHT_PROPERTY);
         }
 
@@ -826,6 +839,7 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
 
         for (const rowElement of rowElements) {
             rowElement.classList.add(EXPANDED_ROW_CLASS);
+            rowElement.classList.toggle(FILLED_ROW_CLASS, this.filled());
 
             // Until the collapsed height is known, the theme falls back to `--ag-row-height`.
             if (panel.baseHeight !== null) {

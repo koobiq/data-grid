@@ -193,6 +193,9 @@ const DETAIL_COMPONENT: KbqAgGridRowDetailComponent = ({ data }) => {
             <button type="button" data-testid="e2eSingleExpandButton" (click)="singleExpand.set(!singleExpand())">
                 Single expand: {{ singleExpand() }}
             </button>
+            <button type="button" data-testid="e2eFilledButton" (click)="filled.set(!filled())">
+                Filled: {{ filled() }}
+            </button>
             <span data-testid="e2eExpandedIds">{{ expanded().join(', ') }}</span>
         </div>
         <ag-grid-angular
@@ -208,6 +211,7 @@ const DETAIL_COMPONENT: KbqAgGridRowDetailComponent = ({ data }) => {
             [rowSelection]="rowSelection"
             [kbqAgGridRowDetailComponent]="detailComponent"
             [kbqAgGridRowDetailSingleExpand]="singleExpand()"
+            [kbqAgGridRowDetailFilled]="filled()"
             [(kbqAgGridRowDetailExpanded)]="expanded"
         />
     `,
@@ -235,6 +239,7 @@ export class DevRowDetail {
     readonly detailComponent = DETAIL_COMPONENT;
     readonly expanded = signal<string[]>([]);
     readonly singleExpand = signal(false);
+    readonly filled = signal(false);
 }
 
 const STATE_KEY = 'dev-ag-grid-row-detail-state';

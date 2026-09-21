@@ -76,6 +76,7 @@ class TestOtherDetail {}
             [kbqAgGridRowDetailComponent]="component()"
             [kbqAgGridRowDetailHeight]="detailHeight"
             [kbqAgGridRowDetailSingleExpand]="singleExpand()"
+            [kbqAgGridRowDetailFilled]="filled()"
             [kbqAgGridRowDetailState]="stateKey()"
             [kbqAgGridRowDetailStateStore]="store()"
         />
@@ -86,6 +87,7 @@ class TestGrid {
     readonly rowDetail = viewChild.required(KbqAgGridRowDetail);
     readonly component = signal<KbqAgGridRowDetailComponent>(TestDetail);
     readonly singleExpand = signal(false);
+    readonly filled = signal(false);
     readonly stateKey = signal<string | undefined>(undefined);
     readonly store = signal<KbqAgGridRowDetailStateStore | undefined>(undefined);
 
@@ -291,6 +293,78 @@ describe('KbqAgGridRowDetail', () => {
         });
 
         expect(container.querySelectorAll(PANEL_SELECTOR)).toHaveLength(1);
+    });
+
+    describe('kbqAgGridRowDetailFilled', () => {
+        const FILLED_ROW_CLASS = 'kbq-ag-grid-row-detail-row_filled';
+
+        it('leaves the expanded row unfilled by default', async () => {
+            const { container } = await renderGrid();
+
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(rowElement(container, 'a')).toHaveClass('kbq-ag-grid-row-detail-row');
+            });
+
+            expect(rowElement(container, 'a')).not.toHaveClass(FILLED_ROW_CLASS);
+        });
+
+        it('fills only the expanded rows', async () => {
+            const { container, fixture } = await renderGrid();
+
+            fixture.componentInstance.filled.set(true);
+            fixture.detectChanges();
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(rowElement(container, 'a')).toHaveClass(FILLED_ROW_CLASS);
+            });
+
+            expect(rowElement(container, 'b')).not.toHaveClass(FILLED_ROW_CLASS);
+        });
+
+        it('drops the fill when the row is collapsed', async () => {
+            const { container, fixture } = await renderGrid();
+
+            fixture.componentInstance.filled.set(true);
+            fixture.detectChanges();
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(rowElement(container, 'a')).toHaveClass(FILLED_ROW_CLASS);
+            });
+
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(rowElement(container, 'a')).not.toHaveClass(FILLED_ROW_CLASS);
+            });
+        });
+
+        it('follows the input on rows that are already expanded', async () => {
+            const { container, fixture } = await renderGrid();
+
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(rowElement(container, 'a')).toHaveClass('kbq-ag-grid-row-detail-row');
+            });
+
+            fixture.componentInstance.filled.set(true);
+            fixture.detectChanges();
+
+            await waitFor(() => {
+                expect(rowElement(container, 'a')).toHaveClass(FILLED_ROW_CLASS);
+            });
+
+            fixture.componentInstance.filled.set(false);
+            fixture.detectChanges();
+
+            await waitFor(() => {
+                expect(rowElement(container, 'a')).not.toHaveClass(FILLED_ROW_CLASS);
+            });
+        });
     });
 
     it('picks a component per row', async () => {
