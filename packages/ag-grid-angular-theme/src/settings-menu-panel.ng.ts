@@ -14,6 +14,7 @@ import {
     Injector,
     input,
     isSignal,
+    NgZone,
     Signal,
     signal,
     untracked,
@@ -253,6 +254,7 @@ export class KbqAgGridSettingsMenuPanel {
     private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly injector = inject(Injector);
     private readonly document = inject(DOCUMENT);
+    private readonly ngZone = inject(NgZone);
     private readonly mediaMatcher = inject(MediaMatcher);
     private readonly sharedResizeObserver = inject(SharedResizeObserver);
     private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('settingsMenuTrigger');
@@ -383,6 +385,7 @@ export class KbqAgGridSettingsMenuPanel {
         });
 
         this.observePanelResize();
+        this.observeViewportSpace();
     }
 
     /** Whether the given entry is a separator rather than an item. */
@@ -559,6 +562,39 @@ export class KbqAgGridSettingsMenuPanel {
 
         this.close();
         this.trigger().nativeElement.focus();
+    }
+
+    /**
+     * Keeps the space between the top of the open panel and the bottom of the viewport in a CSS
+     * variable, which limits the panel together with the height of the grid: a grid that runs below
+     * the viewport would otherwise let a long level end off screen. Scrolling or resizing the page
+     * changes the space; the listeners stay outside the Angular zone, as they only update a style.
+     */
+    private observeViewportSpace(): void {
+        effect((onCleanup) => {
+            const panel = this.panel()?.nativeElement;
+            const view = this.document.defaultView;
+
+            if (!panel || !view) return;
+
+            const update = (): void => {
+                const space = Math.max(0, view.innerHeight - panel.getBoundingClientRect().top);
+
+                panel.style.setProperty('--kbq-settings-menu-panel-viewport-space', `${space}px`);
+            };
+
+            update();
+
+            this.ngZone.runOutsideAngular(() => {
+                view.addEventListener('scroll', update, { capture: true, passive: true });
+                view.addEventListener('resize', update, { passive: true });
+            });
+
+            onCleanup(() => {
+                view.removeEventListener('scroll', update, { capture: true });
+                view.removeEventListener('resize', update);
+            });
+        });
     }
 
     /**

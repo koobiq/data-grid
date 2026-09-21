@@ -1584,16 +1584,22 @@
         border: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
         z-index: 100;
         overflow: hidden;
-        max-height: calc(var(--kbq-settings-menu-panel-max-height, 60vh) - var(--kbq-size-xxs));
+
+        // Ends at the bottom of the grid, or of the viewport when the grid runs below it: the space
+        // below the panel within the viewport is kept up to date by `KbqAgGridSettingsMenuPanel`.
+        --kbq-settings-menu-panel-available-height: min(
+            calc(var(--kbq-settings-menu-panel-max-height, 60vh) - var(--kbq-size-xxs)),
+            calc(var(--kbq-settings-menu-panel-viewport-space, 100vh) - var(--kbq-size-xxs))
+        );
+
+        max-height: var(--kbq-settings-menu-panel-available-height);
     }
 
     // Lays the panel out at its natural size, which the panel animates to when a level changes.
     .kbq-settings-menu-panel-content {
         display: flex;
         flex-direction: column;
-        max-height: calc(
-            var(--kbq-settings-menu-panel-max-height, 60vh) - var(--kbq-size-xxs) - var(--kbq-size-border-width) * 2
-        );
+        max-height: calc(var(--kbq-settings-menu-panel-available-height) - var(--kbq-size-border-width) * 2);
     }
 
     // Equal side columns keep the title centered whichever header buttons are rendered.
