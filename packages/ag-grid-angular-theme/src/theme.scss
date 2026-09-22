@@ -1559,7 +1559,10 @@
         border-radius: var(--kbq-size-border-radius);
         border: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
         z-index: 100;
-        overflow: hidden;
+
+        // Not `hidden`: a focus moved into the level that is still sliding in would scroll the panel
+        // to it, so the level would jump into place instead of sliding.
+        overflow: clip;
 
         // Timing of the push transition between the levels, which the height of the panel follows.
         --kbq-settings-menu-push-duration: 300ms;

@@ -136,6 +136,23 @@ test.describe('KbqAgGridSettingsMenu', () => {
         );
     });
 
+    test('the focus moved into a sliding level does not scroll the panel', async ({ page }) => {
+        // The level slides in only with the motion allowed; reduced motion fades it in place.
+        await page.emulateMedia({ reducedMotion: 'no-preference' });
+        await openMenu(page);
+        await getItem(page, ITEM_DENSITY).click();
+
+        // Read on the frame the focus lands, while the level is still sliding in.
+        const scroll = await page.waitForFunction(() => {
+            const panel = document.querySelector('.kbq-settings-menu-panel');
+            const isFocusMoved = !!document.activeElement?.closest('.kbq-settings-menu-screen_pushed');
+
+            return panel && isFocusMoved ? { left: panel.scrollLeft } : null;
+        });
+
+        expect(await scroll.jsonValue()).toEqual({ left: 0 });
+    });
+
     test('enabling sorting from the menu sorts the grid', async ({ page }) => {
         await openSortScreen(page);
         await getSortRow(page, 'Athlete').click();
