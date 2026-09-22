@@ -1482,30 +1482,6 @@
 }
 
 @mixin _ag-settings-menu() {
-    @keyframes kbq-settings-menu-level-forward {
-        from {
-            opacity: 0;
-            transform: translateX(var(--kbq-size-l));
-        }
-
-        to {
-            opacity: 1;
-            transform: none;
-        }
-    }
-
-    @keyframes kbq-settings-menu-level-back {
-        from {
-            opacity: 0;
-            transform: translateX(calc(var(--kbq-size-l) * -1));
-        }
-
-        to {
-            opacity: 1;
-            transform: none;
-        }
-    }
-
     &:has(.kbq-ag-grid-settings-menu-overlay) {
         --ag-theme-koobiq-settings-menu-width: var(--kbq-size-7xl);
 
@@ -1585,6 +1561,11 @@
         z-index: 100;
         overflow: hidden;
 
+        // Timing of the push transition between the levels, which the height of the panel follows.
+        --kbq-settings-menu-push-duration: 300ms;
+        --kbq-settings-menu-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+        --kbq-settings-menu-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+
         // Ends at the bottom of the grid, or of the viewport when the grid runs below it: the space
         // below the panel within the viewport is kept up to date by `KbqAgGridSettingsMenuPanel`.
         --kbq-settings-menu-panel-available-height: min(
@@ -1593,13 +1574,69 @@
         );
 
         max-height: var(--kbq-settings-menu-panel-available-height);
+        transform-origin: top right;
+        transition:
+            opacity 160ms var(--kbq-settings-menu-ease-out),
+            transform 220ms var(--kbq-settings-menu-ease-out),
+            height var(--kbq-settings-menu-push-duration) var(--kbq-settings-menu-ease-in-out);
+
+        // The panel comes in from the state it leaves to when it closes.
+        @starting-style {
+            opacity: 0;
+            transform: translateY(calc(var(--kbq-size-xs) * -1)) scale(0.98);
+        }
     }
 
-    // Lays the panel out at its natural size, which the panel animates to when a level changes.
-    .kbq-settings-menu-panel-content {
+    .kbq-settings-menu-panel_closing {
+        opacity: 0;
+        transform: translateY(calc(var(--kbq-size-xs) * -1)) scale(0.98);
+        pointer-events: none;
+    }
+
+    // The screens of the levels lie on top of each other, so that the one being opened slides over
+    // the one it is opened from instead of replacing it.
+    .kbq-settings-menu-track {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        align-items: start;
+    }
+
+    .kbq-settings-menu-screen {
+        grid-area: 1 / 1;
+        z-index: 1;
         display: flex;
         flex-direction: column;
         max-height: calc(var(--kbq-settings-menu-panel-available-height) - var(--kbq-size-border-width) * 2);
+        background: var(--kbq-background-card);
+        transition:
+            transform var(--kbq-settings-menu-push-duration) var(--kbq-settings-menu-ease-in-out),
+            opacity var(--kbq-settings-menu-push-duration) var(--kbq-settings-menu-ease-out);
+    }
+
+    // A level opened from the one behind it comes in from the right edge of the panel.
+    .kbq-settings-menu-screen_pushed {
+        @starting-style {
+            transform: translate3d(100%, 0, 0);
+        }
+    }
+
+    // The level the active one was opened from stays partly visible to the left of it.
+    .kbq-settings-menu-screen_behind {
+        z-index: 0;
+        transform: translate3d(-35%, 0, 0);
+        opacity: 0.65;
+    }
+
+    .kbq-settings-menu-screen_hidden {
+        z-index: 0;
+        transform: translate3d(-35%, 0, 0);
+        opacity: 0;
+    }
+
+    // The level the user has returned from slides out over the level below it.
+    .kbq-settings-menu-screen_ahead {
+        z-index: 2;
+        transform: translate3d(100%, 0, 0);
     }
 
     // Equal side columns keep the title centered whichever header buttons are rendered.
@@ -1682,14 +1719,6 @@
         flex-direction: column;
         flex: 1;
         min-height: 0;
-    }
-
-    .kbq-settings-menu-panel-body_forward {
-        animation: kbq-settings-menu-level-forward 200ms cubic-bezier(0, 0, 0.2, 1) both;
-    }
-
-    .kbq-settings-menu-panel-body_back {
-        animation: kbq-settings-menu-level-back 200ms cubic-bezier(0, 0, 0.2, 1) both;
     }
 
     .kbq-settings-menu-list {
@@ -1789,10 +1818,37 @@
         cursor: not-allowed;
     }
 
+    // Without motion the panel and the levels only fade, and the panel takes its new height at once.
     @media (prefers-reduced-motion: reduce) {
-        .kbq-settings-menu-panel-body_forward,
-        .kbq-settings-menu-panel-body_back {
-            animation: none;
+        .kbq-settings-menu-panel {
+            transition: opacity 200ms var(--kbq-settings-menu-ease-out);
+
+            @starting-style {
+                opacity: 0;
+                transform: none;
+            }
+        }
+
+        .kbq-settings-menu-panel_closing {
+            transform: none;
+        }
+
+        .kbq-settings-menu-screen {
+            transition: opacity 200ms var(--kbq-settings-menu-ease-out);
+        }
+
+        .kbq-settings-menu-screen_behind,
+        .kbq-settings-menu-screen_hidden,
+        .kbq-settings-menu-screen_ahead {
+            transform: none;
+            opacity: 0;
+        }
+
+        .kbq-settings-menu-screen_pushed {
+            @starting-style {
+                transform: none;
+                opacity: 0;
+            }
         }
     }
 }

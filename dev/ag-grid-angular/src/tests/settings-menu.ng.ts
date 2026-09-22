@@ -75,7 +75,6 @@ const DEV_TIME_ZONES: string[] = [
             display: flex;
             flex-direction: column;
             padding: var(--kbq-size-m);
-            height: calc(100vh - calc(var(--kbq-size-l) * 2));
         }
 
         ag-grid-angular {
@@ -149,7 +148,8 @@ export class DevSettingsMenu {
             id: 'word-wrap',
             label: 'Word wrap (dev)',
             icon: 'kbq-wrap-text_16',
-            checked: this.wordWrap,
+            value: computed(() => (this.wordWrap() ? 'On' : 'Off')),
+            keepOpen: true,
             action: (): void => this.wordWrap.update((value) => !value)
         },
         kbqAgGridSettingsMenuSeparator(),

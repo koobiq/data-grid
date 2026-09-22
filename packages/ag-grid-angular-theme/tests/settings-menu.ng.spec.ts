@@ -161,7 +161,9 @@ const renderMenu = async (
 };
 
 const itemLabels = (container: Element): string[] =>
-    Array.from(container.querySelectorAll('.kbq-settings-menu-item-label')).map((el) => el.textContent?.trim() ?? '');
+    Array.from(container.querySelectorAll('.kbq-settings-menu-screen_active .kbq-settings-menu-item-label')).map(
+        (el) => el.textContent?.trim() ?? ''
+    );
 
 describe('KbqAgGridSettingsMenu', () => {
     describe('trigger', () => {
@@ -228,9 +230,11 @@ describe('KbqAgGridSettingsMenu', () => {
 
             await openMenu(container);
 
-            expect(container.querySelector('.kbq-settings-menu-panel-title')?.textContent?.trim()).toBe(
-                KBQ_AG_GRID_SETTINGS_MENU_LABELS_RU.title
-            );
+            expect(
+                container
+                    .querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-panel-title')
+                    ?.textContent?.trim()
+            ).toBe(KBQ_AG_GRID_SETTINGS_MENU_LABELS_RU.title);
         });
 
         it('renders custom items, separators and values', async () => {
@@ -307,7 +311,7 @@ describe('KbqAgGridSettingsMenu', () => {
 
             await openMenu(container);
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item')!);
 
             await waitFor(() => {
                 expect(action).toHaveBeenCalled();
@@ -331,7 +335,7 @@ describe('KbqAgGridSettingsMenu', () => {
 
             await openMenu(container);
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-item-label')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item-label')!);
 
             expect(action).toHaveBeenCalled();
             expect(container.querySelector('.kbq-settings-menu-panel')).toBeTruthy();
@@ -353,7 +357,7 @@ describe('KbqAgGridSettingsMenu', () => {
 
             await openMenu(container);
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item')!);
 
             expect(action).not.toHaveBeenCalled();
             expect(container.querySelector('.kbq-settings-menu-panel')).toBeTruthy();
@@ -375,13 +379,15 @@ describe('KbqAgGridSettingsMenu', () => {
 
             await openMenu(container);
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item')!);
 
             await waitFor(() => {
                 expect(itemLabels(container)).toEqual(['Compact', 'Normal']);
             });
 
-            const rows = Array.from(container.querySelectorAll('.kbq-settings-menu-item'));
+            const rows = Array.from(
+                container.querySelectorAll('.kbq-settings-menu-screen_active .kbq-settings-menu-item')
+            );
 
             expect(rows.map((row) => row.getAttribute('aria-checked'))).toEqual(['false', 'true']);
             expect(container.querySelectorAll('.kbq-settings-menu-item-check')).toHaveLength(1);
@@ -397,39 +403,55 @@ describe('KbqAgGridSettingsMenu', () => {
 
             await openMenu(container);
 
-            expect(container.querySelector('.kbq-settings-menu-header-btn')).toBeNull();
+            expect(
+                container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-header-btn')
+            ).toBeNull();
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item')!);
 
             await waitFor(() => {
-                expect(container.querySelector('.kbq-settings-menu-panel-title')?.textContent?.trim()).toBe('Parent');
+                expect(
+                    container
+                        .querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-panel-title')
+                        ?.textContent?.trim()
+                ).toBe('Parent');
                 expect(itemLabels(container)).toEqual(['Child']);
-                expect(container.querySelector('.kbq-settings-menu-header-btn')).toBeTruthy();
+                expect(
+                    container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-header-btn')
+                ).toBeTruthy();
             });
         });
 
-        it('animates the level transitions but not the level rendered when the menu opens', async () => {
+        it('slides the opened level over the one it is opened from and back', async () => {
             const { container } = await renderMenu([
                 { id: 'a', label: 'Parent', items: [{ id: 'b', label: 'Child' }] },
                 { id: 'c', label: 'Sibling' }
             ]);
-            const body = (): Element => container.querySelector('.kbq-settings-menu-panel-body')!;
+            const screens = (): string[] =>
+                Array.from(container.querySelectorAll('.kbq-settings-menu-screen')).map((screen) =>
+                    Array.from(screen.classList)
+                        .filter((name) => name !== 'kbq-settings-menu-screen')
+                        .map((name) => name.replace('kbq-settings-menu-screen_', ''))
+                        .join(' ')
+                );
 
             await openMenu(container);
 
-            expect(body().classList).not.toContain('kbq-settings-menu-panel-body_forward');
-            expect(body().classList).not.toContain('kbq-settings-menu-panel-body_back');
+            // The level rendered when the menu opens does not slide in.
+            expect(screens()).toEqual(['active']);
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item')!);
 
             await waitFor(() => {
-                expect(body().classList).toContain('kbq-settings-menu-panel-body_forward');
+                expect(screens()).toEqual(['behind', 'active pushed']);
             });
+            expect(container.querySelector('.kbq-settings-menu-screen_behind')).toHaveAttribute('inert');
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-header-btn')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-back-btn')!);
 
+            // Nothing is animated in a test environment, so the level is removed once the user leaves it.
             await waitFor(() => {
-                expect(body().classList).toContain('kbq-settings-menu-panel-body_back');
+                expect(screens()).toEqual(['active']);
             });
         });
 
@@ -441,23 +463,29 @@ describe('KbqAgGridSettingsMenu', () => {
             const panel = (): Element => container.querySelector('.kbq-settings-menu-panel')!;
 
             await openMenu(container);
-            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item')!);
 
             await waitFor(() => {
                 expect(document.activeElement?.textContent?.trim()).toBe('Child');
             });
 
             fireEvent.keyDown(document.activeElement!, { key: 'Tab' });
-            expect(document.activeElement).toBe(container.querySelector('.kbq-settings-menu-back-btn'));
+            expect(document.activeElement).toBe(
+                container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-back-btn')
+            );
 
             fireEvent.keyDown(document.activeElement!, { key: 'Tab' });
-            expect(document.activeElement).toBe(container.querySelector('.kbq-settings-menu-reset-btn'));
+            expect(document.activeElement).toBe(
+                container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-reset-btn')
+            );
 
             fireEvent.keyDown(document.activeElement!, { key: 'Tab' });
             expect(document.activeElement?.textContent?.trim()).toBe('Child');
 
             fireEvent.keyDown(document.activeElement!, { key: 'Tab', shiftKey: true });
-            expect(document.activeElement).toBe(container.querySelector('.kbq-settings-menu-reset-btn'));
+            expect(document.activeElement).toBe(
+                container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-reset-btn')
+            );
             expect(panel()).toBeTruthy();
         });
 
@@ -487,18 +515,22 @@ describe('KbqAgGridSettingsMenu', () => {
 
             await openMenu(container);
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item')!);
 
             await waitFor(() => {
-                expect(container.querySelector('.kbq-settings-menu-header-btn')).toBeTruthy();
+                expect(
+                    container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-header-btn')
+                ).toBeTruthy();
             });
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-header-btn')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-header-btn')!);
 
             await waitFor(() => {
-                expect(container.querySelector('.kbq-settings-menu-panel-title')?.textContent?.trim()).toBe(
-                    KBQ_AG_GRID_SETTINGS_MENU_LABELS_RU.title
-                );
+                expect(
+                    container
+                        .querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-panel-title')
+                        ?.textContent?.trim()
+                ).toBe(KBQ_AG_GRID_SETTINGS_MENU_LABELS_RU.title);
                 expect(itemLabels(container)).toEqual(['Parent', 'Sibling']);
             });
         });
@@ -511,10 +543,14 @@ describe('KbqAgGridSettingsMenu', () => {
 
             await openMenu(container);
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item')!);
 
             await waitFor(() => {
-                expect(container.querySelector('.kbq-settings-menu-panel-title')?.textContent?.trim()).toBe('Nested');
+                expect(
+                    container
+                        .querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-panel-title')
+                        ?.textContent?.trim()
+                ).toBe('Nested');
             });
         });
 
@@ -534,13 +570,15 @@ describe('KbqAgGridSettingsMenu', () => {
 
             await openMenu(container);
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item')!);
 
             await waitFor(() => {
-                expect(container.querySelector('.kbq-settings-menu-reset-btn')).toBeTruthy();
+                expect(
+                    container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-reset-btn')
+                ).toBeTruthy();
             });
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-reset-btn')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-reset-btn')!);
 
             expect(reset).toHaveBeenCalled();
         });
@@ -553,7 +591,7 @@ describe('KbqAgGridSettingsMenu', () => {
 
             await openMenu(container);
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item')!);
 
             await waitFor(() => {
                 expect(itemLabels(container)).toEqual(['Child']);
@@ -572,9 +610,15 @@ describe('KbqAgGridSettingsMenu', () => {
 
             await openMenu(container);
 
-            expect(container.querySelector('.kbq-settings-menu-panel-title')?.textContent?.trim()).toBe('Columns');
+            expect(
+                container
+                    .querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-panel-title')
+                    ?.textContent?.trim()
+            ).toBe('Columns');
             expect(itemLabels(container)).toEqual(['Child']);
-            expect(container.querySelector('.kbq-settings-menu-header-btn')).toBeNull();
+            expect(
+                container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-header-btn')
+            ).toBeNull();
             expect(container.querySelector('.kbq-settings-menu-trigger')?.getAttribute('title')).toBe('Columns');
         });
 
@@ -586,7 +630,7 @@ describe('KbqAgGridSettingsMenu', () => {
 
             await openMenu(container);
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item')!);
 
             await waitFor(() => {
                 expect(itemLabels(container)).toEqual(['Child']);
@@ -622,11 +666,13 @@ describe('KbqAgGridSettingsMenu', () => {
             await openMenu(container);
 
             await waitFor(() => {
-                expect(container.querySelector('.kbq-settings-menu-reset-btn')).toBeTruthy();
+                expect(
+                    container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-reset-btn')
+                ).toBeTruthy();
             });
             expect(container.querySelector('.kbq-column-menu-panel-footer')).toBeNull();
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-reset-btn')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-reset-btn')!);
 
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(api.applyColumnState).toHaveBeenCalledWith({
@@ -711,7 +757,7 @@ describe('KbqAgGridSettingsMenu', () => {
             await openMenu(container);
 
             // Stands in for change detection that runs between the item listener and the document listener.
-            const label = container.querySelector('.kbq-settings-menu-item-label')!;
+            const label = container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item-label')!;
 
             label.addEventListener('click', () => label.remove());
             label.dispatchEvent(new MouseEvent('click', { bubbles: true }));
@@ -762,7 +808,7 @@ describe('KbqAgGridSettingsMenu', () => {
             ]);
 
             await openMenu(container);
-            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item')!);
 
             await waitFor(() => {
                 expect(itemLabels(container)).toEqual(['Child']);
@@ -783,7 +829,7 @@ describe('KbqAgGridSettingsMenu', () => {
             ]);
 
             await openMenu(container);
-            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item')!);
 
             await waitFor(() => {
                 expect(container.querySelector('.test-screen-notes')).toBeTruthy();
@@ -819,13 +865,13 @@ describe('KbqAgGridSettingsMenu', () => {
             ]);
 
             await openMenu(container);
-            fireEvent.click(container.querySelectorAll('.kbq-settings-menu-item')[1]);
+            fireEvent.click(container.querySelectorAll('.kbq-settings-menu-screen_active .kbq-settings-menu-item')[1]);
 
             await waitFor(() => {
                 expect(itemLabels(container)).toEqual(['Child']);
             });
 
-            fireEvent.click(container.querySelector('.kbq-settings-menu-header-btn')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-header-btn')!);
 
             await waitFor(() => {
                 expect(document.activeElement?.textContent?.trim()).toBe('Parent');
@@ -842,10 +888,12 @@ describe('KbqAgGridSettingsMenu', () => {
             ]);
 
             await openMenu(container);
-            fireEvent.click(container.querySelector('.kbq-settings-menu-item')!);
+            fireEvent.click(container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-item')!);
 
             await waitFor(() => {
-                expect(container.querySelector('.kbq-settings-menu-reset-btn')).toBeTruthy();
+                expect(
+                    container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-reset-btn')
+                ).toBeTruthy();
             });
 
             hidden.set(true);
@@ -855,7 +903,9 @@ describe('KbqAgGridSettingsMenu', () => {
                 expect(
                     container.querySelector('.kbq-settings-menu-header-btn:not(.kbq-settings-menu-reset-btn)')
                 ).toBeNull();
-                expect(container.querySelector('.kbq-settings-menu-reset-btn')).toBeTruthy();
+                expect(
+                    container.querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-reset-btn')
+                ).toBeTruthy();
             });
         });
     });
@@ -884,9 +934,11 @@ describe('KbqAgGridSettingsMenu', () => {
 
             await openMenu(container);
 
-            expect(container.querySelector('.kbq-settings-menu-panel-title')?.textContent?.trim()).toBe(
-                KBQ_AG_GRID_SETTINGS_MENU_LABELS_EN.title
-            );
+            expect(
+                container
+                    .querySelector('.kbq-settings-menu-screen_active .kbq-settings-menu-panel-title')
+                    ?.textContent?.trim()
+            ).toBe(KBQ_AG_GRID_SETTINGS_MENU_LABELS_EN.title);
             expect(itemLabels(container)).toEqual([
                 KBQ_AG_GRID_SETTINGS_MENU_LABELS_EN.columnsItem,
                 KBQ_AG_GRID_SETTINGS_MENU_LABELS_EN.sortItem

@@ -15,8 +15,9 @@ const openMenu = async (page: Page): Promise<void> => {
     await page.locator('.kbq-settings-menu-panel').waitFor({ state: 'visible' });
 };
 
+// Levels the active one was opened from stay rendered behind it, so items are looked up in the active level.
 const getItem = (page: Page, label: string): Locator =>
-    page.locator('kbq-settings-menu-item').filter({ hasText: label });
+    page.locator('.kbq-settings-menu-screen_active kbq-settings-menu-item').filter({ hasText: label });
 
 const getSortRow = (page: Page, columnName: string): Locator =>
     page.locator('kbq-sort-menu-row').filter({ hasText: columnName });
@@ -122,11 +123,17 @@ test.describe('KbqAgGridSettingsMenu', () => {
         await openMenu(page);
         await getItem(page, ITEM_SORT).click();
 
-        await expect(page.locator('.kbq-settings-menu-panel-title')).toHaveText(ITEM_SORT);
+        await expect(page.locator('.kbq-settings-menu-screen_active .kbq-settings-menu-panel-title')).toHaveText(
+            ITEM_SORT
+        );
 
-        await page.locator(`.kbq-settings-menu-header-btn[title="${LABEL_BACK}"]`).click();
+        await page
+            .locator(`.kbq-settings-menu-screen_active .kbq-settings-menu-header-btn[title="${LABEL_BACK}"]`)
+            .click();
 
-        await expect(page.locator('.kbq-settings-menu-panel-title')).toHaveText(MENU_TITLE);
+        await expect(page.locator('.kbq-settings-menu-screen_active .kbq-settings-menu-panel-title')).toHaveText(
+            MENU_TITLE
+        );
     });
 
     test('enabling sorting from the menu sorts the grid', async ({ page }) => {
@@ -208,7 +215,9 @@ test.describe('KbqAgGridSettingsMenu', () => {
 
         await expect.poll(async () => getSortState(page)).toHaveLength(1);
 
-        await page.locator(`.kbq-settings-menu-header-btn[title="${LABEL_RESET}"]`).click();
+        await page
+            .locator(`.kbq-settings-menu-screen_active .kbq-settings-menu-header-btn[title="${LABEL_RESET}"]`)
+            .click();
 
         await expect.poll(async () => getSortState(page)).toEqual([]);
     });
@@ -226,7 +235,9 @@ test.describe('KbqAgGridSettingsMenu', () => {
 
         await openMenu(page);
         await getItem(page, ITEM_COLUMNS).click();
-        await page.locator(`.kbq-settings-menu-header-btn[title="${LABEL_RESET}"]`).click();
+        await page
+            .locator(`.kbq-settings-menu-screen_active .kbq-settings-menu-header-btn[title="${LABEL_RESET}"]`)
+            .click();
 
         await expect
             .poll(async () => api.evaluate((gridApi) => gridApi.getAllGridColumns().map((col) => col.getColId())))
@@ -253,7 +264,9 @@ test.describe('KbqAgGridSettingsMenu', () => {
         await openSortScreen(page);
         await getSortRow(page, 'Athlete').click();
         await getSortRow(page, 'Age').click();
-        await page.locator(`.kbq-settings-menu-header-btn[title="${LABEL_BACK}"]`).click();
+        await page
+            .locator(`.kbq-settings-menu-screen_active .kbq-settings-menu-header-btn[title="${LABEL_BACK}"]`)
+            .click();
 
         const item = getItem(page, ITEM_SORT);
 
@@ -265,15 +278,23 @@ test.describe('KbqAgGridSettingsMenu', () => {
         await openMenu(page);
         await getItem(page, ITEM_DENSITY).click();
 
-        await expect(page.locator('kbq-settings-menu-item[aria-checked="true"]')).toHaveText(/Normal/);
+        await expect(
+            page.locator('.kbq-settings-menu-screen_active kbq-settings-menu-item[aria-checked="true"]')
+        ).toHaveText(/Normal/);
 
         // DevSettingsMenu sets `keepOpen: true` on the density values, so selecting one keeps the level open.
         await getItem(page, 'Compact').click();
 
-        await expect(page.locator('.kbq-settings-menu-panel-title')).toHaveText(ITEM_DENSITY);
-        await expect(page.locator('kbq-settings-menu-item[aria-checked="true"]')).toHaveText(/Compact/);
+        await expect(page.locator('.kbq-settings-menu-screen_active .kbq-settings-menu-panel-title')).toHaveText(
+            ITEM_DENSITY
+        );
+        await expect(
+            page.locator('.kbq-settings-menu-screen_active kbq-settings-menu-item[aria-checked="true"]')
+        ).toHaveText(/Compact/);
 
-        await page.locator(`.kbq-settings-menu-header-btn[title="${LABEL_BACK}"]`).click();
+        await page
+            .locator(`.kbq-settings-menu-screen_active .kbq-settings-menu-header-btn[title="${LABEL_BACK}"]`)
+            .click();
 
         await expect(getItem(page, ITEM_DENSITY).locator('.kbq-settings-menu-item-value')).toHaveText('Compact');
     });
@@ -294,11 +315,15 @@ test.describe('KbqAgGridSettingsMenu', () => {
         await expect(getItem(page, ITEM_SORT)).toBeFocused();
 
         await page.keyboard.press('ArrowRight');
-        await expect(page.locator('.kbq-settings-menu-panel-title')).toHaveText(ITEM_SORT);
+        await expect(page.locator('.kbq-settings-menu-screen_active .kbq-settings-menu-panel-title')).toHaveText(
+            ITEM_SORT
+        );
         await expect(page.locator('.kbq-column-menu-search-input')).toBeFocused();
 
         await page.keyboard.press('Escape');
-        await expect(page.locator('.kbq-settings-menu-panel-title')).toHaveText(MENU_TITLE);
+        await expect(page.locator('.kbq-settings-menu-screen_active .kbq-settings-menu-panel-title')).toHaveText(
+            MENU_TITLE
+        );
 
         await page.keyboard.press('Escape');
         await expect(page.locator('.kbq-settings-menu-panel')).toBeHidden();
@@ -348,13 +373,13 @@ test.describe('KbqAgGridSettingsMenu', () => {
         await expect(getItem(page, 'Normal')).toBeFocused();
 
         await page.keyboard.press('Tab');
-        await expect(page.locator('.kbq-settings-menu-back-btn')).toBeFocused();
+        await expect(page.locator('.kbq-settings-menu-screen_active .kbq-settings-menu-back-btn')).toBeFocused();
 
         await page.keyboard.press('Tab');
         await expect(getItem(page, 'Normal')).toBeFocused();
 
         await page.keyboard.press('Shift+Tab');
-        await expect(page.locator('.kbq-settings-menu-back-btn')).toBeFocused();
+        await expect(page.locator('.kbq-settings-menu-screen_active .kbq-settings-menu-back-btn')).toBeFocused();
         await expect(page.locator('.kbq-settings-menu-panel')).toBeVisible();
     });
 
