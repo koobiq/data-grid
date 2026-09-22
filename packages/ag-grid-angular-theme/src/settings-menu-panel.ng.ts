@@ -1,8 +1,6 @@
 import { CdkTrapFocus, FocusableOption, FocusKeyManager } from '@angular/cdk/a11y';
-import { SharedResizeObserver } from '@angular/cdk/observers/private';
 import { DOCUMENT, NgComponentOutlet } from '@angular/common';
 import {
-    afterNextRender,
     ChangeDetectionStrategy,
     Component,
     computed,
@@ -48,7 +46,10 @@ type MenuLevel = {
     item: KbqAgGridSettingsMenuItem | null;
     /** Index of the row that opened the level, focused again when the user returns to the parent level. */
     returnIndex: number;
-    /** Depth and item id: identifies the screen of the level, so that reopening a level that is still leaving reuses it. */
+    /**
+     * Depth and item id: changes on every navigation, so the level body is re-created instead of
+     * keeping the scroll position of the previous level.
+     */
     key: string;
 };
 
@@ -115,8 +116,6 @@ export class KbqAgGridSettingsMenuItemRow implements FocusableOption {
     readonly item = input.required<KbqAgGridSettingsMenuItem>();
     /** Behaviour of the level the row belongs to. */
     readonly mode = input.required<'menu' | 'single'>();
-    /** Depth of the level the row belongs to; only the rows of the active level take part in the keyboard navigation. */
-    readonly levelIndex = input.required<number>();
     /** Keeps the row focusable by `FocusKeyManager`; the item's own disabled state only blocks its activation. */
     readonly disabled = false;
 
@@ -171,99 +170,66 @@ export class KbqAgGridSettingsMenuItemRow implements FocusableOption {
                 <i class="kbq kbq-icon kbq-sliders_16"></i>
             </button>
 
-            @if (isPanelRendered()) {
+            @if (isOpen()) {
                 <div
                     #settingsMenuPanel
                     class="kbq-settings-menu-panel"
                     role="dialog"
                     cdkTrapFocus
-                    [class.kbq-settings-menu-panel_closing]="!isOpen()"
-                    [attr.inert]="isOpen() ? null : ''"
-                    [attr.aria-labelledby]="screenTitleId(depth())"
+                    [attr.aria-labelledby]="panelTitleId"
                     (keydown.tab)="onTab($event)"
                     (keydown.shift.tab)="onTab($event)"
                     (keydown.arrowleft)="onArrowLeft($event)"
                 >
-                    <div class="kbq-settings-menu-track">
-                        @for (level of screens(); track level.key; let index = $index) {
-                            @let isActive = index === depth();
-                            @let levelReset = levelResetHandler(level);
-
-                            <div
-                                #settingsMenuScreen
-                                class="kbq-settings-menu-screen"
-                                [class.kbq-settings-menu-screen_active]="isActive"
-                                [class.kbq-settings-menu-screen_pushed]="index > 0"
-                                [class.kbq-settings-menu-screen_behind]="index === depth() - 1"
-                                [class.kbq-settings-menu-screen_hidden]="index < depth() - 1"
-                                [class.kbq-settings-menu-screen_ahead]="index > depth()"
-                                [attr.inert]="isActive ? null : ''"
-                                [attr.aria-hidden]="isActive ? null : 'true'"
+                    <div class="kbq-settings-menu-panel-header">
+                        @if (canGoBack()) {
+                            <button
+                                type="button"
+                                class="kbq-settings-menu-header-btn kbq-settings-menu-back-btn"
+                                [title]="labels.backButton"
+                                [attr.aria-label]="labels.backButton"
+                                (click)="back()"
                             >
-                                <div class="kbq-settings-menu-panel-header">
-                                    @if (index > 0) {
-                                        <button
-                                            type="button"
-                                            class="kbq-settings-menu-header-btn kbq-settings-menu-back-btn"
-                                            [title]="labels.backButton"
-                                            [attr.aria-label]="labels.backButton"
-                                            (click)="back()"
-                                        >
-                                            <span class="kbq-settings-menu-header-btn-bounds">
-                                                <i
-                                                    class="kbq kbq-icon kbq-arrow-left_16 kbq-settings-menu-header-btn-icon"
-                                                ></i>
-                                            </span>
-                                        </button>
-                                    }
+                                <span class="kbq-settings-menu-header-btn-bounds">
+                                    <i class="kbq kbq-icon kbq-arrow-left_16 kbq-settings-menu-header-btn-icon"></i>
+                                </span>
+                            </button>
+                        }
 
-                                    <div class="kbq-settings-menu-panel-title" [id]="screenTitleId(index)">
-                                        {{ levelTitle(level) }}
-                                    </div>
+                        <div class="kbq-settings-menu-panel-title" [id]="panelTitleId">{{ currentTitle() }}</div>
 
-                                    @if (levelReset) {
-                                        <button
-                                            type="button"
-                                            class="kbq-settings-menu-header-btn kbq-settings-menu-reset-btn"
-                                            [title]="labels.resetButton"
-                                            [attr.aria-label]="labels.resetButton"
-                                            (click)="levelReset()"
-                                        >
-                                            <span class="kbq-settings-menu-header-btn-bounds">
-                                                <i
-                                                    class="kbq kbq-icon kbq-undo_16 kbq-settings-menu-header-btn-icon"
-                                                ></i>
-                                            </span>
-                                        </button>
-                                    }
-                                </div>
-
-                                <div class="kbq-settings-menu-panel-body">
-                                    @if (level.item?.screen; as screen) {
-                                        <ng-container *ngComponentOutlet="screen; injector: screenInjector(level)" />
-                                    } @else {
-                                        <div
-                                            class="kbq-settings-menu-list"
-                                            role="menu"
-                                            (keydown)="onListKeydown($event)"
-                                        >
-                                            @for (entry of levelEntries(level); track $index) {
-                                                @if (isSeparator(entry)) {
-                                                    <div class="kbq-settings-menu-separator"></div>
-                                                } @else {
-                                                    <kbq-settings-menu-item
-                                                        [item]="entry"
-                                                        [mode]="levelMode(level)"
-                                                        [levelIndex]="index"
-                                                    />
-                                                }
-                                            }
-                                        </div>
-                                    }
-                                </div>
-                            </div>
+                        @if (resetHandler()) {
+                            <button
+                                type="button"
+                                class="kbq-settings-menu-header-btn kbq-settings-menu-reset-btn"
+                                [title]="labels.resetButton"
+                                [attr.aria-label]="labels.resetButton"
+                                (click)="reset()"
+                            >
+                                <span class="kbq-settings-menu-header-btn-bounds">
+                                    <i class="kbq kbq-icon kbq-undo_16 kbq-settings-menu-header-btn-icon"></i>
+                                </span>
+                            </button>
                         }
                     </div>
+
+                    @for (level of [currentLevel()]; track level.key) {
+                        <div class="kbq-settings-menu-panel-body">
+                            @if (level.item?.screen; as screen) {
+                                <ng-container *ngComponentOutlet="screen; injector: screenInjector" />
+                            } @else {
+                                <div class="kbq-settings-menu-list" role="menu" (keydown)="onListKeydown($event)">
+                                    @for (entry of visibleEntries(); track $index) {
+                                        @if (isSeparator(entry)) {
+                                            <div class="kbq-settings-menu-separator"></div>
+                                        } @else {
+                                            <kbq-settings-menu-item [item]="entry" [mode]="currentMode()" />
+                                        }
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
             }
         </div>
@@ -274,30 +240,24 @@ export class KbqAgGridSettingsMenuPanel {
     protected readonly items = inject(KBQ_AG_GRID_SETTINGS_MENU_ITEMS);
 
     protected readonly labels = inject(KBQ_AG_GRID_SETTINGS_MENU_LABELS);
-    private readonly panelTitleId = `kbq-settings-menu-title-${++settingsMenuInstanceCount}`;
+    protected readonly panelTitleId = `kbq-settings-menu-title-${++settingsMenuInstanceCount}`;
     private readonly api = inject(KBQ_AG_GRID_SETTINGS_MENU_PARAMS).api;
     private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly injector = inject(Injector);
     private readonly document = inject(DOCUMENT);
     private readonly ngZone = inject(NgZone);
-    private readonly sharedResizeObserver = inject(SharedResizeObserver);
     private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('settingsMenuTrigger');
     private readonly panel = viewChild<ElementRef<HTMLElement>>('settingsMenuPanel');
-    private readonly screenElements = viewChildren<ElementRef<HTMLElement>>('settingsMenuScreen');
     private readonly rowItems = viewChildren(KbqAgGridSettingsMenuItemRow);
+    private readonly keyManager = new FocusKeyManager(this.rowItems, this.injector)
+        .withWrap()
+        .withVerticalOrientation();
 
-    /** Whether the menu is open. The panel stays rendered a little longer, while it fades out. */
     protected readonly isOpen = signal(false);
-    protected readonly isPanelRendered = signal(false);
     /** Incremented whenever values derived from the grid api may have changed. */
     private readonly gridStateVersion = signal(0);
-    /** Levels opened on top of the root one, the last of them is the active level. */
     private readonly stack = signal<MenuLevel[]>([]);
-    /** Level the user has just returned from, rendered until it has slid out of the panel. */
-    private readonly leavingLevel = signal<MenuLevel | null>(null);
-    /** Reset handlers registered by the screens, by the key of their level. */
-    private readonly screenResetHandlers = signal<Readonly<Record<string, () => void>>>({});
-    private readonly screenInjectors = new Map<string, Injector>();
+    private readonly screenResetHandler = signal<(() => void) | null>(null);
     /** Row to focus once the next level renders: the one that opened the level the user returns from. */
     private pendingFocusIndex = 0;
 
@@ -330,18 +290,17 @@ export class KbqAgGridSettingsMenuPanel {
 
         return stack.length > 0 ? stack[stack.length - 1] : this.rootLevel();
     });
-    /** Index of the active level among the rendered screens. */
-    protected readonly depth = computed(() => this.stack().length);
     protected readonly canGoBack = computed(() => this.stack().length > 0);
-    /**
-     * Screens rendered on top of each other: every level on the way to the active one, which the
-     * active level slides over, and the level being left, which slides out of it.
-     */
-    protected readonly screens = computed<MenuLevel[]>(() => {
-        const leaving = this.leavingLevel();
-        const path = [this.rootLevel(), ...this.stack()];
+    protected readonly currentMode = computed(() => this.currentLevel().item?.mode ?? 'menu');
+    protected readonly currentTitle = computed(() => {
+        const { item } = this.currentLevel();
 
-        return leaving ? [...path, leaving] : path;
+        return item ? this.itemTitle(item) : this.labels.title;
+    });
+    protected readonly resetHandler = computed(() => {
+        const reset = this.currentLevel().item?.reset;
+
+        return this.screenResetHandler() ?? (reset ? (): void => reset(this.api) : null);
     });
     // A menu of a single section is named after that section, as the trigger opens it directly.
     protected readonly triggerLabel = computed(() => {
@@ -350,14 +309,40 @@ export class KbqAgGridSettingsMenuPanel {
         return item ? this.itemLabel(item) : this.labels.title;
     });
 
-    private readonly activeScreen = computed(() => this.screenElementAt(this.depth()));
-    /** Rows of the active level; the rows of the levels behind or leaving it are not navigable. */
-    private readonly activeRows = computed(() => this.rowItems().filter((row) => row.levelIndex() === this.depth()));
-    private readonly keyManager = new FocusKeyManager(this.activeRows, inject(Injector))
-        .withWrap()
-        .withVerticalOrientation();
+    protected readonly visibleEntries = computed(() => {
+        const { item } = this.currentLevel();
+
+        return (item ? (item.items ?? []) : this.items()).filter(
+            (entry) => this.isSeparator(entry) || !this.itemHidden(entry)
+        );
+    });
+
+    /** Injector handed to screen components, providing them {@link KbqAgGridSettingsMenuParams}. */
+    protected readonly screenInjector: Injector;
 
     constructor() {
+        const params: KbqAgGridSettingsMenuParams = {
+            api: this.api,
+            back: () => this.back(),
+            close: () => this.close(),
+            setResetHandler: (handler) => {
+                this.screenResetHandler.set(handler);
+
+                // Only the screen that registered the handler removes it: a level re-created in place
+                // registers the new screen's handler before the previous screen is destroyed.
+                return () => {
+                    if (untracked(this.screenResetHandler) === handler) {
+                        this.screenResetHandler.set(null);
+                    }
+                };
+            }
+        };
+
+        this.screenInjector = Injector.create({
+            parent: this.injector,
+            providers: [{ provide: KBQ_AG_GRID_SETTINGS_MENU_PARAMS, useValue: params }]
+        });
+
         kbqListenColumnStateChanges(this.api, () => this.refreshItemStates());
 
         kbqListenMenuDismiss({
@@ -382,7 +367,6 @@ export class KbqAgGridSettingsMenuPanel {
             onCleanup(() => clearTimeout(timer));
         });
 
-        this.observePanelHeight();
         this.observeViewportSpace();
     }
 
@@ -448,13 +432,10 @@ export class KbqAgGridSettingsMenuPanel {
         if (this.hasSubmenu(item)) {
             const returnIndex = Math.max(
                 0,
-                this.activeRows().findIndex((row) => row.item() === item)
+                this.rowItems().findIndex((row) => row.item() === item)
             );
 
             this.pendingFocusIndex = 0;
-            // A level still leaving the panel makes way. When it is the one being opened again, its
-            // screen is kept and slides back from where it is.
-            this.leavingLevel.set(null);
             this.stack.update((levels) => [...levels, { item, returnIndex, key: `${levels.length + 1}:${item.id}` }]);
 
             return;
@@ -476,18 +457,8 @@ export class KbqAgGridSettingsMenuPanel {
 
         if (stack.length === 0) return;
 
-        const leaving = stack[stack.length - 1];
-
-        this.pendingFocusIndex = leaving.returnIndex;
-        this.leavingLevel.set(leaving);
+        this.pendingFocusIndex = stack[stack.length - 1].returnIndex;
         this.stack.set(stack.slice(0, -1));
-
-        this.afterTransitions(
-            () => this.screenElementAt(this.depth() + 1),
-            () => {
-                if (this.leavingLevel() === leaving) this.leavingLevel.set(null);
-            }
-        );
     }
 
     /** Closes the menu, resets it back to the root level and returns the focus to the trigger if the menu had it. */
@@ -495,18 +466,13 @@ export class KbqAgGridSettingsMenuPanel {
         const hadFocus = this.elementRef.nativeElement.contains(this.document.activeElement);
 
         this.isOpen.set(false);
+        this.stack.set([]);
+        this.pendingFocusIndex = 0;
 
         // Removing the focused panel would otherwise drop the focus to the document body.
         if (hadFocus) {
             this.trigger().nativeElement.focus();
         }
-
-        this.afterTransitions(
-            () => this.panel()?.nativeElement ?? null,
-            () => {
-                if (!this.isOpen()) this.unmountPanel();
-            }
-        );
     }
 
     protected toggle(): void {
@@ -516,74 +482,13 @@ export class KbqAgGridSettingsMenuPanel {
             return;
         }
 
-        // A panel still fading out opens again from the root level.
-        this.resetLevels();
         // Values derived from the grid api may be outdated after the menu has been closed.
         this.refreshItemStates();
-        this.isPanelRendered.set(true);
         this.isOpen.set(true);
     }
 
-    /** Id of the title of the screen at the given depth, which labels the panel while that screen is active. */
-    protected screenTitleId(index: number): string {
-        return `${this.panelTitleId}-${index}`;
-    }
-
-    protected levelTitle(level: MenuLevel): string {
-        return level.item ? this.itemTitle(level.item) : this.labels.title;
-    }
-
-    protected levelMode(level: MenuLevel): 'menu' | 'single' {
-        return level.item?.mode ?? 'menu';
-    }
-
-    protected levelEntries(level: MenuLevel): KbqAgGridSettingsMenuItems {
-        return (level.item ? (level.item.items ?? []) : this.items()).filter(
-            (entry) => this.isSeparator(entry) || !this.itemHidden(entry)
-        );
-    }
-
-    /** Handler of the reset button of the level: the one its screen registered, or the reset of its item. */
-    protected levelResetHandler(level: MenuLevel): (() => void) | null {
-        const reset = level.item?.reset;
-
-        return this.screenResetHandlers()[level.key] ?? (reset ? (): void => reset(this.api) : null);
-    }
-
-    /**
-     * Injector of the screen component of the level, providing it {@link KbqAgGridSettingsMenuParams}.
-     * Each level has its own, so that the reset handler a screen registers belongs to its level and
-     * does not show up on another level while the screen is still sliding out.
-     */
-    protected screenInjector(level: MenuLevel): Injector {
-        const cached = this.screenInjectors.get(level.key);
-
-        if (cached) return cached;
-
-        const params: KbqAgGridSettingsMenuParams = {
-            api: this.api,
-            back: () => this.back(),
-            close: () => this.close(),
-            setResetHandler: (handler) => {
-                this.screenResetHandlers.update((handlers) => ({ ...handlers, [level.key]: handler }));
-
-                // Only the screen that registered the handler removes it: a level re-created in place
-                // registers the new screen's handler before the previous screen is destroyed.
-                return () => {
-                    if (untracked(this.screenResetHandlers)[level.key] !== handler) return;
-
-                    this.screenResetHandlers.update(({ [level.key]: _removed, ...handlers }) => handlers);
-                };
-            }
-        };
-        const injector = Injector.create({
-            parent: this.injector,
-            providers: [{ provide: KBQ_AG_GRID_SETTINGS_MENU_PARAMS, useValue: params }]
-        });
-
-        this.screenInjectors.set(level.key, injector);
-
-        return injector;
+    protected reset(): void {
+        this.resetHandler()?.();
     }
 
     protected onListKeydown(event: KeyboardEvent): void {
@@ -598,7 +503,7 @@ export class KbqAgGridSettingsMenuPanel {
         // buttons and the active row itself. Read from the DOM and the key manager rather than from
         // bindings, which may not have been refreshed yet after a quick arrow key press.
         const buttons = Array.from(
-            this.activeScreen()?.querySelectorAll<HTMLElement>('.kbq-settings-menu-header-btn') ?? []
+            this.elementRef.nativeElement.querySelectorAll<HTMLElement>('.kbq-settings-menu-header-btn')
         );
         const { activeItem } = this.keyManager;
         const count = buttons.length + (activeItem ? 1 : 0);
@@ -638,53 +543,6 @@ export class KbqAgGridSettingsMenuPanel {
         this.trigger().nativeElement.focus();
     }
 
-    /** Element of the screen rendered at the given depth, `null` while it is not rendered. */
-    private screenElementAt(index: number): HTMLElement | null {
-        const screens = this.screenElements();
-
-        return index < screens.length ? screens[index].nativeElement : null;
-    }
-
-    private resetLevels(): void {
-        this.stack.set([]);
-        this.leavingLevel.set(null);
-        this.pendingFocusIndex = 0;
-    }
-
-    private unmountPanel(): void {
-        this.isPanelRendered.set(false);
-        this.resetLevels();
-        this.screenResetHandlers.set({});
-        this.screenInjectors.clear();
-    }
-
-    /**
-     * Runs `done` once the CSS transitions the last change started on the element have finished, so
-     * that a screen or the panel is removed only after it has moved out. Outside a browser, e.g. in
-     * unit tests, nothing is animated and `done` runs right away. A transition interrupted by a newer
-     * navigation also ends the wait, so `done` checks that its change is still current.
-     */
-    private afterTransitions(element: () => HTMLElement | null, done: () => void): void {
-        const target = this.panel()?.nativeElement;
-
-        if (!target || typeof target.getAnimations !== 'function') {
-            done();
-
-            return;
-        }
-
-        afterNextRender(
-            () => {
-                const animations = element()?.getAnimations() ?? [];
-
-                void Promise.allSettled(animations.map(async (animation) => animation.finished)).then(() =>
-                    this.ngZone.run(done)
-                );
-            },
-            { injector: this.injector }
-        );
-    }
-
     /**
      * Keeps the space between the top of the open panel and the bottom of the viewport in a CSS
      * variable, which limits the panel together with the height of the grid: a grid that runs below
@@ -718,30 +576,6 @@ export class KbqAgGridSettingsMenuPanel {
         });
     }
 
-    /**
-     * Sizes the panel to its active screen. The screens lie on top of each other, so the panel would
-     * otherwise take the height of the tallest one. The height is set explicitly, which lets the
-     * panel transition it together with the screens sliding: the first size of an opened panel
-     * replaces `auto` and is not animated, every later one is, from wherever a running transition
-     * has got to. The observer reports a screen that renders its content in steps as it grows.
-     */
-    private observePanelHeight(): void {
-        effect((onCleanup) => {
-            const panel = this.panel()?.nativeElement;
-            const screen = this.activeScreen();
-
-            if (!panel || !screen) return;
-
-            const subscription = this.sharedResizeObserver.observe(screen).subscribe(() => {
-                const borders = panel.offsetHeight - panel.clientHeight;
-
-                panel.style.height = `${screen.getBoundingClientRect().height + borders}px`;
-            });
-
-            onCleanup(() => subscription.unsubscribe());
-        });
-    }
-
     private refreshItemStates(): void {
         this.gridStateVersion.update((version) => version + 1);
     }
@@ -750,18 +584,18 @@ export class KbqAgGridSettingsMenuPanel {
         if (!this.isOpen()) return;
 
         if (this.currentLevel().item?.screen) {
-            const body = this.activeScreen()?.querySelector('.kbq-settings-menu-panel-body');
+            const body = this.elementRef.nativeElement.querySelector('.kbq-settings-menu-panel-body');
 
             body?.querySelector<HTMLElement>('input, button, [tabindex]:not([tabindex="-1"])')?.focus();
 
             return;
         }
 
-        const rows = this.activeRows();
+        const items = this.rowItems();
 
-        if (rows.length === 0) return;
+        if (items.length === 0) return;
 
-        this.keyManager.setActiveItem(Math.min(rowIndex, rows.length - 1));
+        this.keyManager.setActiveItem(Math.min(rowIndex, items.length - 1));
     }
 
     private resolveState<T>(state: KbqAgGridSettingsMenuItemState<T> | undefined, fallback: T): T {
