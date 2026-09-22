@@ -14,6 +14,7 @@ import { FormsModule } from '@angular/forms';
 import {
     KBQ_AG_GRID_COLUMN_MENU_LABELS_EN,
     KBQ_AG_GRID_ROW_ACTIONS_PARAMS,
+    KBQ_AG_GRID_SETTINGS_MENU_LABELS_EN,
     KBQ_AG_GRID_STATUS_BAR_PARAMS,
     kbqAgGridColumnMenuLabelsProvider,
     KbqAgGridColumnStateQueryParamsStore,
@@ -25,6 +26,7 @@ import {
     kbqAgGridCopyFormatterTsv,
     KbqAgGridFilterStateQueryParamsStore,
     kbqAgGridFilterStateStoreProvider,
+    kbqAgGridSettingsMenuLabelsProvider,
     KbqAgGridThemeModule
 } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
@@ -286,7 +288,7 @@ export class DevAgGridStatusBarComponent {
             #filterState="kbqAgGridFilterState"
             data-testid="e2eScreenshotTarget"
             kbqAgGridTheme
-            kbqAgGridColumnMenu
+            kbqAgGridSettingsMenu
             kbqAgGridColumnState="dev-ag-grid-column-state"
             kbqAgGridFilterState="dev-ag-grid-filter-state"
             [kbqAgGridLoadingOverlay]="loading()"
@@ -361,7 +363,8 @@ export class DevAgGridStatusBarComponent {
     providers: [
         kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateQueryParamsStore),
         kbqAgGridFilterStateStoreProvider(KbqAgGridFilterStateQueryParamsStore),
-        kbqAgGridColumnMenuLabelsProvider(KBQ_AG_GRID_COLUMN_MENU_LABELS_EN)
+        kbqAgGridColumnMenuLabelsProvider(KBQ_AG_GRID_COLUMN_MENU_LABELS_EN),
+        kbqAgGridSettingsMenuLabelsProvider(KBQ_AG_GRID_SETTINGS_MENU_LABELS_EN)
     ]
 })
 export class DevOverview {

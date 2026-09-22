@@ -101,6 +101,10 @@ if (isDevMode()) {
                 loadComponent: async () => import('./tests/column-menu.ng').then((m) => m.DevColumnMenu)
             },
             {
+                path: 'settings-menu',
+                loadComponent: async () => import('./tests/settings-menu.ng').then((m) => m.DevSettingsMenu)
+            },
+            {
                 path: 'status-bar',
                 loadComponent: async () => import('./tests/status-bar.ng').then((m) => m.DevStatusBar)
             },

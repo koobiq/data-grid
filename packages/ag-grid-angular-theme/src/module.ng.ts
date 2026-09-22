@@ -15,12 +15,15 @@ import { KbqAgGridSelectAllRowsByCtrlA } from './select-all-rows-by-ctrl-a.ng';
 import { KbqAgGridSelectRowsByCtrlClick } from './select-rows-by-ctrl-click.ng';
 import { KbqAgGridSelectRowsByShiftArrow } from './select-rows-by-shift-arrow.ng';
 import { KbqAgGridSelectRowsByShiftClick } from './select-rows-by-shift-click.ng';
+import { KbqAgGridSettingsMenu } from './settings-menu.ng';
 import { KbqAgGridShortcuts } from './shortcuts.ng';
 import { KbqAgGridStatusBar } from './status-bar.ng';
 import { KbqAgGridTheme } from './theme.ng';
 import { KbqAgGridToNextRowByTab } from './to-next-row-by-tab.ng';
 
 const COMPONENTS = [
+    KbqAgGridSettingsMenu,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     KbqAgGridColumnMenu,
     KbqAgGridTheme,
     KbqAgGridToNextRowByTab,
