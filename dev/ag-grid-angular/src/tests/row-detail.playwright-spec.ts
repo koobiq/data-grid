@@ -1,4 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { IRowNode } from 'ag-grid-community';
+import { DevRowData } from '../row-data';
+import { getAgGridApi } from './utils/api';
 import { enableDarkTheme } from './utils/theme';
 
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
@@ -148,6 +151,32 @@ test.describe('KbqAgGridRowDetail', () => {
 
             await page.keyboard.press('Shift+Tab');
             await expect(getToggle(page, 0)).toBeFocused();
+        });
+
+        test('collapses the row by a close button inside the expanded part', async ({ page }) => {
+            // The text card with the close button is shown for single-medal rows, which the data
+            // sorts far down: scroll the first of them into view through the grid api.
+            const rowId = await (
+                await getAgGridApi(page)
+            ).evaluate((api) => {
+                let id = '';
+
+                api.forEachNodeAfterFilterAndSort((node: IRowNode<DevRowData>) => {
+                    if (!id && node.data?.total === 1 && node.data.age) id = node.id ?? '';
+                });
+                api.ensureNodeVisible(api.getRowNode(id), 'top');
+
+                return id;
+            });
+            const row = getRowsContainer(page).locator(`> .ag-row[row-id="${rowId}"]`);
+            const toggle = row.locator('.kbq-ag-grid-row-detail-cell-renderer__toggle');
+
+            await toggle.click();
+            await row.getByTestId('e2eRowDetailCloseButton').click();
+
+            await expect(row.locator('> .kbq-ag-grid-row-detail')).toHaveCount(0);
+            await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+            await expect(toggle).toBeFocused();
         });
 
         test('keeps the default row states on an expanded row', async ({ page }) => {

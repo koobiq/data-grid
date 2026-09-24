@@ -104,7 +104,7 @@ export class MyGrid {
 | `kbqAgGridRowDetailLabels`       | Screen reader labels of the expand/collapse toggle. Russian by default, English preset is `KBQ_AG_GRID_ROW_DETAIL_LABELS_EN`                                                             |
 | `kbqAgGridRowDetailState`        | Key under which the expanded rows are persisted (see [State persistence](#state-persistence))                                                                                            |
 
-The component is created on expand and destroyed on collapse, and receives `{ api, node, data, rowIndex }` through the `KBQ_AG_GRID_ROW_DETAIL_PARAMS` token. Its own host element defines the height of the expanded part, so a component that grows while loading its data grows the row with it. Expanding and collapsing from your own UI goes through `#rowDetail="kbqAgGridRowDetail"`, which exposes `expand()`, `collapse()`, `toggle()` and `collapseAll()`.
+The component is created on expand and destroyed on collapse, and receives `{ api, node, data, rowIndex, collapse }` through the `KBQ_AG_GRID_ROW_DETAIL_PARAMS` token. `collapse()` closes the row from inside the component, e.g. from a close button, and hands focus back to the row's toggle. Its own host element defines the height of the expanded part, so a component that grows while loading its data grows the row with it. Expanding and collapsing from your own UI goes through `#rowDetail="kbqAgGridRowDetail"`, which exposes `expand()`, `collapse()`, `toggle()` and `collapseAll()`.
 
 Keep in mind:
 

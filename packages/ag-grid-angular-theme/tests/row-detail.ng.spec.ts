@@ -53,6 +53,19 @@ class TestDetail {
     protected readonly name = (inject(KBQ_AG_GRID_ROW_DETAIL_PARAMS).data as TestRow).name;
 }
 
+/** Detail component closing its own row, the way a close button inside the panel would. */
+@Component({
+    standalone: true,
+    selector: 'test-closable-detail',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    template: `
+        <button type="button" class="test-close" (click)="params.collapse()">Close</button>
+    `
+})
+class TestClosableDetail {
+    protected readonly params = inject(KBQ_AG_GRID_ROW_DETAIL_PARAMS);
+}
+
 @Component({
     standalone: true,
     selector: 'test-other-detail',
@@ -363,6 +376,48 @@ describe('KbqAgGridRowDetail', () => {
 
             await waitFor(() => {
                 expect(rowElement(container, 'a')).not.toHaveClass(FILLED_ROW_CLASS);
+            });
+        });
+    });
+
+    describe('params.collapse()', () => {
+        const renderClosable = async (): Promise<Awaited<ReturnType<typeof render<TestGrid>>>> => {
+            const result = await renderGrid();
+
+            result.fixture.componentInstance.component.set(TestClosableDetail);
+            result.fixture.detectChanges();
+            fireEvent.click(toggleOf(result.container, 'a'));
+
+            await waitFor(() => {
+                expect(rowElement(result.container, 'a').querySelector('.test-close')).toBeTruthy();
+            });
+
+            return result;
+        };
+
+        it('collapses the row from inside the detail component', async () => {
+            const { container, fixture } = await renderClosable();
+
+            fireEvent.click(rowElement(container, 'a').querySelector('.test-close')!);
+
+            await waitFor(() => {
+                expect(container.querySelector(PANEL_SELECTOR)).toBeNull();
+            });
+
+            expect(fixture.componentInstance.rowDetail().expanded()).toEqual([]);
+            expect(toggleOf(container, 'a')).toHaveAttribute('aria-expanded', 'false');
+        });
+
+        it('hands focus back to the toggle once the focused detail content is gone', async () => {
+            const { container } = await renderClosable();
+
+            const closeButton = rowElement(container, 'a').querySelector<HTMLElement>('.test-close')!;
+
+            closeButton.focus();
+            fireEvent.click(closeButton);
+
+            await waitFor(() => {
+                expect(toggleOf(container, 'a')).toHaveFocus();
             });
         });
     });

@@ -61,6 +61,8 @@ export type KbqAgGridRowDetailParams = {
     node: IRowNode;
     data: unknown;
     rowIndex: number | null;
+    /** Collapses this row and destroys the detail component, e.g. from a close button inside it. */
+    collapse: () => void;
 };
 
 /**
@@ -68,9 +70,11 @@ export type KbqAgGridRowDetailParams = {
  *
  * @example
  * ```typescript
- * @Component({ ... })
+ * @Component({
+ *     template: `<button type="button" (click)="params.collapse()">Close</button>`
+ * })
  * export class MyRowDetailComponent {
- *     private readonly params = inject(KBQ_AG_GRID_ROW_DETAIL_PARAMS);
+ *     protected readonly params = inject(KBQ_AG_GRID_ROW_DETAIL_PARAMS);
  * }
  * ```
  */
@@ -767,7 +771,15 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
     }
 
     private makeParams(api: GridApi, node: IRowNode): KbqAgGridRowDetailParams {
-        return { api, node, data: node.data, rowIndex: node.rowIndex };
+        return {
+            api,
+            node,
+            data: node.data,
+            rowIndex: node.rowIndex,
+            collapse: (): void => {
+                if (node.id !== undefined) this.collapse(node.id);
+            }
+        };
     }
 
     private createPanel(api: GridApi, id: string, node: IRowNode): void {
@@ -809,6 +821,10 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
     }
 
     private destroyPanel(id: string, panel: KbqAgGridRowDetailPanel): void {
+        // Focus inside the panel would go away together with the destroyed component, e.g. after a
+        // close button inside it collapsed the row: it is handed back to the row's toggle below.
+        const hadFocus = !this.destroyed && panel.element.contains(this.document.activeElement);
+
         this.panels.delete(id);
         this.resizeObserver?.unobserve(panel.element);
         panel.element.remove();
@@ -823,6 +839,8 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
         if (panel.baseHeight !== null) this.collapsedNodes.set(panel.node, panel.baseHeight);
 
         this.scheduleHeightUpdate();
+
+        if (hadFocus) this.toggleElement(id)?.focus();
     }
 
     /** Puts the panel into the row's center-section element, marking every section of the row as
@@ -969,14 +987,18 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
         // Shift+Tab keeps its native behaviour.
         if (first && this.document.activeElement !== first) return;
 
-        const toggle = this.rowElements(id)
-            .map((rowElement) => rowElement.querySelector<HTMLElement>('.kbq-ag-grid-row-detail-cell-renderer__toggle'))
-            .find((element): element is HTMLElement => !!element);
+        const toggle = this.toggleElement(id);
 
         if (!toggle) return;
 
         toggle.focus();
         event.preventDefault();
+    }
+
+    private toggleElement(id: string): HTMLElement | undefined {
+        return this.rowElements(id)
+            .map((rowElement) => rowElement.querySelector<HTMLElement>('.kbq-ag-grid-row-detail-cell-renderer__toggle'))
+            .find((element): element is HTMLElement => !!element);
     }
 
     private focusableElements(root: HTMLElement): HTMLElement[] {

@@ -42,7 +42,8 @@ export class DevAthleteCell implements ICellRendererAngularComp {
     }
 }
 
-/** Plain text detail: a key/value card, as in the "Комплексный пример" part of the spec. */
+/** Plain text detail: a key/value card, as in the "Комплексный пример" part of the spec, with a
+ * close button collapsing its own row through `KbqAgGridRowDetailParams.collapse`. */
 @Component({
     standalone: true,
     selector: 'dev-row-detail-summary',
@@ -55,6 +56,7 @@ export class DevAthleteCell implements ICellRendererAngularComp {
                 </div>
             }
         </dl>
+        <button type="button" data-testid="e2eRowDetailCloseButton" (click)="params.collapse()">Close</button>
     `,
     styles: `
         :host {
@@ -81,11 +83,15 @@ export class DevAthleteCell implements ICellRendererAngularComp {
         dd {
             margin: 0;
         }
+
+        button {
+            margin-top: var(--kbq-size-m);
+        }
     `,
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DevRowDetailSummary {
-    private readonly params = inject(KBQ_AG_GRID_ROW_DETAIL_PARAMS);
+    protected readonly params = inject(KBQ_AG_GRID_ROW_DETAIL_PARAMS);
 
     readonly items = computed(() => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
