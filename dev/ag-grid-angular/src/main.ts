@@ -156,6 +156,10 @@ if (isDevMode()) {
             {
                 path: 'export',
                 loadComponent: async () => import('./tests/export.ng').then((m) => m.DevExport)
+            },
+            {
+                path: 'load-error',
+                loadComponent: async () => import('./tests/load-error.ng').then((m) => m.DevLoadError)
             }
         ]
     };

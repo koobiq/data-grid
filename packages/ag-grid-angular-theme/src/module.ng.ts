@@ -5,6 +5,7 @@ import { KbqAgGridCopyByCtrlC } from './copy-by-ctrl-c.ng';
 import { KbqAgGridExternalFilterState } from './external-filter-state.ng';
 import { KbqAgGridFilterState } from './filter-state.ng';
 import { KbqAgGridInfiniteSelection } from './infinite-selection.ng';
+import { KbqAgGridLoadError } from './load-error.ng';
 import { KbqAgGridLoadingOverlay } from './loading-overlay.ng';
 import { KbqAgGridQuickFilterState } from './quick-filter-state.ng';
 import { KbqAgGridRowActions } from './row-actions.ng';
@@ -18,6 +19,7 @@ import { KbqAgGridSelectRowsByShiftArrow } from './select-rows-by-shift-arrow.ng
 import { KbqAgGridSelectRowsByShiftClick } from './select-rows-by-shift-click.ng';
 import { KbqAgGridSettingsMenu } from './settings-menu.ng';
 import { KbqAgGridShortcuts } from './shortcuts.ng';
+import { KbqAgGridSkeletonSelection } from './skeleton-selection.ng';
 import { KbqAgGridStatusBar } from './status-bar.ng';
 import { KbqAgGridTheme } from './theme.ng';
 import { KbqAgGridToNextRowByTab } from './to-next-row-by-tab.ng';
@@ -45,7 +47,9 @@ const COMPONENTS = [
     KbqAgGridLoadingOverlay,
     KbqAgGridRowGroup,
     KbqAgGridRowSelectionState,
-    KbqAgGridRowFocusState
+    KbqAgGridRowFocusState,
+    KbqAgGridLoadError,
+    KbqAgGridSkeletonSelection
 ];
 
 @NgModule({
