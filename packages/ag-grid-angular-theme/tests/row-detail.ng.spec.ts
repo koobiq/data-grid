@@ -90,6 +90,7 @@ class TestOtherDetail {}
             [kbqAgGridRowDetailHeight]="detailHeight"
             [kbqAgGridRowDetailSingleExpand]="singleExpand()"
             [kbqAgGridRowDetailFilled]="filled()"
+            [kbqAgGridRowDetailSticky]="sticky()"
             [kbqAgGridRowDetailState]="stateKey()"
             [kbqAgGridRowDetailStateStore]="store()"
         />
@@ -101,9 +102,35 @@ class TestGrid {
     readonly component = signal<KbqAgGridRowDetailComponent>(TestDetail);
     readonly singleExpand = signal(false);
     readonly filled = signal(false);
+    readonly sticky = signal(false);
     readonly stateKey = signal<string | undefined>(undefined);
     readonly store = signal<KbqAgGridRowDetailStateStore | undefined>(undefined);
 
+    readonly rowData = ROW_DATA;
+    readonly columnDefs = COLUMN_DEFS;
+    readonly getRowId = GET_ROW_ID;
+    readonly detailHeight = DETAIL_HEIGHT;
+}
+
+/** Host binding nothing but the component, so the directive's own defaults are in play. */
+@Component({
+    standalone: true,
+    selector: 'test-grid-defaults',
+    imports: [AgGridModule, KbqAgGridRowDetail],
+    template: `
+        <ag-grid-angular
+            kbqAgGridRowDetail
+            [getRowId]="getRowId"
+            [rowData]="rowData"
+            [columnDefs]="columnDefs"
+            [kbqAgGridRowDetailComponent]="component"
+            [kbqAgGridRowDetailHeight]="detailHeight"
+        />
+    `
+})
+class TestGridDefaults {
+    readonly rowDetail = viewChild.required(KbqAgGridRowDetail);
+    readonly component = TestDetail;
     readonly rowData = ROW_DATA;
     readonly columnDefs = COLUMN_DEFS;
     readonly getRowId = GET_ROW_ID;
@@ -279,7 +306,7 @@ describe('KbqAgGridRowDetail', () => {
         });
     });
 
-    it('keeps several rows expanded by default', async () => {
+    it('keeps several rows expanded with kbqAgGridRowDetailSingleExpand disabled', async () => {
         const { container, fixture } = await renderGrid();
 
         fireEvent.click(toggleOf(container, 'a'));
@@ -308,10 +335,64 @@ describe('KbqAgGridRowDetail', () => {
         expect(container.querySelectorAll(PANEL_SELECTOR)).toHaveLength(1);
     });
 
+    describe('defaults', () => {
+        const renderDefaults = async (): Promise<Awaited<ReturnType<typeof render<TestGridDefaults>>>> => {
+            const result = await render(TestGridDefaults);
+
+            await waitFor(() => {
+                expect(toggleOf(result.container, 'a')).toBeTruthy();
+            });
+
+            return result;
+        };
+
+        it('expands one row at a time', async () => {
+            const { container, fixture } = await renderDefaults();
+
+            fireEvent.click(toggleOf(container, 'a'));
+            fireEvent.click(toggleOf(container, 'b'));
+
+            await waitFor(() => {
+                expect(fixture.componentInstance.rowDetail().expanded()).toEqual(['b']);
+            });
+
+            expect(container.querySelectorAll(PANEL_SELECTOR)).toHaveLength(1);
+        });
+
+        it('keeps the expanded part within the visible width', async () => {
+            const { container } = await renderDefaults();
+
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(container.querySelector(PANEL_SELECTOR)).toHaveClass('kbq-ag-grid-row-detail_sticky');
+            });
+
+            // A measured width only reaches the host in a real browser, see the e2e tests.
+            expect(
+                container
+                    .querySelector<HTMLElement>('ag-grid-angular')!
+                    .style.getPropertyValue('--kbq-ag-grid-row-detail-viewport-width')
+            ).toBe('');
+        });
+
+        it('leaves the expanded row with its usual states', async () => {
+            const { container } = await renderDefaults();
+
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(rowElement(container, 'a')).toHaveClass('kbq-ag-grid-row-detail-row');
+            });
+
+            expect(rowElement(container, 'a')).not.toHaveClass('kbq-ag-grid-row-detail-row_filled');
+        });
+    });
+
     describe('kbqAgGridRowDetailFilled', () => {
         const FILLED_ROW_CLASS = 'kbq-ag-grid-row-detail-row_filled';
 
-        it('leaves the expanded row unfilled by default', async () => {
+        it('leaves the expanded row unfilled when disabled', async () => {
             const { container } = await renderGrid();
 
             fireEvent.click(toggleOf(container, 'a'));
@@ -422,6 +503,68 @@ describe('KbqAgGridRowDetail', () => {
         });
     });
 
+    describe('kbqAgGridRowDetailSticky', () => {
+        const STICKY_PANEL_CLASS = 'kbq-ag-grid-row-detail_sticky';
+        const VIEWPORT_WIDTH_PROPERTY = '--kbq-ag-grid-row-detail-viewport-width';
+
+        const gridElement = (container: Element): HTMLElement => container.querySelector('ag-grid-angular')!;
+
+        it('stretches the panel across the columns when disabled', async () => {
+            const { container } = await renderGrid();
+
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(container.querySelector(PANEL_SELECTOR)).toBeTruthy();
+            });
+
+            expect(container.querySelector(PANEL_SELECTOR)).not.toHaveClass(STICKY_PANEL_CLASS);
+            expect(gridElement(container).style.getPropertyValue(VIEWPORT_WIDTH_PROPERTY)).toBe('');
+        });
+
+        it('keeps the panel to the visible width of the grid', async () => {
+            const { container, fixture } = await renderGrid();
+
+            fixture.componentInstance.sticky.set(true);
+            fixture.detectChanges();
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(container.querySelector(PANEL_SELECTOR)).toHaveClass(STICKY_PANEL_CLASS);
+            });
+
+            // jsdom measures nothing, and a zero width is never published: the theme's own `100%`
+            // fallback stays in charge instead of collapsing the panel. The layout is covered by e2e.
+            expect(gridElement(container).style.getPropertyValue(VIEWPORT_WIDTH_PROPERTY)).toBe('');
+        });
+
+        it('follows the input on rows that are already expanded', async () => {
+            const { container, fixture } = await renderGrid();
+
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(container.querySelector(PANEL_SELECTOR)).toBeTruthy();
+            });
+
+            fixture.componentInstance.sticky.set(true);
+            fixture.detectChanges();
+
+            await waitFor(() => {
+                expect(container.querySelector(PANEL_SELECTOR)).toHaveClass(STICKY_PANEL_CLASS);
+            });
+
+            fixture.componentInstance.sticky.set(false);
+            fixture.detectChanges();
+
+            await waitFor(() => {
+                expect(container.querySelector(PANEL_SELECTOR)).not.toHaveClass(STICKY_PANEL_CLASS);
+            });
+
+            expect(gridElement(container).style.getPropertyValue(VIEWPORT_WIDTH_PROPERTY)).toBe('');
+        });
+    });
+
     it('picks a component per row', async () => {
         const { container, fixture } = await renderGrid();
 
@@ -504,6 +647,20 @@ describe('KbqAgGridRowDetail', () => {
             await waitFor(() => {
                 expect(store.setItem).toHaveBeenCalledWith('key', ['a']);
             });
+        });
+
+        it('restores every stored row with single expand on, instead of trimming the store', async () => {
+            const store = makeStore(['a', 'b']);
+            const { container, fixture } = await render(TestGrid, {
+                componentProperties: { stateKey: signal('key'), store: signal(store), singleExpand: signal(true) }
+            });
+
+            await waitFor(() => {
+                expect(container.querySelectorAll(PANEL_SELECTOR)).toHaveLength(2);
+            });
+
+            expect(fixture.componentInstance.rowDetail().expanded()).toEqual(['a', 'b']);
+            expect(store.setItem).not.toHaveBeenCalledWith('key', ['a']);
         });
 
         it('clears the stored state on reset()', async () => {

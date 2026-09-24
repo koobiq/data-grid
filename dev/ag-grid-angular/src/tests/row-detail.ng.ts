@@ -61,7 +61,11 @@ export class DevAthleteCell implements ICellRendererAngularComp {
     styles: `
         :host {
             display: block;
-            padding: var(--kbq-size-l);
+            margin: 0 var(--kbq-size-m) var(--kbq-size-m);
+            padding: var(--kbq-size-m);
+            border: 1px solid var(--kbq-line-contrast-less);
+            border-radius: var(--kbq-size-border-radius);
+            background: var(--kbq-background-card);
         }
 
         dl {
@@ -130,7 +134,11 @@ export class DevRowDetailSummary {
     styles: `
         :host {
             display: block;
-            padding: var(--kbq-size-l);
+            margin: 0 var(--kbq-size-m) var(--kbq-size-m);
+            padding: var(--kbq-size-m);
+            border: 1px solid var(--kbq-line-contrast-less);
+            border-radius: var(--kbq-size-border-radius);
+            background: var(--kbq-background-card);
         }
     `,
     changeDetection: ChangeDetectionStrategy.OnPush
@@ -175,16 +183,20 @@ const ROW_SELECTION: RowSelectionOptions = {
 const GET_ROW_ID: GetRowIdFunc<DevRowData> = (params) => params.data.id;
 
 /**
- * Rows with more than one medal show a nested grid, rows with exactly one medal show a text
- * card, and rows with no athlete age (nothing to tell about them) cannot be expanded at all.
+ * Both detail components side by side: odd rows show the nested grid, even rows the text card.
+ * Rows with no athlete age (nothing to tell about them) cannot be expanded at all.
+ *
+ * Keyed on `sourceRowIndex`, the row's place in the data, rather than on `rowIndex`, its place on
+ * screen: sorting or filtering would otherwise hand an expanded row a different component and the
+ * directive would rebuild its panel.
  */
-const DETAIL_COMPONENT: KbqAgGridRowDetailComponent = ({ data }) => {
+const DETAIL_COMPONENT: KbqAgGridRowDetailComponent = ({ data, node }) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const { total, age } = data as DevRowData;
+    const { age } = data as DevRowData;
 
     if (!age) return null;
 
-    return total > 1 ? DevRowDetailGrid : DevRowDetailSummary;
+    return node.sourceRowIndex % 2 === 1 ? DevRowDetailGrid : DevRowDetailSummary;
 };
 
 @Component({
@@ -202,6 +214,9 @@ const DETAIL_COMPONENT: KbqAgGridRowDetailComponent = ({ data }) => {
             <button type="button" data-testid="e2eFilledButton" (click)="filled.set(!filled())">
                 Filled: {{ filled() }}
             </button>
+            <button type="button" data-testid="e2eStickyButton" (click)="sticky.set(!sticky())">
+                Sticky: {{ sticky() }}
+            </button>
             <span data-testid="e2eExpandedIds">{{ expanded().join(', ') }}</span>
         </div>
         <ag-grid-angular
@@ -218,6 +233,7 @@ const DETAIL_COMPONENT: KbqAgGridRowDetailComponent = ({ data }) => {
             [kbqAgGridRowDetailComponent]="detailComponent"
             [kbqAgGridRowDetailSingleExpand]="singleExpand()"
             [kbqAgGridRowDetailFilled]="filled()"
+            [kbqAgGridRowDetailSticky]="sticky()"
             [(kbqAgGridRowDetailExpanded)]="expanded"
         />
     `,
@@ -243,8 +259,9 @@ export class DevRowDetail {
     readonly getRowId = GET_ROW_ID;
     readonly detailComponent = DETAIL_COMPONENT;
     readonly expanded = signal<string[]>([]);
-    readonly singleExpand = signal(false);
+    readonly singleExpand = signal(true);
     readonly filled = signal(false);
+    readonly sticky = signal(true);
 }
 
 const STATE_KEY = 'dev-ag-grid-row-detail-state';

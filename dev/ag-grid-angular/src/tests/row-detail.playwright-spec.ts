@@ -1,7 +1,4 @@
 import { expect, Locator, Page, test } from '@playwright/test';
-import { IRowNode } from 'ag-grid-community';
-import { DevRowData } from '../row-data';
-import { getAgGridApi } from './utils/api';
 import { enableDarkTheme } from './utils/theme';
 
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
@@ -41,11 +38,54 @@ const getContrastLessColor = async (page: Page): Promise<string> =>
         return color;
     });
 
-/** The nested grid of the expanded part renders its four rows asynchronously: screenshots wait for
- * all of them, so none of them is captured while the panel is still growing. */
-const waitForDetailGrids = async (page: Page, count = 1): Promise<void> => {
-    await expect(page.getByTestId('e2eRowDetailGrid')).toHaveCount(count);
-    await expect(page.getByTestId('e2eRowDetailGrid').locator('.ag-row')).toHaveCount(count * 4);
+/** Odd rows expand into a nested grid, even ones into a text card, and both render asynchronously:
+ * screenshots wait for the content of every expanded row, so none is captured while the panel is
+ * still growing. */
+const waitForDetails = async (page: Page, count = 1): Promise<void> => {
+    await expect(page.locator('[data-testid="e2eRowDetailGrid"], [data-testid="e2eRowDetailSummary"]')).toHaveCount(
+        count
+    );
+
+    const grids = page.getByTestId('e2eRowDetailGrid');
+    const gridCount = await grids.count();
+
+    if (gridCount > 0) await expect(grids.locator('.ag-row')).toHaveCount(gridCount * 4);
+
+    // The row is given the height of its panel one task later, so without this a screenshot can
+    // catch the row still at its collapsed height.
+    await expect
+        .poll(async () =>
+            page.evaluate(() =>
+                Array.from(document.querySelectorAll('.kbq-ag-grid-row-detail')).every((panel) => {
+                    const row = panel.closest('.ag-row');
+
+                    return !!row && row.getBoundingClientRect().height >= panel.getBoundingClientRect().height;
+                })
+            )
+        )
+        .toBe(true);
+};
+
+const getCenterViewport = (page: Page): Locator =>
+    getScreenshotTarget(page).locator('.ag-center-cols-viewport').first();
+
+/** Scrolls the columns as far right as asked, or to the end when the columns are narrower than
+ * that, and returns how far they actually went. */
+const scrollColumns = async (page: Page, left: number): Promise<number> => {
+    const viewport = getCenterViewport(page);
+    const scrolled = await viewport.evaluate((element: HTMLElement, value: number) => {
+        const target = Math.min(value, element.scrollWidth - element.clientWidth);
+
+        element.scrollTo({ left: target });
+
+        return Math.round(target);
+    }, left);
+
+    await expect
+        .poll(async () => viewport.evaluate((element: HTMLElement) => Math.round(element.scrollLeft)))
+        .toBe(scrolled);
+
+    return scrolled;
 };
 
 const expandFilledRow = async (page: Page): Promise<void> => {
@@ -113,22 +153,23 @@ test.describe('KbqAgGridRowDetail', () => {
         });
 
         test('keeps the expanded row after scrolling it out of view and back', async ({ page }) => {
-            await getToggle(page, 0).click();
-            await expect(page.getByTestId('e2eRowDetailGrid')).toBeVisible();
+            // An odd row expands into the nested grid, whose own state would be lost if the detail
+            // component were re-created when the row comes back.
+            await getToggle(page, 1).click();
+            await waitForDetails(page);
 
             // Moves focus off the expanded row: AG Grid keeps the row holding the focused cell
             // rendered, which would leave nothing for the scroll below to destroy.
             await getRow(page, 5).locator('.ag-cell').first().click();
             await scrollBody(page, 5000);
-            await expect(getRow(page, 0)).toHaveCount(0);
+            await expect(getRow(page, 1)).toHaveCount(0);
 
             await scrollBody(page, 0);
-            await expect(getDetail(page, 0)).toBeVisible();
-            await expect(page.getByTestId('e2eRowDetailGrid')).toBeVisible();
+            await expect(getDetail(page, 1)).toBeVisible();
+            await waitForDetails(page);
         });
 
         test('collapses the previously expanded row in single expand mode', async ({ page }) => {
-            await page.getByTestId('e2eSingleExpandButton').click();
             await getToggle(page, 0).click();
             await expect(getDetail(page, 0)).toBeVisible();
 
@@ -138,6 +179,7 @@ test.describe('KbqAgGridRowDetail', () => {
         });
 
         test('collapses every row by the collapse all button', async ({ page }) => {
+            await page.getByTestId('e2eSingleExpandButton').click();
             await getToggle(page, 0).click();
             await getToggle(page, 2).click();
             await expect(getRowsContainer(page).locator('> .ag-row .kbq-ag-grid-row-detail')).toHaveCount(2);
@@ -161,29 +203,15 @@ test.describe('KbqAgGridRowDetail', () => {
         });
 
         test('collapses the row by a close button inside the expanded part', async ({ page }) => {
-            // The text card with the close button is shown for single-medal rows, which the data
-            // sorts far down: scroll the first of them into view through the grid api.
-            const rowId = await (
-                await getAgGridApi(page)
-            ).evaluate((api) => {
-                let id = '';
+            // Even rows expand into the text card, which carries the close button.
+            await getToggle(page, 0).click();
+            await waitForDetails(page);
 
-                api.forEachNodeAfterFilterAndSort((node: IRowNode<DevRowData>) => {
-                    if (!id && node.data?.total === 1 && node.data.age) id = node.id ?? '';
-                });
-                api.ensureNodeVisible(api.getRowNode(id), 'top');
+            await getRow(page, 0).getByTestId('e2eRowDetailCloseButton').click();
 
-                return id;
-            });
-            const row = getRowsContainer(page).locator(`> .ag-row[row-id="${rowId}"]`);
-            const toggle = row.locator('.kbq-ag-grid-row-detail-cell-renderer__toggle');
-
-            await toggle.click();
-            await row.getByTestId('e2eRowDetailCloseButton').click();
-
-            await expect(row.locator('> .kbq-ag-grid-row-detail')).toHaveCount(0);
-            await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-            await expect(toggle).toBeFocused();
+            await expect(getDetail(page, 0)).toBeHidden();
+            await expect(getToggle(page, 0)).toHaveAttribute('aria-expanded', 'false');
+            await expect(getToggle(page, 0)).toBeFocused();
         });
 
         test('keeps the default row states on an expanded row', async ({ page }) => {
@@ -230,12 +258,63 @@ test.describe('KbqAgGridRowDetail', () => {
             expect(await getBackground(page, 1)).not.toBe(await getBackground(page, 0));
         });
 
+        test('keeps the expanded part in the visible area by default', async ({ page }) => {
+            await getToggle(page, 0).click();
+            await waitForDetails(page);
+
+            const viewport = (await getCenterViewport(page).boundingBox())!;
+            const before = (await getDetail(page, 0).boundingBox())!;
+
+            expect(Math.round(before.x)).toBe(Math.round(viewport.x));
+            expect(Math.round(before.width)).toBe(Math.round(viewport.width));
+
+            const scrolled = await scrollColumns(page, 400);
+
+            expect(scrolled).toBeGreaterThan(0);
+
+            const after = (await getDetail(page, 0).boundingBox())!;
+
+            expect(Math.round(after.x)).toBe(Math.round(viewport.x));
+            expect(Math.round(after.width)).toBe(Math.round(before.width));
+        });
+
+        test('scrolls the expanded part with the columns once sticky is off', async ({ page }) => {
+            await page.getByTestId('e2eStickyButton').click();
+            await getToggle(page, 0).click();
+            await waitForDetails(page);
+
+            const viewport = (await getCenterViewport(page).boundingBox())!;
+            const scrolled = await scrollColumns(page, 400);
+
+            expect(scrolled).toBeGreaterThan(0);
+
+            const after = (await getDetail(page, 0).boundingBox())!;
+
+            expect(Math.round(after.x)).toBe(Math.round(viewport.x) - scrolled);
+        });
+
         // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
+        test('renders the sticky expanded row with the columns scrolled', async ({ page }) => {
+            // Odd rows expand into the nested grid, which is wider than the visible area.
+            await getToggle(page, 1).click();
+            await waitForDetails(page);
+            await scrollColumns(page, 400);
+            await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-sticky-light.png');
+        });
+
+        test('renders the expanded row with kbqAgGridRowDetailSticky off', async ({ page }) => {
+            await page.getByTestId('e2eStickyButton').click();
+            await getToggle(page, 1).click();
+            await waitForDetails(page);
+            await scrollColumns(page, 400);
+            await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-sticky-off-light.png');
+        });
+
         test('renders the filled expanded row', async ({ page }) => {
             await expandFilledRow(page);
             await getRow(page, 0).locator('.ag-checkbox-input').click();
             await getRow(page, 0).hover();
-            await waitForDetailGrids(page);
+            await waitForDetails(page);
             await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-filled-light.png');
         });
 
@@ -244,11 +323,12 @@ test.describe('KbqAgGridRowDetail', () => {
             await expandFilledRow(page);
             await getRow(page, 0).locator('.ag-checkbox-input').click();
             await getRow(page, 0).hover();
-            await waitForDetailGrids(page);
+            await waitForDetails(page);
             await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-filled-dark.png');
         });
 
         test('restores the default row states once kbqAgGridRowDetailFilled is turned off', async ({ page }) => {
+            await page.getByTestId('e2eSingleExpandButton').click();
             await expandFilledRow(page);
             await getRow(page, 0).locator('.ag-checkbox-input').click();
             await expect(getRow(page, 0)).toHaveClass(/ag-row-selected/);
@@ -265,20 +345,21 @@ test.describe('KbqAgGridRowDetail', () => {
 
             // A selected row is filled with the same color by default, so the focused one tells the states apart.
             expect(await getBackground(page, 1)).not.toBe(await getContrastLessColor(page));
-            await waitForDetailGrids(page, 2);
+            await waitForDetails(page, 2);
             await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-filled-off-light.png');
         });
 
         test('renders the expanded row', async ({ page }) => {
             await getToggle(page, 0).click();
-            await waitForDetailGrids(page);
+            await waitForDetails(page);
             await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-expanded-light.png');
         });
 
         test('renders the expanded row in dark theme', async ({ page }) => {
             await enableDarkTheme(page);
-            await getToggle(page, 0).click();
-            await waitForDetailGrids(page);
+            // An odd row, so that the nested grid keeps its dark theme coverage.
+            await getToggle(page, 1).click();
+            await waitForDetails(page);
             await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-expanded-dark.png');
         });
     });
@@ -286,8 +367,9 @@ test.describe('KbqAgGridRowDetail', () => {
     test('keeps the expanded part in the center section with pinned columns', async ({ page }) => {
         await page.goto('/e2e/row-detail-pinned-columns');
         await getRow(page, 0).waitFor({ state: 'visible' });
-        await getToggle(page, 0).click();
-        await waitForDetailGrids(page);
+        // An odd row, so that the nested grid is the one shown next to the pinned sections.
+        await getToggle(page, 1).click();
+        await waitForDetails(page);
         // The pinned column shadow appears once the theme has measured the overflow: waiting for the
         // class keeps the screenshot from racing that measurement.
         await expect(getScreenshotTarget(page)).toHaveClass(/ag-theme-koobiq_pinned-right-cols-overflow/);

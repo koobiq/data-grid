@@ -1812,6 +1812,18 @@
         }
     }
 
+    // `kbqAgGridRowDetailSticky`: instead of stretching across every column, the expanded part keeps
+    // to the visible width of the grid and stays there while the columns scroll. Sticky needs the
+    // panel in normal flow, hence the margin in place of the offset used by the default layout.
+    .kbq-ag-grid-row-detail.kbq-ag-grid-row-detail_sticky {
+        position: sticky;
+        top: auto;
+        left: 0;
+        width: var(--kbq-ag-grid-row-detail-viewport-width, 100%);
+        margin-top: var(--kbq-ag-grid-row-detail-row-height, var(--ag-row-height));
+        overflow: auto;
+    }
+
     // `kbqAgGridRowDetailFilled`: an expanded row keeps one static fill instead of reacting to hover, active, selection
     // and focus. `!important` because each of those states sets this same property with a more specific selector (see
     // `_ag-row-highlight`), and every consumer of the property, such as the row actions overlay, has to see the fill too.

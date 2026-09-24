@@ -1,3 +1,4 @@
+import { SharedResizeObserver } from '@angular/cdk/observers/private';
 import { DOCUMENT } from '@angular/common';
 import {
     ApplicationRef,
@@ -30,7 +31,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { AgGridAngular, ICellRendererAngularComp } from 'ag-grid-angular';
 import { ColDef, ColGroupDef, GridApi, ICellRendererParams, IRowNode } from 'ag-grid-community';
-import { merge } from 'rxjs';
+import { merge, Subscription } from 'rxjs';
 import { kbqMapColDefTree } from './col-defs';
 import { KbqAgGridStateStore } from './state-store';
 
@@ -42,6 +43,13 @@ const EXPANDED_ROW_CLASS = 'kbq-ag-grid-row-detail-row';
 
 /** Modifier of {@link EXPANDED_ROW_CLASS} set while `kbqAgGridRowDetailFilled` is on. */
 const FILLED_ROW_CLASS = 'kbq-ag-grid-row-detail-row_filled';
+
+/** Modifier of {@link PANEL_CLASS} set while `kbqAgGridRowDetailSticky` is on. */
+const STICKY_PANEL_CLASS = 'kbq-ag-grid-row-detail_sticky';
+
+/** Custom property carrying the width of {@link CENTER_VIEWPORT_SELECTOR}, read by the theme in
+ * the sticky layout. */
+const VIEWPORT_WIDTH_PROPERTY = '--kbq-ag-grid-row-detail-viewport-width';
 
 /** Custom property carrying the row's collapsed height, used by the theme to keep cells on top
  * of an expanded (taller) row and to position the detail panel below them. */
@@ -289,14 +297,29 @@ class KbqAgGridRowDetailCellRenderer implements ICellRendererAngularComp {
             return;
         }
 
-        if (this.innerRef?.componentType !== component) {
-            this.innerRef?.destroy();
-            this.innerRef = host.createComponent(component);
+        let { innerRef } = this;
+        let created = false;
+
+        if (innerRef?.componentType !== component) {
+            innerRef?.destroy();
+            innerRef = host.createComponent(component);
+            created = true;
         }
 
-        const { innerRef } = this;
+        if (params) {
+            // A renderer that is already up gets `refresh`, the way AG Grid itself would call it:
+            // another `agInit` would repeat whatever the consumer does on init, subscriptions and
+            // requests included. Only a renderer that declines the refresh is built again.
+            if (!created && !innerRef.instance.refresh(params)) {
+                innerRef.destroy();
+                innerRef = host.createComponent(component);
+                created = true;
+            }
 
-        if (params) innerRef.instance.agInit(params);
+            if (created) innerRef.instance.agInit(params);
+        }
+
+        this.innerRef = innerRef;
     }
 }
 
@@ -428,6 +451,8 @@ type KbqAgGridRowDetailPanel = {
     baseHeight: number | null;
     /** Measured (or fixed, see `kbqAgGridRowDetailHeight`) height of the panel. */
     height: number;
+    /** Alive while the panel's height is measured instead of fixed by `kbqAgGridRowDetailHeight`. */
+    resize: Subscription | null;
 };
 
 /** `colId` of a `ColDef`, defaulting to `field` exactly like AG Grid's own default. */
@@ -492,6 +517,11 @@ const unwrapColDef = (def: ColDef): ColDef => {
  * - Not combinable with `kbqAgGridRowGroup`: that directive rebuilds `columnDefs` from its own
  *   snapshot of the consumer's definitions, dropping the injected toggle, which this directive
  *   then re-injects — the toggle column would be rewritten on every grouping change.
+ * - Not combinable with `kbqAgGridRowActions` while `kbqAgGridRowDetailSticky` is on: that
+ *   directive floats its overlay into the same row element, and a float cannot rise above the
+ *   expanded part below the cells, so the actions would be pushed under it.
+ * - `kbqAgGridRowDetailSticky` is not supported with `domLayout="print"`, where AG Grid positions
+ *   rows relatively and the offset of the expanded part collapses out of the row.
  *
  * @example
  * ```html
@@ -517,16 +547,28 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
     private readonly environmentInjector = inject(EnvironmentInjector);
     private readonly document = inject(DOCUMENT);
     private readonly destroyRef = inject(DestroyRef);
+    private readonly sharedResizeObserver = inject(SharedResizeObserver);
 
     /** Component rendered in the expanded part, or a function picking one per row. */
     readonly component = input.required<KbqAgGridRowDetailComponent>({ alias: 'kbqAgGridRowDetailComponent' });
 
     /**
-     * Collapses the previously expanded row when another one is expanded.
+     * Collapses the previously expanded row when another one is expanded. Set it to `false` to
+     * keep several rows expanded at once. Governs expanding only: a persisted state (see
+     * `kbqAgGridRowDetailState`) is restored with every row it holds.
      *
-     * @default false
+     * @default true
      */
-    readonly singleExpand = input(false, { transform: booleanAttribute, alias: 'kbqAgGridRowDetailSingleExpand' });
+    readonly singleExpand = input(true, { transform: booleanAttribute, alias: 'kbqAgGridRowDetailSingleExpand' });
+
+    /**
+     * Keeps the expanded part within the visible width of the grid: it stays put while the columns
+     * scroll horizontally and scrolls its own content when that does not fit. Set it to `false` to
+     * stretch the expanded part across every column instead.
+     *
+     * @default true
+     */
+    readonly sticky = input(true, { transform: booleanAttribute, alias: 'kbqAgGridRowDetailSticky' });
 
     /** `colId` of the column hosting the expand toggle. Defaults to the first non-pinned column. */
     readonly toggleColumn = input<string | undefined>(undefined, { alias: 'kbqAgGridRowDetailToggleColumn' });
@@ -564,8 +606,8 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
     private readonly stateRestored = signal(false);
     /** Rows that were collapsed and still have to be given their collapsed height back. */
     private readonly collapsedNodes = new Map<IRowNode, number>();
-    private resizeObserver: ResizeObserver | null = null;
     private heightUpdateTimeout: ReturnType<typeof setTimeout> | null = null;
+    private viewportWidth: number | null = null;
     private toggleColId: string | null = null;
     private destroyed = false;
 
@@ -573,7 +615,20 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
         this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => {
             this.api.set(api);
             this.syncToggleColumn(api);
+            this.syncViewportWidth();
         });
+
+        // Everything that changes the width of the center section: the grid itself resizing, and
+        // columns being pinned, resized, shown or hidden without the grid changing size.
+        merge(
+            this.sharedResizeObserver.observe(this.elementRef.nativeElement),
+            this.grid.gridSizeChanged,
+            this.grid.columnPinned,
+            this.grid.columnResized,
+            this.grid.displayedColumnsChanged
+        )
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.syncViewportWidth());
 
         // Subscribed here, in the constructor, rather than from inside the `gridReady` callback:
         // ag-grid-angular only defers native events for outputs that already have a subscriber, so
@@ -598,8 +653,15 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
             this.expanded();
             this.component();
             this.filled();
+            this.sticky();
 
             untracked(() => this.sync());
+        });
+
+        effect(() => {
+            this.sticky();
+
+            untracked(() => this.syncViewportWidth());
         });
 
         effect(() => {
@@ -651,7 +713,7 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
 
         this.destroyRef.onDestroy(() => {
             this.destroyed = true;
-            this.resizeObserver?.disconnect();
+            this.elementRef.nativeElement.style.removeProperty(VIEWPORT_WIDTH_PROPERTY);
 
             if (this.heightUpdateTimeout !== null) clearTimeout(this.heightUpdateTimeout);
 
@@ -740,7 +802,10 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
         const expanded = new Set(this.expanded());
 
         for (const [id, panel] of this.panels) {
-            if (!expanded.has(id)) {
+            // A row that is only filtered out keeps its node, so this is about rows that left the
+            // model for good: their panel would otherwise stay alive with its component and
+            // subscription, and its height would keep being written to a node nobody displays.
+            if (!expanded.has(id) || !api.getRowNode(id)) {
                 this.destroyPanel(id, panel);
 
                 continue;
@@ -811,7 +876,8 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
             element,
             node,
             baseHeight: node.rowHeight ?? null,
-            height: this.detailHeight() ?? 0
+            height: this.detailHeight() ?? 0,
+            resize: null
         };
 
         this.panels.set(id, panel);
@@ -826,7 +892,7 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
         const hadFocus = !this.destroyed && panel.element.contains(this.document.activeElement);
 
         this.panels.delete(id);
-        this.resizeObserver?.unobserve(panel.element);
+        this.unobservePanel(panel);
         panel.element.remove();
         this.applicationRef.detachView(panel.componentRef.hostView);
         panel.componentRef.destroy();
@@ -847,7 +913,19 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
      * expanded. Rows are re-created by AG Grid while scrolling, so this runs on every `sync`;
      * moving the wrapper element keeps the detail component itself alive. */
     private attachPanel(id: string, panel: KbqAgGridRowDetailPanel): void {
+        const sticky = this.sticky();
         const rowElements = this.rowElements(id);
+
+        panel.element.classList.toggle(STICKY_PANEL_CLASS, sticky);
+
+        // The sticky layout scrolls the panel's own content, and a scrollable region has to be
+        // reachable by keyboard even when the detail component holds nothing focusable (AXE's
+        // `scrollable-region-focusable`).
+        if (sticky) {
+            panel.element.setAttribute('tabindex', '0');
+        } else {
+            panel.element.removeAttribute('tabindex');
+        }
 
         if (rowElements.length === 0) {
             panel.element.remove();
@@ -870,6 +948,36 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
         if (centerRowElement && panel.element.parentElement !== centerRowElement) {
             centerRowElement.appendChild(panel.element);
         }
+    }
+
+    /**
+     * Publishes the width of the grid's center section to the theme, which the sticky layout uses
+     * instead of the full width of the columns. Read from the api rather than from the DOM of the
+     * grid, the same way `KbqAgGridTheme` reads it: the range the body is laid out with, without
+     * the rounding of `clientWidth` and without depending on AG Grid's own class names.
+     */
+    private syncViewportWidth(): void {
+        const api = this.api();
+        const host = this.elementRef.nativeElement;
+
+        if (!this.sticky()) {
+            this.viewportWidth = null;
+            host.style.removeProperty(VIEWPORT_WIDTH_PROPERTY);
+
+            return;
+        }
+
+        if (!api || api.isDestroyed()) return;
+
+        const { left, right } = api.getHorizontalPixelRange();
+        const width = right - left;
+
+        // A grid that is hidden or not laid out yet measures nothing. Keeping the last known width
+        // leaves the theme's own `100%` fallback in charge instead of collapsing the panel to zero.
+        if (width <= 0 || width === this.viewportWidth) return;
+
+        this.viewportWidth = width;
+        host.style.setProperty(VIEWPORT_WIDTH_PROPERTY, `${width}px`);
     }
 
     private rowElements(id: string): HTMLElement[] {
@@ -900,7 +1008,8 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
     private applyRowHeights(): void {
         const api = this.api();
 
-        if (!api || this.destroyed) return;
+        // The update is queued for the next task, and the grid can be destroyed before it runs.
+        if (!api || this.destroyed || api.isDestroyed()) return;
 
         const heights: [IRowNode, number][] = [...this.collapsedNodes];
 
@@ -938,7 +1047,7 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
 
                 this.observePanel(panel);
             } else {
-                this.resizeObserver?.unobserve(panel.element);
+                this.unobservePanel(panel);
                 panel.height = detailHeight;
             }
         }
@@ -949,29 +1058,38 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
     /** Keeps the row's height in sync with the detail component's own height, unless it is fixed
      * by `kbqAgGridRowDetailHeight`. */
     private observePanel(panel: KbqAgGridRowDetailPanel): void {
-        if (this.detailHeight() !== undefined || typeof ResizeObserver === 'undefined') return;
+        if (this.detailHeight() !== undefined || panel.resize) return;
 
-        this.resizeObserver ??= new ResizeObserver((entries) => this.onPanelsResize(entries));
-        this.resizeObserver.observe(panel.element);
+        // Border box, so that a scrollbar inside a sticky panel is part of the height the row has
+        // to give it, and so that the observer wakes up when only that box changes.
+        panel.resize = this.sharedResizeObserver
+            .observe(panel.element, { box: 'border-box' })
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((entries) => this.onPanelResize(panel, entries));
     }
 
-    private onPanelsResize(entries: readonly ResizeObserverEntry[]): void {
+    private unobservePanel(panel: KbqAgGridRowDetailPanel): void {
+        panel.resize?.unsubscribe();
+        panel.resize = null;
+    }
+
+    private onPanelResize(panel: KbqAgGridRowDetailPanel, entries: readonly ResizeObserverEntry[]): void {
         if (this.destroyed) return;
 
-        for (const entry of entries) {
-            const panel = Array.from(this.panels.values()).find(({ element }) => element === entry.target);
+        const entry = entries.find(({ target }) => target === panel.element);
 
-            // A panel detached from the DOM (its row is scrolled out of view) reports zero height:
-            // the row keeps the height it had, so scrolling back does not re-measure from scratch.
-            if (!panel || entry.contentRect.height === 0) continue;
+        if (!entry) return;
 
-            const height = Math.round(entry.contentRect.height);
+        // The size the observer reports is in layout pixels: `getBoundingClientRect` would hand
+        // back the visual one, scaled by any transformed ancestor of the grid.
+        const height = Math.round(entry.borderBoxSize.at(0)?.blockSize ?? 0);
 
-            if (height === panel.height) continue;
+        // A panel detached from the DOM (its row is scrolled out of view) measures zero: the row
+        // keeps the height it had, so scrolling back does not re-measure from scratch.
+        if (height === 0 || height === panel.height) return;
 
-            panel.height = height;
-            this.scheduleHeightUpdate();
-        }
+        panel.height = height;
+        this.scheduleHeightUpdate();
     }
 
     private onPanelKeydown(event: KeyboardEvent, id: string): void {
@@ -1087,7 +1205,9 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
         // directive has already been torn down; bail out before touching the grid.
         if (this.destroyed) return;
 
-        if (ids && ids.length > 0) this.expanded.set(this.singleExpand() ? ids.slice(0, 1) : ids);
+        // Restored as stored, even with `kbqAgGridRowDetailSingleExpand` on: trimming here would go
+        // straight back into the store through the save effect and drop the other ids for good.
+        if (ids && ids.length > 0) this.expanded.set(ids);
 
         this.stateRestored.set(true);
     }
