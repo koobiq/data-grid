@@ -766,6 +766,22 @@
             }
         }
     }
+
+    // The spacers keep the horizontal scrollbar aligned under the center columns when columns are
+    // pinned. AG Grid gives them `overflow-x: scroll` although there is nothing to scroll, so a
+    // browser that paints classic (non-overlay) scrollbars draws a default, unthemed track on either
+    // side of the themed one. Their height is set by AG Grid, not by the scrollbar, so hiding it
+    // keeps the layout intact.
+    .ag-body-horizontal-scroll {
+        .ag-horizontal-left-spacer,
+        .ag-horizontal-right-spacer {
+            scrollbar-width: none;
+
+            &::-webkit-scrollbar {
+                display: none;
+            }
+        }
+    }
 }
 
 @mixin _ag-theme-typography() {
