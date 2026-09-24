@@ -226,12 +226,11 @@ const DETAIL_COMPONENT: KbqAgGridRowDetailComponent = ({ data }) => {
             display: flex;
             flex-direction: column;
             gap: var(--kbq-size-m);
-            padding: var(--kbq-size-m);
-            height: calc(100vh - calc(var(--kbq-size-l) * 2));
         }
 
         ag-grid-angular {
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             max-width: 2036px;
         }
     `,
@@ -277,12 +276,11 @@ const STATE_KEY = 'dev-ag-grid-row-detail-state';
             display: flex;
             flex-direction: column;
             gap: var(--kbq-size-m);
-            padding: var(--kbq-size-m);
-            height: calc(100vh - calc(var(--kbq-size-l) * 2));
         }
 
         ag-grid-angular {
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             max-width: 2036px;
         }
     `,
@@ -324,12 +322,11 @@ export class DevRowDetailState {
             display: flex;
             flex-direction: column;
             gap: var(--kbq-size-m);
-            padding: var(--kbq-size-m);
-            height: calc(100vh - calc(var(--kbq-size-l) * 2));
         }
 
         ag-grid-angular {
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             max-width: 2036px;
         }
     `,
@@ -367,12 +364,11 @@ export class DevRowDetailStateQueryParams {
         :host {
             display: flex;
             flex-direction: column;
-            padding: var(--kbq-size-m);
-            height: calc(100vh - calc(var(--kbq-size-l) * 2));
         }
 
         ag-grid-angular {
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             max-width: 2036px;
         }
     `,

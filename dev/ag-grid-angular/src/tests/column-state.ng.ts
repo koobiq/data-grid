@@ -41,7 +41,9 @@ const STATE_KEY = 'dev-ag-grid-column-state';
     imports: [AgGridModule, KbqAgGridThemeModule],
     selector: 'dev-column-state',
     template: `
-        <button type="button" (click)="columnState.reset()">Reset state</button>
+        <div class="dev-toolbar">
+            <button type="button" (click)="columnState.reset()">Reset state</button>
+        </div>
         <ag-grid-angular
             #columnState="kbqAgGridColumnState"
             data-testid="e2eScreenshotTarget"
@@ -55,8 +57,14 @@ const STATE_KEY = 'dev-ag-grid-column-state';
         />
     `,
     styles: `
+        :host {
+            display: flex;
+            flex-direction: column;
+        }
+
         ag-grid-angular {
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             max-width: 2036px;
         }
     `,
@@ -75,7 +83,9 @@ export class DevColumnState {
     imports: [AgGridModule, KbqAgGridThemeModule],
     selector: 'dev-column-state-query-params',
     template: `
-        <button type="button" (click)="columnState.reset()">Reset state</button>
+        <div class="dev-toolbar">
+            <button type="button" (click)="columnState.reset()">Reset state</button>
+        </div>
         <ag-grid-angular
             #columnState="kbqAgGridColumnState"
             data-testid="e2eScreenshotTarget"
@@ -89,8 +99,14 @@ export class DevColumnState {
         />
     `,
     styles: `
+        :host {
+            display: flex;
+            flex-direction: column;
+        }
+
         ag-grid-angular {
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             max-width: 2036px;
         }
     `,

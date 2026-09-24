@@ -41,6 +41,13 @@ const getContrastLessColor = async (page: Page): Promise<string> =>
         return color;
     });
 
+/** The nested grid of the expanded part renders its four rows asynchronously: screenshots wait for
+ * all of them, so none of them is captured while the panel is still growing. */
+const waitForDetailGrids = async (page: Page, count = 1): Promise<void> => {
+    await expect(page.getByTestId('e2eRowDetailGrid')).toHaveCount(count);
+    await expect(page.getByTestId('e2eRowDetailGrid').locator('.ag-row')).toHaveCount(count * 4);
+};
+
 const expandFilledRow = async (page: Page): Promise<void> => {
     await page.getByTestId('e2eFilledButton').click();
     await getToggle(page, 0).click();
@@ -228,7 +235,7 @@ test.describe('KbqAgGridRowDetail', () => {
             await expandFilledRow(page);
             await getRow(page, 0).locator('.ag-checkbox-input').click();
             await getRow(page, 0).hover();
-            await expect(page.getByTestId('e2eRowDetailGrid')).toBeVisible();
+            await waitForDetailGrids(page);
             await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-filled-light.png');
         });
 
@@ -237,7 +244,7 @@ test.describe('KbqAgGridRowDetail', () => {
             await expandFilledRow(page);
             await getRow(page, 0).locator('.ag-checkbox-input').click();
             await getRow(page, 0).hover();
-            await expect(page.getByTestId('e2eRowDetailGrid')).toBeVisible();
+            await waitForDetailGrids(page);
             await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-filled-dark.png');
         });
 
@@ -258,20 +265,20 @@ test.describe('KbqAgGridRowDetail', () => {
 
             // A selected row is filled with the same color by default, so the focused one tells the states apart.
             expect(await getBackground(page, 1)).not.toBe(await getContrastLessColor(page));
-            await expect(page.getByTestId('e2eRowDetailGrid')).toHaveCount(2);
+            await waitForDetailGrids(page, 2);
             await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-filled-off-light.png');
         });
 
         test('renders the expanded row', async ({ page }) => {
             await getToggle(page, 0).click();
-            await expect(page.getByTestId('e2eRowDetailGrid')).toBeVisible();
+            await waitForDetailGrids(page);
             await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-expanded-light.png');
         });
 
         test('renders the expanded row in dark theme', async ({ page }) => {
             await enableDarkTheme(page);
             await getToggle(page, 0).click();
-            await expect(page.getByTestId('e2eRowDetailGrid')).toBeVisible();
+            await waitForDetailGrids(page);
             await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-expanded-dark.png');
         });
     });
@@ -280,7 +287,10 @@ test.describe('KbqAgGridRowDetail', () => {
         await page.goto('/e2e/row-detail-pinned-columns');
         await getRow(page, 0).waitFor({ state: 'visible' });
         await getToggle(page, 0).click();
-        await expect(page.getByTestId('e2eRowDetailGrid')).toBeVisible();
+        await waitForDetailGrids(page);
+        // The pinned column shadow appears once the theme has measured the overflow: waiting for the
+        // class keeps the screenshot from racing that measurement.
+        await expect(getScreenshotTarget(page)).toHaveClass(/ag-theme-koobiq_pinned-right-cols-overflow/);
         await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-pinned-columns-light.png');
     });
 

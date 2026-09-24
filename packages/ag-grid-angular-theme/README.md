@@ -8,6 +8,7 @@ Navigation:
 
 - [Installation](#installation)
 - [Usage](#usage)
+- [Settings Menu](#settings-menu)
 - [Expandable Rows](#expandable-rows)
 - [Custom Keyboard Shortcuts](#custom-keyboard-shortcuts)
 - [State Persistence](#state-persistence)
@@ -58,6 +59,129 @@ import { AgGridModule } from 'ag-grid-angular';
     template: `<ag-grid-angular kbqAgGridTheme />`
 })
 ```
+
+### Settings menu
+
+`kbqAgGridSettingsMenu` adds a table settings button to the grid header. Nested levels open in place of the list,
+with a back button in the header.
+
+```ts
+import { KbqAgGridSettingsMenu, KbqAgGridTheme } from '@koobiq/ag-grid-angular-theme';
+
+@Component({
+    imports: [AgGridModule, KbqAgGridTheme, KbqAgGridSettingsMenu],
+    template: `<ag-grid-angular kbqAgGridTheme kbqAgGridSettingsMenu />`
+})
+```
+
+By default the menu contains two items:
+
+| Item      | Factory                              | Lets the user                                            |
+| --------- | ------------------------------------ | -------------------------------------------------------- |
+| `Columns` | `kbqAgGridSettingsMenuColumnsItem()` | Show, hide, pin and reorder columns                      |
+| `Sorting` | `kbqAgGridSettingsMenuSortItem()`    | Sort by several columns, change direction and sort order |
+
+- `Reset to default` restores the columns or the sorting from the column definitions.
+- The sorting screen lists only sortable columns. A column whose `sortingOrder` has a single direction cannot change
+  it, and with `suppressMultiSort` only one column can be sorted.
+- Columns with an icon-only header are named after `headerTooltip`.
+
+#### Custom items
+
+Pass `kbqAgGridSettingsMenuItems` to reorder or drop the built-in items and add your own:
+
+```ts
+export class MyGrid {
+    readonly density = signal<'compact' | 'normal'>('normal');
+
+    readonly items: KbqAgGridSettingsMenuItems = [
+        kbqAgGridSettingsMenuColumnsItem(),
+        kbqAgGridSettingsMenuSortItem(),
+        kbqAgGridSettingsMenuSeparator(),
+        {
+            id: 'density',
+            label: 'Density',
+            icon: 'kbq-bars-sort-center_16',
+            mode: 'single',
+            value: this.density,
+            items: (['compact', 'normal'] as const).map((density) => ({
+                id: density,
+                label: density,
+                checked: computed(() => this.density() === density),
+                keepOpen: true,
+                action: () => this.density.set(density)
+            }))
+        },
+        {
+            id: 'refresh',
+            label: 'Refresh',
+            icon: 'kbq-arrows-rotate_16',
+            action: (api) => api.refreshCells({ force: true })
+        }
+    ];
+}
+```
+
+| Property                          | Description                                                                                    |
+| --------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `id`, `label`, `icon`             | Identifier, title and a [@koobiq/icons](https://github.com/koobiq/icons) class                 |
+| `value`, `valueSuffix`, `counter` | Value, text kept after a truncated value (e.g. `↑`) and `+N` counter to the right of the title |
+| `items`, `mode`                   | Nested list; with `mode: 'single'` it becomes a single-value selector marked by `checked`      |
+| `screen`, `screenTitle`           | Nested level rendered by your component                                                        |
+| `action`, `keepOpen`              | Handler of a leaf item; the menu closes after it unless `keepOpen` is set                      |
+| `reset`                           | Handler of the `Reset to default` button of the nested level                                   |
+| `disabled`, `hidden`              | Item state                                                                                     |
+
+`label`, `screenTitle`, `value`, `valueSuffix`, `counter`, `checked`, `disabled` and `hidden` accept a value, a signal or a
+function `(api, labels) => value`. Functions are re-evaluated when the menu opens and when columns or sorting change; use
+signals for other state.
+
+The factories of the built-in items accept overrides of these properties, e.g.
+`kbqAgGridSettingsMenuSortItem({ hidden: true })`.
+
+If the menu has a single item with a nested level, the button opens that level directly. A menu of
+`kbqAgGridSettingsMenuColumnsItem()` alone replaces the deprecated `kbqAgGridColumnMenu`, which will be removed in the
+next major release.
+
+#### Custom screen
+
+A `screen` component receives `KBQ_AG_GRID_SETTINGS_MENU_PARAMS`: the grid `api`, `back()`, `close()` and
+`setResetHandler()`, which shows the `Reset to default` button and returns a function that hides it.
+
+```ts
+@Component({
+    selector: 'my-screen',
+    standalone: true,
+    template: '<button (click)="params.close()">Close</button>'
+})
+export class MyScreen {
+    protected readonly params = inject(KBQ_AG_GRID_SETTINGS_MENU_PARAMS);
+
+    constructor() {
+        inject(DestroyRef).onDestroy(this.params.setResetHandler(() => this.params.api.resetColumnState()));
+    }
+}
+```
+
+The menu does not handle `←` and `Esc` in text fields or when the screen calls `event.preventDefault()`, and clicks
+in CDK overlays opened from the screen do not close it.
+
+#### Keyboard
+
+| Key                 | Action                                                                  |
+| ------------------- | ----------------------------------------------------------------------- |
+| `↓` `↑`             | Move between items                                                      |
+| `Enter` `Space`     | Activate the item                                                       |
+| `→`                 | Open the nested level                                                   |
+| `←`                 | Return to the previous level                                            |
+| `Esc`               | Return to the previous level, close the menu at the root                |
+| `Tab` `Shift + Tab` | Move between the header buttons and the current item or screen controls |
+
+#### Labels
+
+The default labels are Russian. Pass `KBQ_AG_GRID_SETTINGS_MENU_LABELS_EN` or your own strings to the
+`kbqAgGridSettingsMenuLabels` input or `kbqAgGridSettingsMenuLabelsProvider()`. The columns screen takes its labels from
+`kbqAgGridColumnMenuLabelsProvider()`.
 
 ### Expandable rows
 

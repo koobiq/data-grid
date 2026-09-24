@@ -1089,7 +1089,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: var(--kbq-size-l);
+        padding: calc(var(--kbq-size-xxl) + var(--kbq-size-xxs)) var(--kbq-size-m) var(--kbq-size-3xl);
         font-family: var(--kbq-typography-text-normal-font-family);
         font-size: var(--kbq-typography-text-normal-font-size);
         line-height: var(--kbq-typography-text-normal-line-height);
@@ -1284,7 +1284,7 @@
         }
 
         &:hover .kbq-column-menu-row-wrapper,
-        &:focus .kbq-column-menu-row-wrapper {
+        &:has(.kbq-column-menu-checkbox:focus) .kbq-column-menu-row-wrapper {
             --kbq-column-menu-row-background: var(--kbq-states-background-transparent-active);
         }
 
@@ -1306,6 +1306,11 @@
         position: relative;
         border-radius: var(--ag-checkbox-border-radius, var(--kbq-size-xxs));
         background-color: var(--kbq-column-menu-checkbox-background);
+
+        // The focused row is highlighted by its background.
+        &:focus {
+            outline: none;
+        }
 
         &::after {
             content: '';
@@ -1480,6 +1485,279 @@
     }
 }
 
+@mixin _ag-settings-menu() {
+    &:has(.kbq-ag-grid-settings-menu-overlay) {
+        --ag-theme-koobiq-settings-menu-width: var(--kbq-size-7xl);
+
+        position: relative;
+
+        .ag-column-last {
+            padding-right: var(--ag-theme-koobiq-settings-menu-width);
+        }
+    }
+
+    // Based on `KbqAgGridSettingsMenu`
+    .kbq-ag-grid-settings-menu-overlay {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: var(--ag-header-height);
+        background:
+            linear-gradient(to right, transparent 0%, var(--kbq-background-bg) 70%),
+            linear-gradient(to right, transparent 0%, var(--kbq-background-bg) 80%);
+        width: var(--ag-theme-koobiq-settings-menu-width);
+        display: flex;
+        align-items: center;
+        justify-content: end;
+        pointer-events: none;
+        z-index: 1;
+
+        // .ag-header-cell-resize width
+        padding-right: var(--kbq-size-s);
+    }
+
+    // Based on `KbqAgGridSettingsMenuPanel`
+    .kbq-ag-grid-settings-menu-panel {
+        display: block;
+        height: 100%;
+        pointer-events: auto;
+    }
+
+    .kbq-settings-menu {
+        position: relative;
+        height: 100%;
+        display: flex;
+        align-items: center;
+
+        .kbq-icon {
+            color: var(--kbq-icon-contrast-fade);
+        }
+    }
+
+    .kbq-settings-menu-trigger {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        padding: 0 var(--kbq-size-s);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+
+        &:hover .kbq-icon {
+            color: var(--kbq-states-icon-contrast-fade-hover);
+        }
+
+        &.kbq-settings-menu-trigger_active .kbq-icon {
+            color: var(--kbq-states-icon-contrast-fade-active);
+        }
+    }
+
+    .kbq-settings-menu-panel {
+        position: absolute;
+        top: calc(100% + var(--kbq-size-xxs));
+        right: 0;
+        width: 320px;
+        background: var(--kbq-background-card);
+        box-shadow: var(--kbq-shadow-popup);
+        border-radius: var(--kbq-size-border-radius);
+        border: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
+        z-index: 100;
+        overflow: hidden;
+
+        // Ends at the bottom of the grid, or of the viewport when the grid runs below it: the space
+        // below the panel within the viewport is kept up to date by `KbqAgGridSettingsMenuPanel`.
+        --kbq-settings-menu-panel-available-height: min(
+            calc(var(--kbq-settings-menu-panel-max-height, 60vh) - var(--kbq-size-xxs)),
+            calc(var(--kbq-settings-menu-panel-viewport-space, 100vh) - var(--kbq-size-xxs))
+        );
+
+        // The height limits the content box, so the borders are taken out of the available space.
+        max-height: calc(var(--kbq-settings-menu-panel-available-height) - var(--kbq-size-border-width) * 2);
+        display: flex;
+        flex-direction: column;
+    }
+
+    // Equal side columns keep the title centered whichever header buttons are rendered.
+    .kbq-settings-menu-panel-header {
+        display: grid;
+        grid-template-columns: var(--kbq-size-4xl) minmax(0, 1fr) var(--kbq-size-4xl);
+        align-items: center;
+        flex-shrink: 0;
+        height: var(--kbq-size-4xl);
+        border-bottom: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
+    }
+
+    .kbq-settings-menu-panel-title {
+        grid-column: 2;
+        text-align: center;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-family: var(--kbq-font-family-base);
+        font-size: var(--kbq-typography-text-normal-font-size);
+        font-weight: 600;
+        color: var(--kbq-foreground-contrast);
+    }
+
+    .kbq-settings-menu-header-btn-bounds {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--kbq-size-3xl);
+        height: var(--kbq-size-3xl);
+        border-radius: var(--kbq-size-border-radius);
+    }
+
+    // The click zone takes the full header height, the focus ring outlines the inner bounds of the icon.
+    .kbq-settings-menu-header-btn {
+        --kbq-settings-menu-header-btn-focus-width: 2px;
+
+        display: flex;
+        align-items: center;
+        height: 100%;
+        padding: 0;
+        background: transparent;
+        border: none;
+        outline: none;
+        cursor: pointer;
+
+        // Overrides the menu-wide icon colour set on `.kbq-settings-menu .kbq-icon`.
+        .kbq-settings-menu-header-btn-icon {
+            color: var(--kbq-icon-contrast);
+        }
+
+        &:hover .kbq-settings-menu-header-btn-icon {
+            color: var(--kbq-states-icon-contrast-hover);
+        }
+
+        &:active .kbq-settings-menu-header-btn-icon {
+            color: var(--kbq-states-icon-contrast-active);
+        }
+
+        &:focus-visible .kbq-settings-menu-header-btn-bounds {
+            outline: var(--kbq-settings-menu-header-btn-focus-width) solid var(--kbq-states-line-focus-theme);
+            outline-offset: calc(var(--kbq-settings-menu-header-btn-focus-width) / -2);
+        }
+    }
+
+    .kbq-settings-menu-back-btn {
+        grid-column: 1;
+        justify-content: start;
+        padding-left: var(--kbq-size-s);
+    }
+
+    .kbq-settings-menu-reset-btn {
+        grid-column: 3;
+        justify-content: end;
+        padding-right: var(--kbq-size-s);
+    }
+
+    .kbq-settings-menu-panel-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .kbq-settings-menu-list {
+        overflow-y: auto;
+        padding: var(--kbq-size-xxs) 0;
+    }
+
+    .kbq-settings-menu-item {
+        display: flex;
+        align-items: center;
+        gap: var(--kbq-size-s);
+        height: var(--kbq-size-3xl);
+        margin: 0 var(--kbq-size-xxs);
+        padding: 0 var(--kbq-size-m);
+        border-radius: var(--kbq-size-border-radius);
+        cursor: pointer;
+        user-select: none;
+        font-family: var(--kbq-typography-text-normal-font-family);
+        font-size: var(--kbq-typography-text-normal-font-size);
+        line-height: var(--kbq-typography-text-normal-line-height);
+        letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
+        color: var(--kbq-foreground-contrast);
+
+        // Focus is moved to an item as soon as a level renders, so the highlight follows
+        // `:focus-visible`: a menu opened with the mouse shows no active item.
+        &:hover,
+        &:focus-visible {
+            background: var(--kbq-states-background-transparent-hover);
+            outline: none;
+        }
+
+        // Overrides the menu-wide icon colour set on `.kbq-settings-menu .kbq-icon`.
+        .kbq-settings-menu-item-icon,
+        .kbq-settings-menu-item-check {
+            flex-shrink: 0;
+            color: var(--kbq-icon-contrast);
+        }
+
+        &.kbq-settings-menu-item_disabled {
+            color: var(--kbq-states-foreground-disabled);
+            cursor: not-allowed;
+        }
+
+        &.kbq-settings-menu-item_disabled .kbq-settings-menu-item-icon {
+            color: var(--kbq-states-icon-disabled);
+        }
+    }
+
+    .kbq-settings-menu-item-label {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .kbq-settings-menu-item-value {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 50%;
+        color: var(--kbq-foreground-contrast-secondary);
+    }
+
+    .kbq-settings-menu-item-value-suffix,
+    .kbq-settings-menu-item-counter {
+        flex-shrink: 0;
+        color: var(--kbq-foreground-contrast-secondary);
+    }
+
+    // The direction belongs to the value it follows, so it keeps the 2px of the design instead of
+    // the gap of the item; the counter is a value of its own and keeps that gap.
+    .kbq-settings-menu-item-value-suffix {
+        margin-left: calc(var(--kbq-size-3xs) - var(--kbq-size-s));
+    }
+
+    .kbq-settings-menu-item-chevron {
+        flex-shrink: 0;
+        color: var(--kbq-icon-contrast-fade);
+    }
+
+    .kbq-settings-menu-separator {
+        height: var(--kbq-size-border-width);
+        margin: var(--kbq-size-xxs) 0;
+        background: var(--kbq-line-contrast-less);
+    }
+
+    // Screens are laid out by the panel itself, their host element only groups the markup.
+    .kbq-ag-grid-columns-panel,
+    .kbq-ag-grid-sort-panel {
+        display: contents;
+    }
+
+    // The sort direction button keeps its tooltip when the direction is locked, so it stays
+    // interactive and is only styled as disabled.
+    .kbq-column-menu-action-btn_disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+}
+
 @mixin _ag-row-group-cell-renderer() {
     // Based on `KbqAgGridRowGroupCellRenderer` component
     .kbq-ag-grid-group-cell-renderer {
@@ -1628,6 +1906,7 @@
     @include _ag-loading-overlay();
     @include _ag-row-actions-overlay();
     @include _ag-column-menu();
+    @include _ag-settings-menu();
     @include _ag-row-group-cell-renderer();
     @include _ag-row-detail();
 

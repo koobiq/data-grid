@@ -33,10 +33,12 @@ const STATE_KEY = 'dev-ag-grid-quick-filter-state';
     imports: [AgGridModule, FormsModule, KbqAgGridThemeModule],
     selector: 'dev-quick-filter-state',
     template: `
-        <input data-testid="e2eQuickFilterInput" placeholder="Quick filter..." [(ngModel)]="filterText" />
-        <button type="button" data-testid="e2eResetQuickFilterState" (click)="quickFilterState.reset()">
-            Reset state
-        </button>
+        <div class="dev-toolbar">
+            <input data-testid="e2eQuickFilterInput" placeholder="Quick filter..." [(ngModel)]="filterText" />
+            <button type="button" data-testid="e2eResetQuickFilterState" (click)="quickFilterState.reset()">
+                Reset state
+            </button>
+        </div>
         <ag-grid-angular
             #quickFilterState="kbqAgGridQuickFilterState"
             data-testid="e2eScreenshotTarget"
@@ -50,8 +52,14 @@ const STATE_KEY = 'dev-ag-grid-quick-filter-state';
         />
     `,
     styles: `
+        :host {
+            display: flex;
+            flex-direction: column;
+        }
+
         ag-grid-angular {
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             max-width: 2036px;
         }
     `,
@@ -70,10 +78,12 @@ export class DevQuickFilterState {
     imports: [AgGridModule, FormsModule, KbqAgGridThemeModule],
     selector: 'dev-quick-filter-state-query-params',
     template: `
-        <input data-testid="e2eQuickFilterInput" placeholder="Quick filter..." [(ngModel)]="filterText" />
-        <button type="button" data-testid="e2eResetQuickFilterState" (click)="quickFilterState.reset()">
-            Reset state
-        </button>
+        <div class="dev-toolbar">
+            <input data-testid="e2eQuickFilterInput" placeholder="Quick filter..." [(ngModel)]="filterText" />
+            <button type="button" data-testid="e2eResetQuickFilterState" (click)="quickFilterState.reset()">
+                Reset state
+            </button>
+        </div>
         <ag-grid-angular
             #quickFilterState="kbqAgGridQuickFilterState"
             data-testid="e2eScreenshotTarget"
@@ -88,8 +98,14 @@ export class DevQuickFilterState {
         />
     `,
     styles: `
+        :host {
+            display: flex;
+            flex-direction: column;
+        }
+
         ag-grid-angular {
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             max-width: 2036px;
         }
     `,

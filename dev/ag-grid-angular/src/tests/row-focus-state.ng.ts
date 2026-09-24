@@ -32,7 +32,9 @@ const STATE_KEY = 'dev-ag-grid-row-focus-state';
     imports: [AgGridModule, KbqAgGridThemeModule],
     selector: 'dev-row-focus-state',
     template: `
-        <button type="button" (click)="rowFocusState.reset()">Reset state</button>
+        <div class="dev-toolbar">
+            <button type="button" (click)="rowFocusState.reset()">Reset state</button>
+        </div>
         <ag-grid-angular
             #rowFocusState="kbqAgGridRowFocusState"
             data-testid="e2eScreenshotTarget"
@@ -47,8 +49,14 @@ const STATE_KEY = 'dev-ag-grid-row-focus-state';
         />
     `,
     styles: `
+        :host {
+            display: flex;
+            flex-direction: column;
+        }
+
         ag-grid-angular {
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             max-width: 2036px;
         }
     `,
@@ -68,7 +76,9 @@ export class DevRowFocusState {
     imports: [AgGridModule, KbqAgGridThemeModule],
     selector: 'dev-row-focus-state-query-params',
     template: `
-        <button type="button" (click)="rowFocusState.reset()">Reset state</button>
+        <div class="dev-toolbar">
+            <button type="button" (click)="rowFocusState.reset()">Reset state</button>
+        </div>
         <ag-grid-angular
             #rowFocusState="kbqAgGridRowFocusState"
             data-testid="e2eScreenshotTarget"
@@ -83,8 +93,14 @@ export class DevRowFocusState {
         />
     `,
     styles: `
+        :host {
+            display: flex;
+            flex-direction: column;
+        }
+
         ag-grid-angular {
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             max-width: 2036px;
         }
     `,

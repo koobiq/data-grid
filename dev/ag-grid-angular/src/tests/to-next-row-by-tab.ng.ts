@@ -41,7 +41,6 @@ const COLUMN_DEFS: ColDef[] = [
             display: flex;
             flex-direction: column;
             padding: var(--kbq-size-m);
-            height: calc(100vh - calc(var(--kbq-size-l) * 2));
         }
 
         ag-grid-angular {

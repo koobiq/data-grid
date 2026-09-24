@@ -26,15 +26,17 @@ const STATE_KEY = 'dev-ag-grid-external-filter-state';
     imports: [AgGridModule, KbqAgGridThemeModule, FormsModule],
     selector: 'dev-external-filter-state',
     template: `
-        <select data-testid="e2eSportSelect" [(ngModel)]="filterValue">
-            <option value="" [selected]="!filterValue()">All Sports</option>
-            @for (sport of sports(); track sport) {
-                <option [value]="sport" [selected]="filterValue() === sport">{{ sport }}</option>
-            }
-        </select>
-        <button type="button" data-testid="e2eResetExternalFilterState" (click)="filterState.reset()">
-            Reset state
-        </button>
+        <div class="dev-toolbar">
+            <select data-testid="e2eSportSelect" [(ngModel)]="filterValue">
+                <option value="" [selected]="!filterValue()">All Sports</option>
+                @for (sport of sports(); track sport) {
+                    <option [value]="sport" [selected]="filterValue() === sport">{{ sport }}</option>
+                }
+            </select>
+            <button type="button" data-testid="e2eResetExternalFilterState" (click)="filterState.reset()">
+                Reset state
+            </button>
+        </div>
         <ag-grid-angular
             #filterState="kbqAgGridExternalFilterState"
             data-testid="e2eScreenshotTarget"
@@ -49,8 +51,14 @@ const STATE_KEY = 'dev-ag-grid-external-filter-state';
         />
     `,
     styles: `
+        :host {
+            display: flex;
+            flex-direction: column;
+        }
+
         ag-grid-angular {
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             max-width: 2036px;
         }
     `,
@@ -71,15 +79,17 @@ export class DevExternalFilterState {
     imports: [AgGridModule, KbqAgGridThemeModule, FormsModule],
     selector: 'dev-external-filter-state-query-params',
     template: `
-        <select data-testid="e2eSportSelect" [(ngModel)]="filterValue">
-            <option value="" [selected]="!filterValue()">All Sports</option>
-            @for (sport of sports(); track sport) {
-                <option [value]="sport" [selected]="filterValue() === sport">{{ sport }}</option>
-            }
-        </select>
-        <button type="button" data-testid="e2eResetExternalFilterState" (click)="filterState.reset()">
-            Reset state
-        </button>
+        <div class="dev-toolbar">
+            <select data-testid="e2eSportSelect" [(ngModel)]="filterValue">
+                <option value="" [selected]="!filterValue()">All Sports</option>
+                @for (sport of sports(); track sport) {
+                    <option [value]="sport" [selected]="filterValue() === sport">{{ sport }}</option>
+                }
+            </select>
+            <button type="button" data-testid="e2eResetExternalFilterState" (click)="filterState.reset()">
+                Reset state
+            </button>
+        </div>
         <ag-grid-angular
             #filterState="kbqAgGridExternalFilterState"
             data-testid="e2eScreenshotTarget"
@@ -94,8 +104,14 @@ export class DevExternalFilterState {
         />
     `,
     styles: `
+        :host {
+            display: flex;
+            flex-direction: column;
+        }
+
         ag-grid-angular {
-            height: 100%;
+            flex: 1;
+            min-height: 0;
             max-width: 2036px;
         }
     `,

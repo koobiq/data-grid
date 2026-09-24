@@ -1,3 +1,7 @@
+// The suite covers the deprecated `KbqAgGridColumnMenu` directive on purpose.
+// eslint-disable-next-line @eslint-community/eslint-comments/disable-enable-pair
+/* eslint-disable @typescript-eslint/no-deprecated */
+
 import { SharedResizeObserver } from '@angular/cdk/observers/private';
 import { Component, Directive, forwardRef, viewChild } from '@angular/core';
 import { fireEvent, render, waitFor } from '@testing-library/angular';
@@ -54,6 +58,9 @@ const createApiMock = (columns: Column[] = []) => {
     const listeners = new Map<AgEventType, AnyEventHandler[]>();
 
     const api = {
+        getColumns: jest.fn(() => columns),
+        getDisplayNameForColumn: jest.fn((col: Column) => col.getColDef().headerName ?? ''),
+        isDestroyed: jest.fn(() => false),
         addEventListener: jest.fn((eventName: AgEventType, handler: AnyEventHandler) => {
             const existing = listeners.get(eventName) ?? [];
             existing.push(handler);
@@ -713,11 +720,13 @@ describe('KbqAgGridColumnMenu', () => {
     });
 
     describe('grid event listeners', () => {
-        it('subscribes to columnVisible, columnMoved, and columnPinned events after gridReady', async () => {
+        it('subscribes to columnVisible, columnMoved, and columnPinned events when the panel opens', async () => {
             const { api } = createApiMock();
-            const { fixture } = await render(TestColumnMenuGrid);
+            const { fixture, container } = await render(TestColumnMenuGrid);
             fixture.componentInstance.grid().emitGridReady(api);
             fixture.detectChanges();
+
+            await openPanel(container);
 
             await waitFor(() => {
                 // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -750,9 +759,11 @@ describe('KbqAgGridColumnMenu', () => {
 
         it('removes all event listeners on destroy', async () => {
             const { api } = createApiMock();
-            const { fixture } = await render(TestColumnMenuGrid);
+            const { fixture, container } = await render(TestColumnMenuGrid);
             fixture.componentInstance.grid().emitGridReady(api);
             fixture.detectChanges();
+
+            await openPanel(container);
 
             await waitFor(() => {
                 // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -807,7 +818,9 @@ describe('KbqAgGridColumnMenu', () => {
             fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
 
             await waitFor(() => {
-                expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row'));
+                expect(document.activeElement).toBe(
+                    container.querySelector('.kbq-column-menu-row .kbq-column-menu-checkbox')
+                );
             });
         });
 
@@ -824,7 +837,11 @@ describe('KbqAgGridColumnMenu', () => {
             await openPanel(container);
 
             fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
-            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+            await waitFor(() =>
+                expect(document.activeElement).toBe(
+                    container.querySelector('.kbq-column-menu-row .kbq-column-menu-checkbox')
+                )
+            );
 
             fireEvent.keyDown(container.querySelector('.kbq-column-menu-panel-scroll')!, {
                 key: 'ArrowDown',
@@ -832,8 +849,8 @@ describe('KbqAgGridColumnMenu', () => {
             });
 
             await waitFor(() => {
-                const rows = container.querySelectorAll('.kbq-column-menu-row');
-                expect(document.activeElement).toBe(rows[1]);
+                const checkboxes = container.querySelectorAll('.kbq-column-menu-row .kbq-column-menu-checkbox');
+                expect(document.activeElement).toBe(checkboxes[1]);
             });
         });
 
@@ -852,18 +869,49 @@ describe('KbqAgGridColumnMenu', () => {
             const scroll = container.querySelector('.kbq-column-menu-panel-scroll')!;
 
             fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
-            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+            await waitFor(() =>
+                expect(document.activeElement).toBe(
+                    container.querySelector('.kbq-column-menu-row .kbq-column-menu-checkbox')
+                )
+            );
 
             fireEvent.keyDown(scroll, { key: 'ArrowDown', keyCode: 40 });
             await waitFor(() =>
-                expect(document.activeElement).toBe(container.querySelectorAll('.kbq-column-menu-row')[1])
+                expect(document.activeElement).toBe(
+                    container.querySelectorAll('.kbq-column-menu-row .kbq-column-menu-checkbox')[1]
+                )
             );
 
             fireEvent.keyDown(scroll, { key: 'ArrowUp', keyCode: 38 });
 
             await waitFor(() => {
-                expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row'));
+                expect(document.activeElement).toBe(
+                    container.querySelector('.kbq-column-menu-row .kbq-column-menu-checkbox')
+                );
             });
+        });
+
+        it('Space on a pin button pins the column instead of toggling its visibility', async () => {
+            const col = createColumnMock({ colId: 'name', headerName: 'Name' });
+            const col2 = createColumnMock({ colId: 'age', headerName: 'Age' });
+            const { api } = createApiMock([col, col2]);
+            const { fixture, container } = await render(TestColumnMenuGrid);
+            fixture.componentInstance.grid().emitGridReady(api);
+            fixture.detectChanges();
+
+            await openPanel(container);
+
+            fireEvent.keyDown(
+                container.querySelector(`[title="${KBQ_AG_GRID_COLUMN_MENU_LABELS_RU.pinLeftButton}"]`)!,
+                { key: ' ' }
+            );
+
+            await waitFor(() => {
+                // eslint-disable-next-line @typescript-eslint/unbound-method
+                expect(api.setColumnsPinned).toHaveBeenCalledWith(['name'], 'left');
+            });
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(api.setColumnsVisible).not.toHaveBeenCalled();
         });
 
         it('Enter on a row calls setColumnsVisible to toggle visibility', async () => {
@@ -986,7 +1034,11 @@ describe('KbqAgGridColumnMenu', () => {
             await openPanel(container);
 
             fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
-            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+            await waitFor(() =>
+                expect(document.activeElement).toBe(
+                    container.querySelector('.kbq-column-menu-row .kbq-column-menu-checkbox')
+                )
+            );
 
             // Simulate Alpha becoming hidden after the toggle
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
@@ -997,7 +1049,7 @@ describe('KbqAgGridColumnMenu', () => {
             fixture.detectChanges();
 
             await waitFor(() => {
-                expect(document.activeElement?.classList.contains('kbq-column-menu-row')).toBe(true);
+                expect(document.activeElement?.classList.contains('kbq-column-menu-checkbox')).toBe(true);
             });
         });
 
@@ -1086,7 +1138,11 @@ describe('KbqAgGridColumnMenu', () => {
             await openPanel(container);
 
             fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
-            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+            await waitFor(() =>
+                expect(document.activeElement).toBe(
+                    container.querySelector('.kbq-column-menu-row .kbq-column-menu-checkbox')
+                )
+            );
 
             fireEvent.keyDown(container.querySelector('.kbq-column-menu-row')!, { key: 'Tab' });
 
@@ -1111,7 +1167,11 @@ describe('KbqAgGridColumnMenu', () => {
             await openPanel(container);
 
             fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
-            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+            await waitFor(() =>
+                expect(document.activeElement).toBe(
+                    container.querySelector('.kbq-column-menu-row .kbq-column-menu-checkbox')
+                )
+            );
 
             const firstRow = container.querySelector('.kbq-column-menu-row')!;
             const actions = firstRow.querySelectorAll<HTMLButtonElement>('.kbq-column-menu-action-btn');
@@ -1139,7 +1199,11 @@ describe('KbqAgGridColumnMenu', () => {
             await openPanel(container);
 
             fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
-            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+            await waitFor(() =>
+                expect(document.activeElement).toBe(
+                    container.querySelector('.kbq-column-menu-row .kbq-column-menu-checkbox')
+                )
+            );
 
             const firstRow = container.querySelector('.kbq-column-menu-row')!;
             const firstAction = firstRow.querySelector<HTMLButtonElement>('.kbq-column-menu-action-btn')!;
@@ -1150,7 +1214,7 @@ describe('KbqAgGridColumnMenu', () => {
             fireEvent.keyDown(firstAction, { key: 'Tab', shiftKey: true });
 
             await waitFor(() => {
-                expect(document.activeElement).toBe(firstRow);
+                expect(document.activeElement).toBe(firstRow.querySelector('.kbq-column-menu-checkbox'));
             });
         });
 
@@ -1167,7 +1231,11 @@ describe('KbqAgGridColumnMenu', () => {
             await openPanel(container);
 
             fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
-            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+            await waitFor(() =>
+                expect(document.activeElement).toBe(
+                    container.querySelector('.kbq-column-menu-row .kbq-column-menu-checkbox')
+                )
+            );
 
             // eslint-disable-next-line @typescript-eslint/prefer-destructuring
             const firstRow = container.querySelectorAll<HTMLElement>('.kbq-column-menu-row')[0];
@@ -1195,7 +1263,11 @@ describe('KbqAgGridColumnMenu', () => {
             await openPanel(container);
 
             fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
-            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+            await waitFor(() =>
+                expect(document.activeElement).toBe(
+                    container.querySelector('.kbq-column-menu-row .kbq-column-menu-checkbox')
+                )
+            );
 
             const firstRow = container.querySelector('.kbq-column-menu-row')!;
             const firstAction = firstRow.querySelector<HTMLButtonElement>('.kbq-column-menu-action-btn')!;
@@ -1235,7 +1307,11 @@ describe('KbqAgGridColumnMenu', () => {
             await openPanel(container);
 
             fireEvent.keyDown(container.querySelector('.kbq-column-menu-search-input')!, { key: 'ArrowDown' });
-            await waitFor(() => expect(document.activeElement).toBe(container.querySelector('.kbq-column-menu-row')));
+            await waitFor(() =>
+                expect(document.activeElement).toBe(
+                    container.querySelector('.kbq-column-menu-row .kbq-column-menu-checkbox')
+                )
+            );
 
             const firstRow = container.querySelector<HTMLElement>('.kbq-column-menu-row')!;
             const firstRowAction = firstRow.querySelector<HTMLButtonElement>('.kbq-column-menu-action-btn')!;
