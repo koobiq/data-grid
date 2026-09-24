@@ -3,10 +3,10 @@ import { render } from '@testing-library/angular';
 import { AgGridAngular } from 'ag-grid-angular';
 import { GridApi } from 'ag-grid-community';
 import {
-    KbqAgGridLoadingOverlay,
     KbqAgGridLoadingOverlayComponent,
     kbqAgGridLoadingOverlayConfigProvider
-} from '../src/loading-overlay.ng';
+} from '../src/loading-overlay-skeleton.ng';
+import { KbqAgGridLoadingOverlay } from '../src/loading-overlay.ng';
 
 @Directive({
     selector: 'ag-grid-angular',

@@ -856,7 +856,9 @@
             --kbq-ag-grid-skeleton-animation-wave-end: var(--kbq-skeleton-animation-wave-end);
 
             display: block;
-            width: 100%;
+
+            // Set per cell by `KbqAgGridSkeletonCellRenderer`, so bars imitate content of differing length.
+            width: var(--kbq-ag-grid-skeleton-bar-width, 100%);
             height: var(--kbq-size-l);
             border-radius: var(--kbq-ag-grid-skeleton-border-radius);
             position: relative;
@@ -880,6 +882,35 @@
                 animation: kbq-ag-grid-skeleton-wave var(--kbq-ag-grid-skeleton-animation-duration) ease-in
                     var(--kbq-ag-grid-skeleton-animation-delay) infinite;
             }
+        }
+    }
+}
+
+@mixin _ag-skeleton-selection() {
+    .ag-cell-wrapper:has(.kbq-ag-grid-skeleton-selection-cell) {
+        // Hiding the checkbox leaves the wrapper with nothing to take its height from, so it would
+        // collapse to the skeleton's own height and pull the cell's contents out of line.
+        height: 100%;
+
+        // AG Grid renders its own checkbox next to the cell renderer rather than letting the
+        // renderer replace it. While the row has no data the skeleton stands in for it.
+        > .ag-selection-checkbox {
+            display: none;
+        }
+    }
+
+    // Based on `KbqAgGridSkeletonSelectionCellComponent` component
+    .kbq-ag-grid-skeleton-selection-cell {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+
+        // A square the size of the checkbox it stands in for, rather than a full-width bar. Left
+        // aligned, so it lands exactly where the real checkbox does once the row has loaded.
+        .kbq-ag-grid-skeleton-cell-renderer {
+            flex: 0 0 auto;
+            width: var(--kbq-size-l);
         }
     }
 }
@@ -913,6 +944,66 @@
 
         .kbq-ag-grid-skeleton-cell-renderer {
             flex: 1;
+        }
+
+        // The first column keeps a fixed size while the rest share the remaining space, so the
+        // placeholder reads like a grid whose first column holds an identifier.
+        .kbq-ag-grid-skeleton-row > .kbq-ag-grid-skeleton-cell-renderer:first-child {
+            flex: 0 0 var(--kbq-ag-grid-skeleton-first-col-width);
+        }
+    }
+}
+
+// Based on `KbqAgGridLoadErrorRowComponent` component
+@mixin _ag-load-error-row() {
+    // AG Grid positions rows with `transform`, which makes each row a stacking context at level 0.
+    // `_ag-pinned-column-border()` raises the pinned containers to `z-index: 1` while the grid is
+    // scrolled horizontally, so their 1px shadow would otherwise be painted across the banner.
+    .ag-row:has(.kbq-ag-grid-load-error-row) {
+        z-index: 2;
+    }
+
+    .kbq-ag-grid-load-error-row {
+        display: flex;
+        align-items: center;
+        gap: var(--kbq-size-s);
+        box-sizing: border-box;
+        width: 100%;
+
+        // Matches the grid row height, so the banner keeps up when the row height changes.
+        height: 100%;
+        padding: 0 var(--kbq-size-l);
+        background: var(--kbq-background-error-less);
+        color: var(--kbq-foreground-error);
+
+        .kbq-ag-grid-load-error-row__icon {
+            flex-shrink: 0;
+        }
+
+        .kbq-ag-grid-load-error-row__message {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .kbq-ag-grid-load-error-row__retry {
+            flex-shrink: 0;
+            border: none;
+            background: none;
+            padding: 0;
+            color: var(--kbq-foreground-theme);
+            font: inherit;
+            text-decoration: underline;
+            cursor: pointer;
+
+            &:hover {
+                color: var(--kbq-foreground-theme-secondary);
+            }
+
+            &:focus-visible {
+                outline: var(--kbq-size-border-width) solid var(--kbq-states-line-focus-theme);
+                outline-offset: var(--kbq-size-xxs);
+            }
         }
     }
 }
@@ -1541,7 +1632,9 @@
     @include _ag-pinned-column-border();
     @include _ag-cell-with-selection-checkbox();
     @include _ag-skeleton-cell-renderer();
+    @include _ag-skeleton-selection();
     @include _ag-loading-overlay();
+    @include _ag-load-error-row();
     @include _ag-row-actions-overlay();
     @include _ag-column-menu();
     @include _ag-row-group-cell-renderer();
