@@ -625,7 +625,10 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
             this.grid.gridSizeChanged,
             this.grid.columnPinned,
             this.grid.columnResized,
-            this.grid.displayedColumnsChanged
+            this.grid.displayedColumnsChanged,
+            // A changed row count makes the vertical scrollbar appear or disappear, which narrows
+            // the center section without resizing the grid and without touching the columns.
+            this.grid.modelUpdated
         )
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(() => this.syncViewportWidth());
@@ -1027,7 +1030,14 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
 
         for (const [node, height] of changed) node.setRowHeight(height);
 
-        if (changed.length > 0) api.onRowHeightChanged();
+        if (changed.length === 0) return;
+
+        api.onRowHeightChanged();
+
+        // Taller rows can push the grid into showing a vertical scrollbar, which takes its width
+        // from the center section. No public event reports it, so the width is re-read here, right
+        // after the grid has laid the new heights out.
+        this.syncViewportWidth();
     }
 
     /**
@@ -1199,11 +1209,16 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
             return;
         }
 
-        const ids = await this.stateStore().getItem(key);
+        const stored: unknown = await this.stateStore().getItem(key);
 
         // The store's `getItem` can be a slow, consumer-provided Promise that resolves after this
         // directive has already been torn down; bail out before touching the grid.
         if (this.destroyed) return;
+
+        // A store returns whatever `JSON.parse` produced, so a hand-edited url or a foreign value
+        // left under the same key can be anything: a bare string would be spread into
+        // single-character ids, and a value without `filter` would break `collapse()`.
+        const ids = Array.isArray(stored) && stored.every((id): id is string => typeof id === 'string') ? stored : null;
 
         // Restored as stored, even with `kbqAgGridRowDetailSingleExpand` on: trimming here would go
         // straight back into the store through the save effect and drop the other ids for good.

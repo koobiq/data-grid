@@ -197,7 +197,7 @@ import { AgGridModule } from 'ag-grid-angular';
     `
 })
 export class MyRowDetail {
-    private readonly params = inject(KBQ_AG_GRID_ROW_DETAIL_PARAMS);
+    protected readonly athlete = (inject(KBQ_AG_GRID_ROW_DETAIL_PARAMS).data as { athlete: string }).athlete;
 }
 
 @Component({
@@ -228,8 +228,9 @@ export class MyGrid {
 | `kbqAgGridRowDetailExpanded`     | Ids of the expanded rows, supports two-way binding                                                                                                                                                                                   |
 | `kbqAgGridRowDetailLabels`       | Screen reader labels of the expand/collapse toggle. Russian by default, English preset is `KBQ_AG_GRID_ROW_DETAIL_LABELS_EN`                                                                                                         |
 | `kbqAgGridRowDetailState`        | Key under which the expanded rows are persisted (see [State persistence](#state-persistence))                                                                                                                                        |
+| `kbqAgGridRowDetailStateStore`   | Store keeping the persisted rows. Defaults to `KBQ_AG_GRID_ROW_DETAIL_STATE_STORE`, which is backed by `localStorage`                                                                                                                |
 
-The component is created on expand and destroyed on collapse, and receives `{ api, node, data, rowIndex, collapse }` through the `KBQ_AG_GRID_ROW_DETAIL_PARAMS` token. `collapse()` closes the row from inside the component, e.g. from a close button, and hands focus back to the row's toggle. Its own host element defines the height of the expanded part, so a component that grows while loading its data grows the row with it. Expanding and collapsing from your own UI goes through `#rowDetail="kbqAgGridRowDetail"`, which exposes `expand()`, `collapse()`, `toggle()` and `collapseAll()`.
+The component is created on expand and destroyed on collapse, and receives `{ api, node, data, rowIndex, collapse }` through the `KBQ_AG_GRID_ROW_DETAIL_PARAMS` token. `collapse()` closes the row from inside the component, e.g. from a close button, and hands focus back to the row's toggle. Its own host element defines the height of the expanded part, so a component that grows while loading its data grows the row with it. Expanding and collapsing from your own UI goes through `#rowDetail="kbqAgGridRowDetail"`, which exposes `expand()`, `collapse()`, `toggle()` and `collapseAll()`. `reset()` collapses every row and drops the persisted state.
 
 Keep in mind:
 
@@ -276,8 +277,9 @@ Directives for persisting and restoring grid state across page reloads.
 | `kbqAgGridExternalFilterState` | External filter value                 | `KbqAgGridExternalFilterStateLocalStorageStore` (default), `KbqAgGridExternalFilterStateQueryParamsStore` |
 | `kbqAgGridRowSelectionState`   | Selected row ids                      | `KbqAgGridRowSelectionStateLocalStorageStore` (default), `KbqAgGridRowSelectionStateQueryParamsStore`     |
 | `kbqAgGridRowFocusState`       | Focused cell (row id, column id)      | `KbqAgGridRowFocusStateLocalStorageStore` (default), `KbqAgGridRowFocusStateQueryParamsStore`             |
+| `kbqAgGridRowDetail`           | Expanded row ids                      | `KbqAgGridRowDetailStateLocalStorageStore` (default), `KbqAgGridRowDetailStateQueryParamsStore`           |
 
-`kbqAgGridRowSelectionState` and `kbqAgGridRowFocusState` also need `getRowId` set on the grid, so that row identity survives a reload.
+`kbqAgGridRowSelectionState`, `kbqAgGridRowFocusState` and `kbqAgGridRowDetail` also need `getRowId` set on the grid, so that row identity survives a reload.
 
 ---
 

@@ -613,7 +613,8 @@ describe('KbqAgGridRowDetail', () => {
     });
 
     describe('state persistence', () => {
-        const makeStore = (value: string[] | null): KbqAgGridRowDetailStateStore & { setItem: jest.Mock } => ({
+        // `value` is intentionally `unknown`: a store hands back whatever `JSON.parse` produced.
+        const makeStore = (value: unknown): KbqAgGridRowDetailStateStore & { setItem: jest.Mock } => ({
             getItem: jest.fn().mockReturnValue(value),
             setItem: jest.fn(),
             removeItem: jest.fn()
@@ -661,6 +662,20 @@ describe('KbqAgGridRowDetail', () => {
 
             expect(fixture.componentInstance.rowDetail().expanded()).toEqual(['a', 'b']);
             expect(store.setItem).not.toHaveBeenCalledWith('key', ['a']);
+        });
+
+        it('ignores a stored value that is not an array of ids', async () => {
+            const store = makeStore('a');
+            const { container, fixture } = await render(TestGrid, {
+                componentProperties: { stateKey: signal('key'), store: signal(store) }
+            });
+
+            await waitFor(() => {
+                expect(toggleOf(container, 'a')).toBeTruthy();
+            });
+
+            expect(container.querySelector(PANEL_SELECTOR)).toBeNull();
+            expect(fixture.componentInstance.rowDetail().expanded()).toEqual([]);
         });
 
         it('clears the stored state on reset()', async () => {
