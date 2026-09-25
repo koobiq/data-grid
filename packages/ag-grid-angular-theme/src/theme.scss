@@ -254,12 +254,16 @@
 }
 
 @mixin _ag-row-join-highlighted($selectors) {
-    &:is(#{$selectors}):has(+ :is(#{$selectors})) {
+    // A filled expanded row (`kbqAgGridRowDetailFilled`) ignores selection and focus, so it never joins its neighbours.
+    // `:where()` keeps the exclusion out of the specificity, so the cascade stays exactly as it is for other rows.
+    $highlighted: ':is(#{$selectors}):where(:not(.kbq-ag-grid-row-detail-row_filled))';
+
+    &#{$highlighted}:has(+ #{$highlighted}) {
         --ag-theme-koobiq-row-border-bottom-right-radius: 0;
         --ag-theme-koobiq-row-border-bottom-left-radius: 0;
     }
 
-    &:is(#{$selectors}) + :is(#{$selectors}) {
+    &#{$highlighted} + #{$highlighted} {
         --ag-theme-koobiq-row-border-top-left-radius: 0;
         --ag-theme-koobiq-row-border-top-right-radius: 0;
     }
@@ -1798,6 +1802,90 @@
     }
 }
 
+@mixin _ag-row-detail() {
+    // Based on `KbqAgGridRowDetail` directive and `KbqAgGridRowDetailCellRenderer` component
+    .ag-row.kbq-ag-grid-row-detail-row {
+        // An expanded row is as tall as its cells plus the detail panel, so the cells are pinned
+        // back to the height the row has while collapsed and the panel starts right below them.
+        .ag-cell {
+            height: var(--kbq-ag-grid-row-detail-row-height, var(--ag-row-height));
+        }
+    }
+
+    // `kbqAgGridRowDetailSticky`: instead of stretching across every column, the expanded part keeps
+    // to the visible width of the grid and stays there while the columns scroll. Sticky needs the
+    // panel in normal flow, hence the margin in place of the offset used by the default layout.
+    .kbq-ag-grid-row-detail.kbq-ag-grid-row-detail_sticky {
+        position: sticky;
+        top: auto;
+        left: 0;
+        width: var(--kbq-ag-grid-row-detail-viewport-width, 100%);
+        margin-top: var(--kbq-ag-grid-row-detail-row-height, var(--ag-row-height));
+        overflow: auto;
+    }
+
+    // `kbqAgGridRowDetailFilled`: an expanded row keeps one static fill instead of reacting to hover, active, selection
+    // and focus. `!important` because each of those states sets this same property with a more specific selector (see
+    // `_ag-row-highlight`), and every consumer of the property, such as the row actions overlay, has to see the fill too.
+    .ag-row.kbq-ag-grid-row-detail-row_filled {
+        --ag-theme-koobiq-row-background-color: var(--kbq-background-contrast-less) !important;
+    }
+
+    .kbq-ag-grid-row-detail {
+        position: absolute;
+        top: var(--kbq-ag-grid-row-detail-row-height, var(--ag-row-height));
+        left: 0;
+        width: 100%;
+
+        // Transparent, so the row's own hover, selection and focus background covers the
+        // expanded part as well.
+        background: transparent;
+    }
+
+    .kbq-ag-grid-row-detail-cell-renderer {
+        display: flex;
+        align-items: center;
+        gap: var(--kbq-size-xxs);
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .kbq-ag-grid-row-detail-cell-renderer__toggle {
+        --kbq-ag-grid-row-detail-toggle-outline-width: 2px;
+
+        display: flex;
+        align-items: center;
+        flex: none;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: var(--kbq-icon-contrast-fade);
+        cursor: pointer;
+
+        &:hover,
+        &:active {
+            color: var(--kbq-states-icon-contrast-fade-hover);
+        }
+
+        &:focus-visible {
+            outline: var(--kbq-ag-grid-row-detail-toggle-outline-width) solid var(--kbq-states-line-focus-theme);
+            outline-offset: calc(var(--kbq-ag-grid-row-detail-toggle-outline-width) * -1);
+        }
+    }
+
+    // Keeps values aligned in rows that cannot be expanded (see `kbqAgGridRowDetailComponent`).
+    .kbq-ag-grid-row-detail-cell-renderer__toggle-placeholder {
+        flex: none;
+        width: var(--kbq-size-l);
+    }
+
+    .kbq-ag-grid-row-detail-cell-renderer__value {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
 .ag-theme-koobiq {
     --ag-theme-koobiq-active-color: var(--kbq-background-theme);
     --ag-theme-koobiq-border: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
@@ -1832,6 +1920,7 @@
     @include _ag-column-menu();
     @include _ag-settings-menu();
     @include _ag-row-group-cell-renderer();
+    @include _ag-row-detail();
 
     &.ag-theme-koobiq_disable-cell-focus-styles {
         @include _ag-disable-cell-focus();

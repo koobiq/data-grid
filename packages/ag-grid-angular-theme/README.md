@@ -9,6 +9,7 @@ Navigation:
 - [Installation](#installation)
 - [Usage](#usage)
 - [Settings Menu](#settings-menu)
+- [Expandable Rows](#expandable-rows)
 - [Custom Keyboard Shortcuts](#custom-keyboard-shortcuts)
 - [State Persistence](#state-persistence)
 - [Development](#development)
@@ -182,6 +183,75 @@ The default labels are Russian. Pass `KBQ_AG_GRID_SETTINGS_MENU_LABELS_EN` or yo
 `kbqAgGridSettingsMenuLabels` input or `kbqAgGridSettingsMenuLabelsProvider()`. The columns screen takes its labels from
 `kbqAgGridColumnMenuLabelsProvider()`.
 
+### Expandable rows
+
+`kbqAgGridRowDetail` expands a row to show your own component below its cells — a nested grid, a code block, plain text. It does not need AG Grid Enterprise's Master Detail: the expanded part belongs to the row itself, so row indexes, row counts, selection, sorting, filtering, pagination and CSV export stay exactly as they are without the directive.
+
+```ts
+import { KBQ_AG_GRID_ROW_DETAIL_PARAMS, KbqAgGridRowDetail, KbqAgGridTheme } from '@koobiq/ag-grid-angular-theme';
+import { AgGridModule } from 'ag-grid-angular';
+
+@Component({
+    template: `
+        <div>{{ athlete }}</div>
+    `
+})
+export class MyRowDetail {
+    protected readonly athlete = (inject(KBQ_AG_GRID_ROW_DETAIL_PARAMS).data as { athlete: string }).athlete;
+}
+
+@Component({
+    imports: [AgGridModule, KbqAgGridTheme, KbqAgGridRowDetail],
+    template: `
+        <ag-grid-angular
+            kbqAgGridTheme
+            kbqAgGridRowDetail
+            [getRowId]="getRowId"
+            [kbqAgGridRowDetailComponent]="detailComponent"
+        />
+    `
+})
+export class MyGrid {
+    protected readonly detailComponent = MyRowDetail;
+    protected readonly getRowId: GetRowIdFunc = ({ data }) => data.id;
+}
+```
+
+| Input                            | Description                                                                                                                                                                                                                          |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `kbqAgGridRowDetailComponent`    | Component rendered in the expanded part, or a function picking one per row (`null` makes the row non-expandable)                                                                                                                     |
+| `kbqAgGridRowDetailSingleExpand` | Collapses the previously expanded row when another one is expanded. `true` by default, set it to `false` to keep several rows expanded                                                                                               |
+| `kbqAgGridRowDetailFilled`       | Fills an expanded row with `--kbq-background-contrast-less` and stops it from reacting to hover, active, selection and focus. Collapsed rows keep the default states. `false` by default                                             |
+| `kbqAgGridRowDetailSticky`       | Keeps the expanded part within the visible width of the grid: it stays put while the columns scroll and scrolls its own content when that does not fit. `true` by default, set it to `false` to stretch the part across every column |
+| `kbqAgGridRowDetailToggleColumn` | `colId` of the column hosting the expand toggle. Defaults to the first non-pinned column                                                                                                                                             |
+| `kbqAgGridRowDetailHeight`       | Fixed height (px) of the expanded part. By default the detail component's own host height is measured instead                                                                                                                        |
+| `kbqAgGridRowDetailExpanded`     | Ids of the expanded rows, supports two-way binding                                                                                                                                                                                   |
+| `kbqAgGridRowDetailLabels`       | Screen reader labels of the expand/collapse toggle. Russian by default, English preset is `KBQ_AG_GRID_ROW_DETAIL_LABELS_EN`                                                                                                         |
+| `kbqAgGridRowDetailState`        | Key under which the expanded rows are persisted (see [State persistence](#state-persistence))                                                                                                                                        |
+| `kbqAgGridRowDetailStateStore`   | Store keeping the persisted rows. Defaults to `KBQ_AG_GRID_ROW_DETAIL_STATE_STORE`, which is backed by `localStorage`                                                                                                                |
+
+The component is created on expand and destroyed on collapse, and receives `{ api, node, data, rowIndex, collapse }` through the `KBQ_AG_GRID_ROW_DETAIL_PARAMS` token. `collapse()` closes the row from inside the component, e.g. from a close button, and hands focus back to the row's toggle. Its own host element defines the height of the expanded part, so a component that grows while loading its data grows the row with it. Expanding and collapsing from your own UI goes through `#rowDetail="kbqAgGridRowDetail"`, which exposes `expand()`, `collapse()`, `toggle()` and `collapseAll()`. `reset()` collapses every row and drops the persisted state.
+
+Keep in mind:
+
+- Set `getRowId` — expanded rows are tracked by row id.
+- A row that leaves the filtered set keeps its expanded state: the panel is only detached from the DOM, its component stays alive, and both come back once the row matches the filter again. Collapse it yourself when you want the opposite:
+
+    ```ts
+    onFilterChanged(rowDetail: KbqAgGridRowDetail, api: GridApi): void {
+        for (const id of rowDetail.expanded()) {
+            if (!api.getRowNode(id)?.displayed) rowDetail.collapse(id);
+        }
+    }
+    ```
+
+- Not supported with the infinite row model, which gives every row the same height.
+- The toggle column must not use `cellRendererSelector`: AG Grid gives it precedence over the `cellRenderer` the directive injects, so the toggle would not be rendered.
+- With pinned columns the expanded part spans the center (non-pinned) section only; the pinned sections of the row stay empty.
+- Not combinable with `kbqAgGridRowGroup`: that directive rebuilds `columnDefs` from its own snapshot of your definitions, so the injected toggle would be rewritten on every grouping change.
+- Not combinable with `kbqAgGridRowActions` while `kbqAgGridRowDetailSticky` is on: that directive floats its overlay into the same row, so the actions end up under the expanded part. Turn the sticky layout off to combine them.
+- `kbqAgGridRowDetailSticky` is not supported with `domLayout="print"`, where AG Grid positions rows relatively and the offset of the expanded part collapses out of the row.
+
 ### Custom keyboard shortcuts
 
 You can apply custom keyboard shortcuts by adding the corresponding directives to your `<ag-grid-angular>` component.
@@ -207,8 +277,9 @@ Directives for persisting and restoring grid state across page reloads.
 | `kbqAgGridExternalFilterState` | External filter value                 | `KbqAgGridExternalFilterStateLocalStorageStore` (default), `KbqAgGridExternalFilterStateQueryParamsStore` |
 | `kbqAgGridRowSelectionState`   | Selected row ids                      | `KbqAgGridRowSelectionStateLocalStorageStore` (default), `KbqAgGridRowSelectionStateQueryParamsStore`     |
 | `kbqAgGridRowFocusState`       | Focused cell (row id, column id)      | `KbqAgGridRowFocusStateLocalStorageStore` (default), `KbqAgGridRowFocusStateQueryParamsStore`             |
+| `kbqAgGridRowDetail`           | Expanded row ids                      | `KbqAgGridRowDetailStateLocalStorageStore` (default), `KbqAgGridRowDetailStateQueryParamsStore`           |
 
-`kbqAgGridRowSelectionState` and `kbqAgGridRowFocusState` also need `getRowId` set on the grid, so that row identity survives a reload.
+`kbqAgGridRowSelectionState`, `kbqAgGridRowFocusState` and `kbqAgGridRowDetail` also need `getRowId` set on the grid, so that row identity survives a reload.
 
 ---
 

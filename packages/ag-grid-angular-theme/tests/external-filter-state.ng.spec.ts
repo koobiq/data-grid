@@ -1,11 +1,20 @@
 import { Component, Directive, forwardRef, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { TestBed } from '@angular/core/testing';
 import { FormControl } from '@angular/forms';
+import { Router } from '@angular/router';
 import { render, waitFor } from '@testing-library/angular';
 import { AgGridAngular } from 'ag-grid-angular';
 import { GridApi, IRowNode } from 'ag-grid-community';
 import { Subject } from 'rxjs';
-import { KbqAgGridExternalFilterState, KbqAgGridExternalFilterStateStore } from '../src/external-filter-state.ng';
+import {
+    KBQ_AG_GRID_EXTERNAL_FILTER_STATE_STORE,
+    KbqAgGridExternalFilterState,
+    KbqAgGridExternalFilterStateLocalStorageStore,
+    KbqAgGridExternalFilterStateQueryParamsStore,
+    KbqAgGridExternalFilterStateStore,
+    kbqAgGridExternalFilterStateStoreProvider
+} from '../src/external-filter-state.ng';
 
 const createApiMock = (): { api: GridApi } => {
     const api = {
@@ -485,6 +494,139 @@ describe('KbqAgGridExternalFilterState', () => {
 
             await waitFor(() => {
                 expect(fixture.componentInstance.control.value).toBe('Swimming');
+            });
+        });
+    });
+
+    describe('built-in stores', () => {
+        const STATE_KEY = 'external-filter-state-key';
+        const navigate = jest.fn();
+
+        beforeEach(() => {
+            navigate.mockClear();
+            localStorage.clear();
+            window.history.replaceState({}, '', '/');
+        });
+
+        afterEach(() => {
+            localStorage.clear();
+            window.history.replaceState({}, '', '/');
+        });
+
+        describe('KbqAgGridExternalFilterStateLocalStorageStore', () => {
+            const makeStore = (): KbqAgGridExternalFilterStateLocalStorageStore =>
+                TestBed.inject(KbqAgGridExternalFilterStateLocalStorageStore);
+
+            it('writes the filter value as json', () => {
+                makeStore().setItem(STATE_KEY, { sport: 'Swimming' });
+
+                expect(localStorage.getItem(STATE_KEY)).toBe('{"sport":"Swimming"}');
+            });
+
+            it('json encodes a string value, quotes included', () => {
+                makeStore().setItem(STATE_KEY, 'Swimming');
+
+                expect(localStorage.getItem(STATE_KEY)).toBe('"Swimming"');
+            });
+
+            it('reads the filter value back', () => {
+                localStorage.setItem(STATE_KEY, '{"sport":"Swimming"}');
+
+                expect(makeStore().getItem(STATE_KEY)).toEqual({ sport: 'Swimming' });
+            });
+
+            it('returns null when nothing is stored', () => {
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('returns null for a malformed stored value', () => {
+                localStorage.setItem(STATE_KEY, 'not json');
+
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('removes the stored value', () => {
+                localStorage.setItem(STATE_KEY, '"Swimming"');
+                makeStore().removeItem(STATE_KEY);
+
+                expect(localStorage.getItem(STATE_KEY)).toBeNull();
+            });
+        });
+
+        describe('KbqAgGridExternalFilterStateQueryParamsStore', () => {
+            const makeStore = (): KbqAgGridExternalFilterStateQueryParamsStore => {
+                TestBed.configureTestingModule({ providers: [{ provide: Router, useValue: { navigate } }] });
+
+                return TestBed.inject(KbqAgGridExternalFilterStateQueryParamsStore);
+            };
+
+            it('reads the filter value from the query string', () => {
+                window.history.replaceState({}, '', `/?${STATE_KEY}=${encodeURIComponent('{"sport":"Swimming"}')}`);
+
+                expect(makeStore().getItem(STATE_KEY)).toEqual({ sport: 'Swimming' });
+            });
+
+            it('returns null when the query param is absent', () => {
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('returns null for a malformed query param', () => {
+                window.history.replaceState({}, '', `/?${STATE_KEY}=not-json`);
+
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('writes the filter value into the query string as json', async () => {
+                await makeStore().setItem(STATE_KEY, 'Swimming');
+
+                expect(navigate).toHaveBeenCalledWith([], {
+                    queryParams: { [STATE_KEY]: '"Swimming"' },
+                    queryParamsHandling: 'merge',
+                    replaceUrl: true
+                });
+            });
+
+            it('drops the query param on remove', async () => {
+                await makeStore().removeItem(STATE_KEY);
+
+                expect(navigate).toHaveBeenCalledWith([], {
+                    queryParams: { [STATE_KEY]: null },
+                    queryParamsHandling: 'merge',
+                    replaceUrl: true
+                });
+            });
+        });
+
+        describe('store injection', () => {
+            it('defaults to the localStorage store', () => {
+                expect(TestBed.inject(KBQ_AG_GRID_EXTERNAL_FILTER_STATE_STORE)).toBeInstanceOf(
+                    KbqAgGridExternalFilterStateLocalStorageStore
+                );
+            });
+
+            it('binds the store class passed to kbqAgGridExternalFilterStateStoreProvider', () => {
+                TestBed.configureTestingModule({
+                    providers: [
+                        { provide: Router, useValue: { navigate } },
+                        kbqAgGridExternalFilterStateStoreProvider(KbqAgGridExternalFilterStateQueryParamsStore)
+                    ]
+                });
+
+                expect(TestBed.inject(KBQ_AG_GRID_EXTERNAL_FILTER_STATE_STORE)).toBeInstanceOf(
+                    KbqAgGridExternalFilterStateQueryParamsStore
+                );
+            });
+
+            it('binds the store instance passed to kbqAgGridExternalFilterStateStoreProvider', () => {
+                const store: KbqAgGridExternalFilterStateStore = {
+                    getItem: () => null,
+                    setItem: () => undefined,
+                    removeItem: () => undefined
+                };
+
+                TestBed.configureTestingModule({ providers: [kbqAgGridExternalFilterStateStoreProvider(store)] });
+
+                expect(TestBed.inject(KBQ_AG_GRID_EXTERNAL_FILTER_STATE_STORE)).toBe(store);
             });
         });
     });
