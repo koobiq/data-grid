@@ -15,21 +15,36 @@ import {
 type ApiMock = {
     api: GridApi;
     options: Map<string, unknown>;
+    /** Stands in for the cell AG Grid has focused; `clearFocusedCell()` sets it back to `null`. */
+    focusRow: (rowIndex: number | null) => void;
+    focusedRow: () => number | null;
 };
 
 const createApiMock = (initialOptions: Record<string, unknown> = {}): ApiMock => {
     const options = new Map<string, unknown>(Object.entries(initialOptions));
+    let focusedRow: number | null = null;
 
     const api = {
         setRowCount: jest.fn(),
         redrawRows: jest.fn(),
         refreshInfiniteCache: jest.fn(),
         getGridOption: jest.fn((key: string) => options.get(key)),
-        setGridOption: jest.fn((key: string, value: unknown) => options.set(key, value))
+        setGridOption: jest.fn((key: string, value: unknown) => options.set(key, value)),
+        getFocusedCell: jest.fn(() => (focusedRow === null ? null : { rowIndex: focusedRow })),
+        clearFocusedCell: jest.fn(() => {
+            focusedRow = null;
+        })
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return { api: api as unknown as GridApi, options };
+    return {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        api: api as unknown as GridApi,
+        options,
+        focusRow: (rowIndex: number | null): void => {
+            focusedRow = rowIndex;
+        },
+        focusedRow: () => focusedRow
+    };
 };
 
 type IsFullWidthRowFn = (params: IsFullWidthRowParams) => boolean;
@@ -162,6 +177,26 @@ describe('KbqAgGridLoadError', () => {
         expect(api.refreshInfiniteCache).not.toHaveBeenCalled();
         expect(directive.failedAtRow()).toBeNull();
         expect(component.retries).toBe(0);
+    });
+
+    it('releases the focus the retry link left on the error row', async () => {
+        const { directive, focusRow, focusedRow } = await renderGrid();
+
+        directive.fail(150);
+        focusRow(150);
+        directive.retry();
+
+        expect(focusedRow()).toBeNull();
+    });
+
+    it('leaves focus alone when it sits on a row other than the error row', async () => {
+        const { directive, focusRow, focusedRow } = await renderGrid();
+
+        directive.fail(150);
+        focusRow(12);
+        directive.clear();
+
+        expect(focusedRow()).toBe(12);
     });
 
     it('ignores clear() when there is no error row', async () => {

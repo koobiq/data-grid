@@ -89,7 +89,7 @@ Directives for persisting and restoring grid state across page reloads.
 
 ### Loading and load failures
 
-While a page of the infinite row model is loading, its rows have no data. Render `KbqAgGridSkeletonCellRenderer` for them through `cellRendererSelector`. Bar widths vary from cell to cell so that the placeholder reads as text of differing length; the variation is derived from the cell's position, so it never changes between renders.
+While a page of the infinite row model is loading, its rows have no data. Render `KbqAgGridSkeletonCellRenderer` for them through `cellRendererSelector`. In a cell every bar fills its column: the page arrives under rows that are already on screen, and bars of differing width would only make the grid look unsettled.
 
 Add `kbqAgGridSkeletonSelection` to show a skeleton in the selection column as well, instead of a checkbox for a row that has no data yet. It merges into `selectionColumnDef`, so it composes with other directives that configure that column.
 
@@ -100,7 +100,7 @@ Two AG Grid options control how many skeleton rows appear, both defaulting to `1
 | `infiniteInitialRowCount` | Skeleton rows on the first load, before anything has arrived.     |
 | `cacheOverflowSize`       | Skeleton rows trailing the loaded data while the next page loads. |
 
-Before the grid exists at all, `kbqAgGridLoadingOverlay` puts a grid-shaped placeholder in its place — a header row plus `rows` rows of `cols` columns, the first of them a fixed `firstColWidth`:
+Before the grid exists at all, `kbqAgGridLoadingOverlay` puts a grid-shaped placeholder in its place — a header row plus `rows` rows of `cols` columns, the first of them a fixed `firstColWidth`. Here the bars do vary in width, so that the placeholder reads as content rather than as an empty frame; the variation comes from each bar's position, so it never changes between renders:
 
 ```ts
 providers: [kbqAgGridLoadingOverlayConfigProvider({ rows: 3, cols: 3, firstColWidth: '120px' })];
@@ -138,14 +138,14 @@ export class MyGrid {
 }
 ```
 
-| Member                     | Description                                                                                 |
-| -------------------------- | ------------------------------------------------------------------------------------------- |
-| `fail(startRow)`           | Replaces the failed page with the error row and stops the grid requesting further blocks.   |
-| `retry()`                  | Removes the error row and re-requests the failed page. Also bound to the retry link.        |
-| `clear()`                  | Removes the error row without requesting anything. Call before reloading the grid yourself. |
-| `failedAtRow`              | Signal holding the index of the error row, or `null`.                                       |
-| `kbqAgGridLoadErrorRetry`  | Emitted after the cache has been refreshed.                                                 |
-| `kbqAgGridLoadErrorLabels` | Overrides the labels for a single grid.                                                     |
+| Member                     | Description                                                                                                                                                                                                   |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fail(startRow)`           | Replaces the failed page with the error row and stops the grid requesting further blocks.                                                                                                                     |
+| `retry()`                  | Removes the error row and re-requests the failed page. Also bound to the retry link.                                                                                                                          |
+| `clear()`                  | Removes the error row without requesting anything. Call before reloading the grid yourself. Releases the grid focus if it was sitting on the error row, so the row taking its place does not come up focused. |
+| `failedAtRow`              | Signal holding the index of the error row, or `null`.                                                                                                                                                         |
+| `kbqAgGridLoadErrorRetry`  | Emitted after the cache has been refreshed.                                                                                                                                                                   |
+| `kbqAgGridLoadErrorLabels` | Overrides the labels for a single grid.                                                                                                                                                                       |
 
 Labels default to Russian. Supply English ones — or your own — through the provider:
 
