@@ -218,8 +218,21 @@ export class KbqAgGridLoadError {
         if (startRow === null || !this.grid.api) return;
 
         this.failedRow.set(null);
+        this.releaseFocusFromErrorRow(this.grid.api, startRow);
         this.grid.api.setRowCount(startRow, false);
         this.grid.api.redrawRows();
+    }
+
+    /**
+     * Clicking the retry link leaves AG Grid's focus parked on the error row's index, and the row
+     * that takes its place — a skeleton while the page reloads — would come up looking focused.
+     * The error row is not data, so the focus it collected goes with it. Focus anywhere else is the
+     * user's and is left alone.
+     */
+    private releaseFocusFromErrorRow(api: GridApi, startRow: number): void {
+        if (api.getFocusedCell()?.rowIndex === startRow) {
+            api.clearFocusedCell();
+        }
     }
 
     /** Composes with grid options already set by the consumer or by another directive on the same grid. */

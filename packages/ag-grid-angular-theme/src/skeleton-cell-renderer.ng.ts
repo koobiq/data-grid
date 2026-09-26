@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { ILoadingCellRendererAngularComp } from 'ag-grid-angular';
 import { ILoadingCellRendererParams } from 'ag-grid-community';
 
-/** Narrowest and widest a bar may get, in percent of the cell. */
+/** Narrowest and widest a bar may get, in percent of its container. */
 const MIN_BAR_WIDTH = 45;
 const BAR_WIDTH_RANGE = 55;
 
@@ -17,23 +17,11 @@ const pseudoRandom = (seed: number): number => {
 };
 
 /**
- * Width of a bar for a given seed. Bars have to vary so that the placeholder reads as text of
- * different lengths, but the variation must be a pure function of the cell's position: random
- * widths would make every screenshot test flaky, and would change on each re-render.
+ * Width of a bar for a given seed. The variation must be a pure function of the seed: random widths
+ * would make every screenshot test flaky, and would change on each re-render.
  */
 const skeletonBarWidth = (seed: number): string =>
     `${Math.round(MIN_BAR_WIDTH + BAR_WIDTH_RANGE * pseudoRandom(seed))}%`;
-
-/** Spreads columns apart in the seed space, so that neighbouring cells do not get equal widths. */
-const hashColumnId = (colId: string): number => {
-    let hash = 0;
-
-    for (const character of colId) {
-        hash = (hash * 31 + character.charCodeAt(0)) % 997;
-    }
-
-    return hash;
-};
 
 /**
  * Skeleton cell renderer for use with Infinite Row Model (`rowModelType="infinite"`).
@@ -42,8 +30,11 @@ const hashColumnId = (colId: string): number => {
  * Use via `cellRendererSelector` in `defaultColDef`: return this component when `params.data`
  * is `undefined` (row not yet fetched) and `undefined` otherwise to fall back to default rendering.
  *
- * Bar widths vary from cell to cell to imitate real content. Outside a grid cell — as in
- * {@link KbqAgGridLoadingOverlayComponent} — the variation comes from the `seed` input instead.
+ * In a grid cell every bar fills its cell. Bars of differing width belong to the cold start, where
+ * the placeholder stands in for a grid that is not there yet and has to read as content; a page
+ * arriving under rows that are already on screen has real columns to line up with, so uneven bars
+ * only make it look unsettled. A caller that wants the variation asks for it with `seed`, as
+ * {@link KbqAgGridLoadingOverlayComponent} does.
  *
  * @example
  * ```typescript
@@ -67,21 +58,17 @@ const hashColumnId = (colId: string): number => {
 })
 export class KbqAgGridSkeletonCellRenderer implements ILoadingCellRendererAngularComp {
     /**
-     * Seed for the bar width, for use outside a grid cell. Left unset, the bar fills its container
-     * instead of varying — which is what a caller sizing the bar itself wants.
+     * Seed for the bar width. Left unset — as it is when AG Grid renders this in a cell — the bar
+     * fills its container instead of varying.
      */
     readonly seed = input<number | null>(null);
 
-    /** Seed taken from the cell's own position, once AG Grid has supplied it. */
-    private readonly cellSeed = signal<number | null>(null);
-
     protected readonly barWidth = computed(() => {
-        const seed = this.cellSeed() ?? this.seed();
+        const seed = this.seed();
 
         return seed === null ? '100%' : skeletonBarWidth(seed);
     });
 
-    agInit(params: ILoadingCellRendererParams): void {
-        this.cellSeed.set((params.node.rowIndex ?? 0) + hashColumnId(params.column?.getColId() ?? ''));
-    }
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    agInit(_params: ILoadingCellRendererParams): void {}
 }
