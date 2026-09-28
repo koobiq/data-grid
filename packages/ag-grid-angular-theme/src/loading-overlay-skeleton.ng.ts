@@ -19,13 +19,13 @@ export type KbqAgGridLoadingOverlayConfig = Partial<{
     rows: number;
     /** Number of skeleton columns. @default 3 */
     cols: number;
-    /** Width of the first column, which stays fixed while the rest share the remaining space. @default '120px' */
+    /** Width of the first column, which stays fixed while the rest share the remaining space. @default '148px' */
     firstColWidth: string;
 }>;
 
 const DEFAULT_ROWS_COUNT = 3;
 const DEFAULT_COLS_COUNT = 3;
-const DEFAULT_FIRST_COL_WIDTH = '120px';
+const DEFAULT_FIRST_COL_WIDTH = '148px';
 
 /**
  * Injection token that provides {@link KbqAgGridLoadingOverlayConfig} to {@link KbqAgGridLoadingOverlayComponent}.

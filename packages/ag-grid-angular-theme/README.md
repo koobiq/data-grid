@@ -298,7 +298,7 @@ Two AG Grid options control how many skeleton rows appear, both defaulting to `1
 Before the grid exists at all, `kbqAgGridLoadingOverlay` puts a grid-shaped placeholder in its place — a header row plus `rows` rows of `cols` columns, the first of them a fixed `firstColWidth`. Here the bars do vary in width, so that the placeholder reads as content rather than as an empty frame; the variation comes from each bar's position, so it never changes between renders:
 
 ```ts
-providers: [kbqAgGridLoadingOverlayConfigProvider({ rows: 3, cols: 3, firstColWidth: '120px' })];
+providers: [kbqAgGridLoadingOverlayConfigProvider({ rows: 3, cols: 3, firstColWidth: '148px' })];
 ```
 
 When a page fails to load, `kbqAgGridLoadError` replaces it with a full width error row carrying a retry link. The row scrolls vertically with the data, stays put during horizontal scrolling and spans the pinned columns. AG Grid's `failCallback()` leaves the rows of a failed block blank forever and raises no grid event, so the datasource has to report the failure to the directive itself:

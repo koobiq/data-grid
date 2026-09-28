@@ -49,16 +49,26 @@ const createApiMock = (initialOptions: Record<string, unknown> = {}): ApiMock =>
 
 type IsFullWidthRowFn = (params: IsFullWidthRowParams) => boolean;
 type IsRowSelectableFn = (node: IRowNode) => boolean;
-type LabelledParams = { labels: () => KbqAgGridLoadErrorLabels };
+type LabelledParams = {
+    labels: () => KbqAgGridLoadErrorLabels;
+    isErrorRow: IsRowSelectableFn;
+    fallbackRenderer?: unknown;
+    fallbackParams?: unknown;
+};
 
 /** Grid options are stored untyped in the mock, so each read narrows once, right here. */
 const isFullWidthRowOf = (options: Map<string, unknown>): IsFullWidthRowFn =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     options.get('isFullWidthRow') as IsFullWidthRowFn;
 
-const isRowSelectableOf = (options: Map<string, unknown>): IsRowSelectableFn =>
+const isRowSelectableOf = (options: Map<string, unknown>): IsRowSelectableFn | undefined =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    options.get('isRowSelectable') as IsRowSelectableFn;
+    options.get('isRowSelectable') as IsRowSelectableFn | undefined;
+
+/** Where AG Grid actually reads the callback from once `rowSelection` is given as an object. */
+const rowSelectionSelectableOf = (options: Map<string, unknown>): IsRowSelectableFn | undefined =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    (options.get('rowSelection') as { isRowSelectable?: IsRowSelectableFn }).isRowSelectable;
 
 const rendererParamsOf = (options: Map<string, unknown>): LabelledParams =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
@@ -243,16 +253,50 @@ describe('KbqAgGridLoadError', () => {
         expect(isFullWidthRow(fullWidthParamsAt(8))).toBe(false);
     });
 
-    it('keeps the error row unselectable and composes with an existing isRowSelectable', async () => {
+    it('keeps the error row unselectable through rowSelection, composing with the callback found there', async () => {
         const existing = jest.fn((node: IRowNode) => node.rowIndex !== 3);
-        const { options, directive } = await renderGrid({ isRowSelectable: existing });
+        const { options, directive } = await renderGrid({
+            rowSelection: { mode: 'multiRow', isRowSelectable: existing }
+        });
+        const isRowSelectable = rowSelectionSelectableOf(options);
+
+        directive.fail(150);
+
+        expect(isRowSelectable?.(rowNodeAt(150))).toBe(false);
+        expect(isRowSelectable?.(rowNodeAt(3))).toBe(false);
+        expect(isRowSelectable?.(rowNodeAt(4))).toBe(true);
+    });
+
+    it('keeps the rest of rowSelection when writing the callback into it', async () => {
+        const { options } = await renderGrid({ rowSelection: { mode: 'multiRow', checkboxes: true } });
+
+        expect(options.get('rowSelection')).toEqual(expect.objectContaining({ mode: 'multiRow', checkboxes: true }));
+    });
+
+    it('leaves the deprecated top level option alone on the current rowSelection API', async () => {
+        const { options } = await renderGrid({ rowSelection: { mode: 'multiRow' } });
+
+        // AG Grid only reads the top level option for the legacy string form, and warns about it.
+        expect(isRowSelectableOf(options)).toBeUndefined();
+    });
+
+    it('falls back to the top level option for the legacy string rowSelection', async () => {
+        const existing = jest.fn((node: IRowNode) => node.rowIndex !== 3);
+        const { options, directive } = await renderGrid({ rowSelection: 'multiple', isRowSelectable: existing });
         const isRowSelectable = isRowSelectableOf(options);
 
         directive.fail(150);
 
-        expect(isRowSelectable(rowNodeAt(150))).toBe(false);
-        expect(isRowSelectable(rowNodeAt(3))).toBe(false);
-        expect(isRowSelectable(rowNodeAt(4))).toBe(true);
+        expect(isRowSelectable?.(rowNodeAt(150))).toBe(false);
+        expect(isRowSelectable?.(rowNodeAt(3))).toBe(false);
+        expect(isRowSelectable?.(rowNodeAt(4))).toBe(true);
+    });
+
+    it('writes no selection callback at all when the grid has no rowSelection', async () => {
+        const { options } = await renderGrid();
+
+        expect(isRowSelectableOf(options)).toBeUndefined();
+        expect(options.get('rowSelection')).toBeUndefined();
     });
 
     it('registers the error row renderer with Russian labels by default', async () => {
@@ -261,6 +305,30 @@ describe('KbqAgGridLoadError', () => {
 
         expect(options.get('fullWidthCellRenderer')).toBe(KbqAgGridLoadErrorRowComponent);
         expect(params.labels()).toEqual(KBQ_AG_GRID_LOAD_ERROR_LABELS_RU);
+    });
+
+    it('carries a full width renderer the grid already had into the params', async () => {
+        const ownRenderer = class {};
+        const ownParams = { mine: true };
+        const { options } = await renderGrid({
+            fullWidthCellRenderer: ownRenderer,
+            fullWidthCellRendererParams: ownParams
+        });
+        const params = rendererParamsOf(options);
+
+        expect(options.get('fullWidthCellRenderer')).toBe(KbqAgGridLoadErrorRowComponent);
+        expect(params.fallbackRenderer).toBe(ownRenderer);
+        expect(params.fallbackParams).toBe(ownParams);
+    });
+
+    it('passes a row test that answers only for the failed row', async () => {
+        const { options, directive } = await renderGrid();
+        const params = rendererParamsOf(options);
+
+        directive.fail(150);
+
+        expect(params.isErrorRow(rowNodeAt(150))).toBe(true);
+        expect(params.isErrorRow(rowNodeAt(151))).toBe(false);
     });
 
     it('uses labels supplied through the provider', async () => {

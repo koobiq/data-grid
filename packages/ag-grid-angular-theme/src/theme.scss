@@ -991,20 +991,43 @@
     }
 
     .kbq-ag-grid-load-error-row {
-        display: flex;
-        align-items: center;
-        gap: var(--kbq-size-s);
+        // A custom element defaults to `display: inline`, and an inline box paints its background
+        // only behind its own text. The backing below has to cover the whole row.
+        display: block;
         box-sizing: border-box;
         width: 100%;
 
         // Matches the grid row height, so the banner keeps up when the row height changes.
         height: 100%;
-        padding: 0 var(--kbq-size-l);
-        background: var(--kbq-background-error-less);
-        color: var(--kbq-foreground-error);
+
+        // Only on the failed row: the same component renders every other full width row by handing
+        // it to the consumer's own renderer, and that one must not be given a background.
+        &.kbq-ag-grid-load-error-row_error {
+            // Opaque base under the error tint, which is translucent in some token builds. The
+            // banner covers the pinned column containers, and without this their separators and
+            // the cells behind them show through it.
+            background: var(--kbq-background-bg);
+        }
+
+        .kbq-ag-grid-load-error-row__content {
+            display: flex;
+            align-items: center;
+            gap: var(--kbq-size-s);
+            box-sizing: border-box;
+            width: 100%;
+            height: 100%;
+            padding: 0 var(--kbq-size-l);
+            background: var(--kbq-background-error-less);
+            color: var(--kbq-foreground-error);
+        }
 
         .kbq-ag-grid-load-error-row__icon {
             flex-shrink: 0;
+
+            // Stated rather than inherited from the row: an app that also uses @koobiq/components
+            // gets `.kbq-icon { color: var(--kbq-icon-contrast-color) }` from the icon theme, which
+            // would otherwise leave this one the default dark while the message beside it is red.
+            color: var(--kbq-icon-error);
         }
 
         .kbq-ag-grid-load-error-row__message {

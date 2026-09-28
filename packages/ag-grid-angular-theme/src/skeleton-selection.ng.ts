@@ -37,6 +37,12 @@ export class KbqAgGridSkeletonSelectionCellComponent implements ICellRendererAng
  * Intended for `rowModelType="infinite"`, alongside {@link KbqAgGridSkeletonCellRenderer} on the
  * data columns. Rows are considered unloaded when `params.data` is `undefined`.
  *
+ * Keep `[selectionColumnDef]` a stable object if the grid has one. This directive adds its renderer
+ * to that grid option once, when the grid is ready; AG Grid replaces the option wholesale every time
+ * the Angular input emits a new reference, which drops the renderer and silently brings the real
+ * checkbox back. A plain field is safe, a `computed()` rebuilding the object is not. The column
+ * width `kbqAgGridTheme` defaults there is lost the same way.
+ *
  * @example
  * ```html
  * <ag-grid-angular

@@ -1,4 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { getAgGridApi } from './utils/api';
 import { enableDarkTheme } from './utils/theme';
 
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
@@ -146,5 +147,20 @@ test.describe('KbqAgGridLoadError', () => {
         const bannerRow = page.locator('.ag-row', { has: getBanner(page) });
 
         await expect(bannerRow.locator('.ag-checkbox-input')).toHaveCount(0);
+
+        // The banner is a full width row, so it has no cell to hold a checkbox either way. Assert
+        // the callback itself, and read it from `rowSelection` — the only place AG Grid consults
+        // once that option is given as an object, which is what every consumer does.
+        const api = await getAgGridApi(page);
+        const selectable = await api.evaluate((grid) => {
+            const rowSelection = grid.getGridOption('rowSelection');
+            const banner = grid.getDisplayedRowAtIndex(grid.getDisplayedRowCount() - 1);
+
+            if (typeof rowSelection === 'string' || !rowSelection || !banner) return null;
+
+            return rowSelection.isRowSelectable?.(banner) ?? null;
+        });
+
+        expect(selectable).toBe(false);
     });
 });

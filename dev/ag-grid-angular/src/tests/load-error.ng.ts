@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, signal, viewChild } from '@angular/core';
 import { KbqAgGridLoadError, KbqAgGridSkeletonCellRenderer, KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
-import { AgGridModule } from 'ag-grid-angular';
+import { AgGridModule, ICellRendererAngularComp } from 'ag-grid-angular';
 import {
     AllCommunityModule,
     ColDef,
@@ -9,6 +9,7 @@ import {
     ICellRendererParams,
     IDatasource,
     IGetRowsParams,
+    IsFullWidthRowParams,
     ModuleRegistry,
     RowSelectionOptions,
     SelectionColumnDef
@@ -23,14 +24,17 @@ const PAGE_SIZE = 50;
 /** Искусственная задержка сети, чтобы скелетон-строки были видны глазами. */
 const REQUEST_DELAY = 500;
 
+/** Сколько строк-скелетонов грид рисует до первой загрузки. */
+const INITIAL_ROW_COUNT = 3;
+
 /** Первая строка 4-й страницы — именно её загрузка падает по сценарию из спеки. */
 const FAILING_PAGE_START_ROW = PAGE_SIZE * 3;
 
 /**
  * Данные генерируются на месте, а не берутся из `devInjectRowData()`: тот тянет по HTTP
- * `olympic-winners.json` на 2.7 МБ, а этот стенд открывается в семи e2e-тестах подряд, у каждого
- * свой контекст браузера и свой кэш. Под параллельным прогоном загрузка становилась дороже самого
- * сценария и роняла тесты по таймауту.
+ * `olympic-winners.json` на 2.7 МБ, а этот стенд открывается в нескольких e2e-тестах подряд, у
+ * каждого свой контекст браузера и свой кэш. Под параллельным прогоном загрузка становилась дороже
+ * самого сценария и роняла тесты по таймауту.
  */
 const ROW_DATA: DevRowData[] = Array.from({ length: 1000 }, (_, index) => ({
     id: String(index),
@@ -47,7 +51,7 @@ const ROW_DATA: DevRowData[] = Array.from({ length: 1000 }, (_, index) => ({
 }));
 
 const COLUMN_DEFS: ColDef[] = [
-    { field: 'athlete', headerName: 'Athlete', pinned: 'left', width: 180 },
+    { field: 'athlete', headerName: 'Athlete', width: 180 },
     { field: 'country', headerName: 'Country', width: 160 },
     { field: 'sport', headerName: 'Sport', width: 160 },
     { field: 'year', headerName: 'Year', width: 110 },
@@ -56,10 +60,14 @@ const COLUMN_DEFS: ColDef[] = [
     { field: 'gold', headerName: 'Gold', width: 100 },
     { field: 'silver', headerName: 'Silver', width: 100 },
     { field: 'bronze', headerName: 'Bronze', width: 110 },
-    { field: 'total', headerName: 'Total', pinned: 'right', width: 100 }
+    { field: 'total', headerName: 'Total', width: 100 }
 ];
 
-/** Pinned alongside the pinned first column, so the checkbox stays on the left edge of the grid. */
+/** Колонки, которые закрепляет переключатель. Первая и последняя, чтобы баннер накрывал обе секции. */
+const PINNED_LEFT = ['ag-Grid-SelectionColumn', 'athlete'];
+const PINNED_RIGHT = ['total'];
+
+/** Закреплена вместе с первой колонкой, чтобы чекбокс оставался у левого края грида. */
 const SELECTION_COLUMN_DEF: SelectionColumnDef = { pinned: 'left' };
 
 const ROW_SELECTION: RowSelectionOptions = {
@@ -68,6 +76,36 @@ const ROW_SELECTION: RowSelectionOptions = {
     headerCheckbox: false
 };
 
+/**
+ * Текстовый индикатор вместо скелетон-строк. Строка во всю ширину, а не ячейка: ячейка обрезает
+ * содержимое, и подпись не встала бы на место чекбокса.
+ */
+@Component({
+    standalone: true,
+    selector: 'dev-load-error-text-row',
+    template: `
+        Загрузка...
+    `,
+    styles: `
+        :host {
+            display: flex;
+            align-items: center;
+            height: 100%;
+            padding-left: calc(var(--ag-cell-horizontal-padding) + 1px);
+            color: var(--kbq-foreground-contrast-secondary);
+        }
+    `,
+    changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class DevLoadErrorTextRow implements ICellRendererAngularComp {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    agInit(_params: ICellRendererParams): void {}
+
+    refresh(): boolean {
+        return false;
+    }
+}
+
 @Component({
     standalone: true,
     imports: [AgGridModule, KbqAgGridThemeModule],
@@ -75,6 +113,19 @@ const ROW_SELECTION: RowSelectionOptions = {
     template: `
         <div class="dev-controls">
             <button type="button" data-testid="resetBtn" (click)="reset()">Сбросить сценарий</button>
+            <label>
+                <input
+                    type="checkbox"
+                    data-testid="textIndicatorToggle"
+                    [checked]="textIndicator()"
+                    (change)="toggleTextIndicator()"
+                />
+                Текст вместо скелетона
+            </label>
+            <label>
+                <input type="checkbox" data-testid="pinnedToggle" [checked]="pinned()" (change)="togglePinned()" />
+                Закрепить колонки
+            </label>
             <span data-testid="networkRequests">запросов в сеть: {{ networkRequests() }}</span>
             <span data-testid="lastRowKnown">lastRowKnown: {{ lastRowKnown() }}</span>
             <span data-testid="rowCount">строк: {{ rowCount() }}</span>
@@ -92,8 +143,10 @@ const ROW_SELECTION: RowSelectionOptions = {
             [datasource]="datasource"
             [rowSelection]="rowSelection"
             [selectionColumnDef]="selectionColumnDef"
+            [isFullWidthRow]="isFullWidthRow"
+            [fullWidthCellRenderer]="textRow"
             [cacheBlockSize]="pageSize"
-            [infiniteInitialRowCount]="pageSize"
+            [infiniteInitialRowCount]="initialRowCount"
             (gridReady)="onGridReady($event)"
         />
     `,
@@ -131,13 +184,28 @@ export class DevLoadError {
     private failingPageAlreadyFailed = false;
 
     protected readonly pageSize = PAGE_SIZE;
+    protected readonly initialRowCount = INITIAL_ROW_COUNT;
     protected readonly columnDefs = COLUMN_DEFS;
     protected readonly rowSelection = ROW_SELECTION;
     protected readonly selectionColumnDef = SELECTION_COLUMN_DEF;
+    protected readonly textRow = DevLoadErrorTextRow;
 
     protected readonly networkRequests = signal(0);
     protected readonly lastRowKnown = signal(false);
     protected readonly rowCount = signal(0);
+    protected readonly textIndicator = signal(false);
+    protected readonly pinned = signal(true);
+
+    /**
+     * В текстовом режиме незагруженные строки становятся строками во всю ширину. Строку ошибки
+     * `KbqAgGridLoadError` добавляет к этому колбэку сам, по «или».
+     *
+     * Одна стабильная функция, читающая сигнал, а не `computed()`, отдающий каждый раз новую: на
+     * новую ссылку в инпуте AG Grid заменяет grid option целиком и выбрасывает то, что директива в
+     * него подмешала.
+     */
+    protected readonly isFullWidthRow = ({ rowNode }: IsFullWidthRowParams): boolean =>
+        this.textIndicator() && rowNode.data === undefined;
 
     protected readonly defaultColDef: ColDef = {
         cellRendererSelector: (params: ICellRendererParams) =>
@@ -150,6 +218,7 @@ export class DevLoadError {
 
     protected onGridReady({ api }: GridReadyEvent): void {
         this.api = api;
+        this.applyPinned();
     }
 
     /** Возвращает сценарий в исходное состояние: кэш пуст, 4-я страница снова упадёт. */
@@ -164,6 +233,24 @@ export class DevLoadError {
         this.networkRequests.set(0);
         this.api?.purgeInfiniteCache();
         this.readGridState();
+    }
+
+    protected toggleTextIndicator(): void {
+        this.textIndicator.update((value) => !value);
+        // `isFullWidthRow` переоценивается только при создании строки.
+        this.api?.redrawRows();
+    }
+
+    protected togglePinned(): void {
+        this.pinned.update((value) => !value);
+        this.applyPinned();
+    }
+
+    private applyPinned(): void {
+        const pinned = this.pinned();
+
+        this.api?.setColumnsPinned(PINNED_LEFT, pinned ? 'left' : null);
+        this.api?.setColumnsPinned(PINNED_RIGHT, pinned ? 'right' : null);
     }
 
     private getRows(params: IGetRowsParams): void {

@@ -1,20 +1,25 @@
 import {
     ChangeDetectionStrategy,
     Component,
+    ComponentRef,
     computed,
     DestroyRef,
     Directive,
+    effect,
     inject,
     InjectionToken,
     input,
     output,
     Provider,
     signal,
-    Signal
+    Signal,
+    Type,
+    viewChild,
+    ViewContainerRef
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgGridAngular, ICellRendererAngularComp } from 'ag-grid-angular';
-import { GridApi, ICellRendererParams, IRowNode, IsFullWidthRowParams } from 'ag-grid-community';
+import { GridApi, ICellRendererParams, IRowNode, IsFullWidthRowParams, IsRowSelectable } from 'ag-grid-community';
 
 /** Localization strings used by the load error row. */
 export type KbqAgGridLoadErrorLabels = {
@@ -60,39 +65,84 @@ export const kbqAgGridLoadErrorLabelsProvider = (labels: KbqAgGridLoadErrorLabel
     useValue: labels
 });
 
+/** AG Grid types both full width renderer options as `any`; each is narrowed once, right here. */
+const fullWidthRendererOf = (api: GridApi): Type<ICellRendererAngularComp> | undefined =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    api.getGridOption('fullWidthCellRenderer') as Type<ICellRendererAngularComp> | undefined;
+
+const fullWidthParamsOf = (api: GridApi): Record<string, unknown> | undefined =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    api.getGridOption('fullWidthCellRendererParams') as Record<string, unknown> | undefined;
+
 /** Params passed to {@link KbqAgGridLoadErrorRowComponent} by {@link KbqAgGridLoadError}. */
 export type KbqAgGridLoadErrorRowParams = ICellRendererParams & {
     /** Labels resolved by the directive. Passed as a signal so that late changes reach a rendered row. */
     labels: Signal<KbqAgGridLoadErrorLabels>;
     /** Invoked when the user activates the retry link. */
     retry: () => void;
+    /** Tells the error row apart from any other full width row on the same grid. */
+    isErrorRow: (node: IRowNode) => boolean;
+    /** Renderer the grid had for its own full width rows before the directive took the option over. */
+    fallbackRenderer?: Type<ICellRendererAngularComp>;
+    /** Params that belonged to `fallbackRenderer`. */
+    fallbackParams?: Record<string, unknown>;
 };
 
 /**
  * Full width row that reports a failed data load and offers a retry.
  * Used internally by the {@link KbqAgGridLoadError} directive.
+ *
+ * AG Grid allows a single `fullWidthCellRenderer` per grid, so this component doubles as the
+ * dispatcher for it: on the error row it renders the banner, and on any other full width row it
+ * hands over to the renderer the consumer had registered. Without such a renderer it is the banner
+ * and nothing else, which is the out of the box case.
  */
 @Component({
     standalone: true,
     selector: 'kbq-ag-grid-load-error-row',
     host: {
         class: 'kbq-ag-grid-load-error-row',
-        role: 'alert'
+        '[class.kbq-ag-grid-load-error-row_error]': 'isErrorRow()',
+        '[attr.role]': 'isErrorRow() ? "alert" : null'
     },
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <i class="kbq kbq-icon kbq-triangle-exclamation_16 kbq-ag-grid-load-error-row__icon" aria-hidden="true"></i>
-        <span class="kbq-ag-grid-load-error-row__message">{{ labels().message }}</span>
-        <button class="kbq-ag-grid-load-error-row__retry" type="button" (click)="retry()">
-            {{ labels().retryButton }}
-        </button>
+        @if (isErrorRow()) {
+            <div class="kbq-ag-grid-load-error-row__content">
+                <i
+                    class="kbq kbq-icon kbq-triangle-exclamation_16 kbq-ag-grid-load-error-row__icon"
+                    aria-hidden="true"
+                ></i>
+                <span class="kbq-ag-grid-load-error-row__message">{{ labels().message }}</span>
+                <button class="kbq-ag-grid-load-error-row__retry" type="button" (click)="retry()">
+                    {{ labels().retryButton }}
+                </button>
+            </div>
+        }
+        <ng-container #fallbackHost />
     `
 })
 export class KbqAgGridLoadErrorRowComponent implements ICellRendererAngularComp {
     private readonly fallbackLabels = inject(KBQ_AG_GRID_LOAD_ERROR_LABELS);
     private readonly params = signal<KbqAgGridLoadErrorRowParams | null>(null);
 
+    private readonly fallbackHost = viewChild('fallbackHost', { read: ViewContainerRef });
+    private fallbackRef: ComponentRef<ICellRendererAngularComp> | null = null;
+
+    protected readonly isErrorRow = computed(() => {
+        const params = this.params();
+
+        return params?.isErrorRow(params.node) ?? false;
+    });
+
     protected readonly labels = computed(() => this.params()?.labels() ?? this.fallbackLabels);
+
+    constructor() {
+        // The container is only reachable once the view exists, and AG Grid calls `agInit` before
+        // that. Creating the consumer's renderer from an effect rather than from `agInit` waits for
+        // both without an `ngAfterViewInit` that would then have to re-read the params by hand.
+        effect(() => this.renderFallback());
+    }
 
     agInit(params: KbqAgGridLoadErrorRowParams): void {
         this.params.set(params);
@@ -100,12 +150,29 @@ export class KbqAgGridLoadErrorRowComponent implements ICellRendererAngularComp 
 
     refresh(params: KbqAgGridLoadErrorRowParams): boolean {
         this.params.set(params);
+        this.fallbackRef?.instance.refresh(params);
 
         return true;
     }
 
     protected retry(): void {
         this.params()?.retry();
+    }
+
+    private renderFallback(): void {
+        const host = this.fallbackHost();
+        const params = this.params();
+
+        if (!host || !params || this.isErrorRow() || this.fallbackRef !== null) return;
+
+        const renderer = params.fallbackRenderer;
+
+        if (!renderer) return;
+
+        this.fallbackRef = host.createComponent(renderer);
+        // AG Grid renderers take their input through `agInit`, not through Angular inputs, so the
+        // params the consumer registered alongside the renderer are merged back in here.
+        this.fallbackRef.instance.agInit({ ...params, ...params.fallbackParams });
     }
 }
 
@@ -119,8 +186,11 @@ export class KbqAgGridLoadErrorRowComponent implements ICellRendererAngularComp 
  * The number of skeleton rows shown while the next page loads is AG Grid's own `cacheOverflowSize`
  * (default `1`), not an option of this directive.
  *
- * This directive owns the `fullWidthCellRenderer` grid option; combining it with custom full width
- * rows is not supported.
+ * The directive takes over the `fullWidthCellRenderer` grid option, of which AG Grid has exactly
+ * one. A renderer already registered there keeps working: the directive draws the banner on the
+ * failed row and hands every other full width row back to it. That is how a loading row of your own
+ * coexists with the banner — `loadingCellRenderer`, AG Grid's dedicated hook for it, is driven by
+ * `rowNode.stub`, which nothing in the Community edition ever sets.
  *
  * @example
  * ```html
@@ -238,7 +308,6 @@ export class KbqAgGridLoadError {
     /** Composes with grid options already set by the consumer or by another directive on the same grid. */
     private configureGrid(api: GridApi): void {
         const isFullWidthRow = api.getGridOption('isFullWidthRow');
-        const isRowSelectable = api.getGridOption('isRowSelectable');
 
         api.setGridOption(
             'isFullWidthRow',
@@ -246,16 +315,57 @@ export class KbqAgGridLoadError {
                 this.isErrorRow(params.rowNode) || (isFullWidthRow?.(params) ?? false)
         );
 
-        api.setGridOption(
-            'isRowSelectable',
-            (node: IRowNode): boolean => !this.isErrorRow(node) && (isRowSelectable?.(node) ?? true)
-        );
+        this.keepErrorRowUnselectable(api);
+
+        // One `fullWidthCellRenderer` per grid is all AG Grid offers, and the banner needs it. The
+        // renderer the consumer registered is carried into the params instead of being dropped, and
+        // the banner component hands every non-error full width row over to it.
+        const fallbackRenderer = fullWidthRendererOf(api);
+        const fallbackParams = fullWidthParamsOf(api);
 
         api.setGridOption('fullWidthCellRenderer', KbqAgGridLoadErrorRowComponent);
         api.setGridOption('fullWidthCellRendererParams', {
             labels: this.labels,
-            retry: (): void => this.retry()
+            retry: (): void => this.retry(),
+            isErrorRow: (node: IRowNode): boolean => this.isErrorRow(node),
+            fallbackRenderer,
+            fallbackParams
         });
+    }
+
+    /**
+     * Takes the error row out of selection, writing the callback where AG Grid will actually read it.
+     *
+     * `rowSelection` given in its object form — the current API — is the only place AG Grid looks;
+     * the top level `isRowSelectable` grid option is deprecated and consulted solely for the legacy
+     * string form. Writing the top level option unconditionally would leave the error row selectable
+     * for every consumer on the current API, and log a deprecation warning at them besides. Without
+     * `rowSelection` there is no selection to guard, so nothing is written at all.
+     */
+    private keepErrorRowUnselectable(api: GridApi): void {
+        const rowSelection = api.getGridOption('rowSelection');
+
+        if (!rowSelection) return;
+
+        if (typeof rowSelection === 'string') {
+            const existing = api.getGridOption('isRowSelectable');
+
+            api.setGridOption('isRowSelectable', (node: IRowNode): boolean => this.isSelectable(node, existing));
+
+            return;
+        }
+
+        const existing = rowSelection.isRowSelectable;
+
+        api.setGridOption('rowSelection', {
+            ...rowSelection,
+            isRowSelectable: ((node: IRowNode): boolean =>
+                this.isSelectable(node, existing)) as typeof rowSelection.isRowSelectable
+        });
+    }
+
+    private isSelectable(node: IRowNode, existing: IsRowSelectable | undefined): boolean {
+        return !this.isErrorRow(node) && (existing?.(node) ?? true);
     }
 
     private isErrorRow(node: IRowNode): boolean {
