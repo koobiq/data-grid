@@ -616,6 +616,21 @@
     }
 }
 
+@mixin _ag-row-full-width() {
+    // A row is exactly as wide as the sum of its columns, so on a grid whose columns do not fill the
+    // center section the rest of every row is left unpainted: the hover, selection and focus
+    // backgrounds stop short of the right edge and the grid background shows through the gap - next
+    // to a right pinned column it reads as a white band cut into the row. The row is stretched to the
+    // width of the section instead. Once the columns overflow it, both declarations do nothing.
+    .ag-center-cols-container {
+        min-width: 100%;
+
+        .ag-row {
+            min-width: 100%;
+        }
+    }
+}
+
 @mixin _ag-row-border {
     .ag-row {
         border-bottom: unset;
@@ -1821,6 +1836,7 @@
     @include _ag-sort-indicator();
     @include _ag-text-field();
     @include _ag-row-border();
+    @include _ag-row-full-width();
     @include _ag-cell-inline-editing();
     @include _ag-popup();
     @include _ag-body-scrollbar();

@@ -117,6 +117,10 @@ if (isDevMode()) {
                 loadComponent: async () => import('./tests/theme.ng').then((m) => m.DevThemePinnedColumns)
             },
             {
+                path: 'theme-narrow-columns',
+                loadComponent: async () => import('./tests/theme.ng').then((m) => m.DevThemeNarrowColumns)
+            },
+            {
                 path: 'loading-overlay',
                 loadComponent: async () => import('./tests/loading-overlay.ng').then((m) => m.DevLoadingOverlay)
             },
