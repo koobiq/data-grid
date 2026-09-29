@@ -53,7 +53,13 @@ describe('KbqAgGridSkeletonCellRenderer', () => {
     /** Screenshot tests would go flaky the moment a width stopped being a pure function of its seed. */
     it('gives the same seed the same width every time', async () => {
         const rendered = await render(TestSkeletonCell);
+        const first = widthForSeed(rendered, 7);
 
-        expect(widthForSeed(rendered, 7)).toBe(widthForSeed(rendered, 7));
+        // Away from 7 and back, because a signal ignores a set to the value it already holds: asking
+        // for 7 twice in a row would re-read the same rendered width instead of computing a new one,
+        // and the assertion would hold even for a width picked at random.
+        widthForSeed(rendered, 8);
+
+        expect(widthForSeed(rendered, 7)).toBe(first);
     });
 });
