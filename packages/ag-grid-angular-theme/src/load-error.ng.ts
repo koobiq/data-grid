@@ -90,6 +90,16 @@ export type KbqAgGridLoadErrorRowParams = ICellRendererParams & {
 };
 
 /**
+ * What the consumer's own full width renderer is handed. AG Grid renderers take their input through
+ * `agInit` and `refresh` rather than through Angular inputs, so the params the consumer registered
+ * alongside the renderer are merged back in — in both calls, or a refresh would take them away again.
+ */
+const paramsForFallback = (params: KbqAgGridLoadErrorRowParams): ICellRendererParams => ({
+    ...params,
+    ...params.fallbackParams
+});
+
+/**
  * Full width row that reports a failed data load and offers a retry.
  * Used internally by the {@link KbqAgGridLoadError} directive.
  *
@@ -151,7 +161,7 @@ export class KbqAgGridLoadErrorRowComponent implements ICellRendererAngularComp 
 
     refresh(params: KbqAgGridLoadErrorRowParams): boolean {
         this.params.set(params);
-        this.fallbackRef?.instance.refresh(params);
+        this.fallbackRef?.instance.refresh(paramsForFallback(params));
 
         return true;
     }
@@ -171,9 +181,7 @@ export class KbqAgGridLoadErrorRowComponent implements ICellRendererAngularComp 
         if (!renderer) return;
 
         this.fallbackRef = host.createComponent(renderer);
-        // AG Grid renderers take their input through `agInit`, not through Angular inputs, so the
-        // params the consumer registered alongside the renderer are merged back in here.
-        this.fallbackRef.instance.agInit({ ...params, ...params.fallbackParams });
+        this.fallbackRef.instance.agInit(paramsForFallback(params));
     }
 }
 

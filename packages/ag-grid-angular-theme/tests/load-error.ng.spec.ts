@@ -1,7 +1,7 @@
 import { Component, Directive, forwardRef, viewChild } from '@angular/core';
 import { render } from '@testing-library/angular';
-import { AgGridAngular } from 'ag-grid-angular';
-import { GridApi, IRowNode, IsFullWidthRowParams } from 'ag-grid-community';
+import { AgGridAngular, ICellRendererAngularComp } from 'ag-grid-angular';
+import { GridApi, ICellRendererParams, IRowNode, IsFullWidthRowParams } from 'ag-grid-community';
 import { Subject } from 'rxjs';
 import {
     KBQ_AG_GRID_LOAD_ERROR_LABELS_EN,
@@ -9,6 +9,7 @@ import {
     KbqAgGridLoadError,
     KbqAgGridLoadErrorLabels,
     KbqAgGridLoadErrorRowComponent,
+    KbqAgGridLoadErrorRowParams,
     kbqAgGridLoadErrorLabelsProvider
 } from '../src/load-error.ng';
 
@@ -379,5 +380,52 @@ describe('KbqAgGridLoadError', () => {
         const params = rendererParamsOf(apiMock.options);
 
         expect(params.labels()).toEqual(KBQ_AG_GRID_LOAD_ERROR_LABELS_EN);
+    });
+});
+
+/** Stands in for a full width renderer the consumer had registered before the directive. */
+@Component({ selector: 'test-fallback-row', standalone: true, template: '' })
+class TestFallbackRow implements ICellRendererAngularComp {
+    /** The param the consumer registered alongside the renderer, as seen on each call. */
+    static readonly received: (string | undefined)[] = [];
+
+    agInit(params: ICellRendererParams & { mine?: string }): void {
+        TestFallbackRow.received.push(params.mine);
+    }
+
+    refresh(params: ICellRendererParams & { mine?: string }): boolean {
+        TestFallbackRow.received.push(params.mine);
+
+        return true;
+    }
+}
+
+describe('KbqAgGridLoadErrorRowComponent', () => {
+    /** The component only reads what the directive puts there, so a bare object stands in. */
+    const rowParams = (overrides: Partial<KbqAgGridLoadErrorRowParams>): KbqAgGridLoadErrorRowParams =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        ({
+            node: rowNodeAt(1),
+            labels: () => KBQ_AG_GRID_LOAD_ERROR_LABELS_RU,
+            retry: () => undefined,
+            isErrorRow: () => false,
+            ...overrides
+        }) as KbqAgGridLoadErrorRowParams;
+
+    beforeEach(() => {
+        TestFallbackRow.received.length = 0;
+    });
+
+    it('hands the consumer params to the fallback renderer on both agInit and refresh', async () => {
+        const { fixture } = await render(KbqAgGridLoadErrorRowComponent);
+        const component = fixture.componentInstance;
+        const params = rowParams({ fallbackRenderer: TestFallbackRow, fallbackParams: { mine: 'kept' } });
+
+        component.agInit(params);
+        fixture.detectChanges();
+        component.refresh(params);
+
+        // A refresh that forwarded the raw params would take the consumer's own away again.
+        expect(TestFallbackRow.received).toEqual(['kept', 'kept']);
     });
 });
