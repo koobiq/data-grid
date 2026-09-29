@@ -3,8 +3,8 @@ import {
     KBQ_AG_GRID_LOAD_ERROR_LABELS_EN,
     KbqAgGridLoadError,
     kbqAgGridLoadErrorLabelsProvider,
-    kbqAgGridSkeletonCells,
-    kbqAgGridSkeletonCheckbox,
+    KbqAgGridSkeletonCellRenderer,
+    KbqAgGridSkeletonSelectionCellComponent,
     KbqAgGridThemeModule
 } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule, ICellRendererAngularComp } from 'ag-grid-angular';
@@ -73,7 +73,8 @@ const PINNED_RIGHT = ['total'];
 /** Pinned along with the first column, so the checkbox stays at the left edge of the grid. */
 const SELECTION_COLUMN_DEF: SelectionColumnDef = {
     pinned: 'left',
-    cellRendererSelector: kbqAgGridSkeletonCheckbox()
+    cellRendererSelector: ({ data }: ICellRendererParams) =>
+        data === undefined ? { component: KbqAgGridSkeletonSelectionCellComponent } : undefined
 };
 
 const ROW_SELECTION: RowSelectionOptions = {
@@ -213,7 +214,10 @@ export class DevLoadError {
     protected readonly isFullWidthRow = ({ rowNode }: IsFullWidthRowParams): boolean =>
         this.textIndicator() && rowNode.data === undefined;
 
-    protected readonly defaultColDef: ColDef = { cellRendererSelector: kbqAgGridSkeletonCells() };
+    protected readonly defaultColDef: ColDef = {
+        cellRendererSelector: ({ data }: ICellRendererParams) =>
+            data === undefined ? { component: KbqAgGridSkeletonCellRenderer } : undefined
+    };
 
     protected readonly datasource: IDatasource = {
         getRows: (params: IGetRowsParams): void => this.getRows(params)

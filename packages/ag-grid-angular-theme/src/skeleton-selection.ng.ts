@@ -1,11 +1,26 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
-import { CellRendererSelectorResult, ICellRendererParams } from 'ag-grid-community';
+import { ICellRendererParams } from 'ag-grid-community';
 import { KbqAgGridSkeletonCellRenderer } from './skeleton-cell-renderer.ng';
 
 /**
- * Skeleton placeholder shown in the selection column of a row that has not loaded yet.
- * Rendered through {@link kbqAgGridSkeletonCheckbox}.
+ * Skeleton placeholder shown in the selection column of a row that has not loaded yet: a square the
+ * size of the checkbox it stands in for. Wire it up through `cellRendererSelector` in
+ * `selectionColumnDef`, and pair it with {@link KbqAgGridSkeletonCellRenderer} on the data columns.
+ *
+ * The selection column is AG Grid's own, so `selectionColumnDef` is the only way into it, and the
+ * theme deliberately leaves that wiring to you. A directive doing it for you would have to merge its
+ * renderer into the option after the grid is ready, and AG Grid replaces the option wholesale
+ * whenever the Angular input emits a new reference — a `computed()` rebuilding `selectionColumnDef`
+ * would drop the renderer and silently bring the real checkbox back.
+ *
+ * @example
+ * ```typescript
+ * readonly selectionColumnDef: SelectionColumnDef = {
+ *   cellRendererSelector: ({ data }: ICellRendererParams) =>
+ *     data === undefined ? { component: KbqAgGridSkeletonSelectionCellComponent } : undefined
+ * };
+ * ```
  */
 @Component({
     standalone: true,
@@ -27,26 +42,3 @@ export class KbqAgGridSkeletonSelectionCellComponent implements ICellRendererAng
         return false;
     }
 }
-
-/**
- * `cellRendererSelector` for `selectionColumnDef`, drawing a skeleton square the size of the
- * checkbox while the row has no data. Pair it with {@link kbqAgGridSkeletonCells} on the data
- * columns; rows are considered unloaded when `params.data` is `undefined`.
- *
- * The selection column is AG Grid's own, so `selectionColumnDef` is the only way into it. Wiring it
- * here rather than from a directive keeps the column definition yours: a directive would have to
- * merge into that grid option after the grid is ready, and AG Grid replaces the option wholesale
- * whenever the Angular input emits a new reference — which would drop the renderer and silently
- * bring the real checkbox back.
- *
- * @example
- * ```typescript
- * readonly selectionColumnDef: SelectionColumnDef = {
- *   cellRendererSelector: kbqAgGridSkeletonCheckbox()
- * };
- * ```
- */
-export const kbqAgGridSkeletonCheckbox =
-    () =>
-    (params: ICellRendererParams): CellRendererSelectorResult | undefined =>
-        params.data === undefined ? { component: KbqAgGridSkeletonSelectionCellComponent } : undefined;

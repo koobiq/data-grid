@@ -29,7 +29,7 @@ const scrollUntilError = async (page: Page): Promise<void> => {
     }).toPass({ timeout: 30_000 });
 };
 
-test.describe('kbqAgGridSkeletonCheckbox', () => {
+test.describe('KbqAgGridSkeletonSelectionCellComponent', () => {
     test('replaces the selection checkbox with a skeleton while the row has no data', async ({ page }) => {
         await page.goto('/e2e/load-error');
 
