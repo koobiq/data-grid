@@ -1,3 +1,26 @@
+## 34.6.0 (2026-09-29)
+
+### 🚀 Features
+
+- **ag-grid-angular-theme:** added KbqAgGridRowDetail directive (#DS-2605) ([#231](https://github.com/koobiq/data-grid/pull/231))
+- **ag-grid-angular-theme:** add KbqAgGridSettingsMenu directive with columns and sorting screens (#DS-4962) ([#227](https://github.com/koobiq/data-grid/pull/227))
+- tag-based publication (#DS-5212) ([#214](https://github.com/koobiq/data-grid/pull/214))
+
+### 🩹 Fixes
+
+- **ag-grid-angular-theme:** paint a row across the width of the center section ([#235](https://github.com/koobiq/data-grid/pull/235))
+- **ag-grid-angular-theme:** shade pinned columns before the first scroll ([#230](https://github.com/koobiq/data-grid/pull/230))
+- **ag-grid-angular-theme:** highlight the focused row only while it contains focus (#DS-5567) ([#229](https://github.com/koobiq/data-grid/pull/229))
+- **ag-grid-angular-theme:** move focus to the last row by tab in kbqAgGridToNextRowByTab (#DS-5567) ([#228](https://github.com/koobiq/data-grid/pull/228))
+- **ag-grid-angular-theme:** add hover/active/selected states to ag-grid selects (#DS-5339) ([#226](https://github.com/koobiq/data-grid/pull/226))
+- **ag-grid-angular-theme:** prevent text selection in firefox on shift+click (#DS-4836) ([#213](https://github.com/koobiq/data-grid/pull/213))
+- **ag-grid-angular-theme:** transparent checkbox states color (#DS-5308) ([#210](https://github.com/koobiq/data-grid/pull/210))
+
+### ❤️ Thank You
+
+- Artem Belik
+- Nikita Guryev
+
 ## 34.5.1 (2026-07-23)
 
 ### 🩹 Fixes
