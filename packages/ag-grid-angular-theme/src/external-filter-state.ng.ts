@@ -33,7 +33,6 @@ export type KbqAgGridExternalFilterStateStore<T = unknown> = KbqAgGridStateStore
 export class KbqAgGridExternalFilterStateLocalStorageStore<
     T = unknown
 > implements KbqAgGridExternalFilterStateStore<T> {
-    // TODO: Should use KBQ_WINDOW token
     private readonly localStorage = window.localStorage;
 
     getItem(key: string): T | null {
@@ -69,7 +68,6 @@ export class KbqAgGridExternalFilterStateLocalStorageStore<
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridExternalFilterStateQueryParamsStore<T = unknown> implements KbqAgGridExternalFilterStateStore<T> {
     private readonly router = inject(Router);
-    // TODO: Should use KBQ_WINDOW token
     private readonly location = window.location;
 
     getItem(key: string): T | null {

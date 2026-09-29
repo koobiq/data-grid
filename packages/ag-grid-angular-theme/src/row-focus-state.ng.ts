@@ -23,7 +23,6 @@ export type KbqAgGridRowFocusStateStore = KbqAgGridStateStore<KbqAgGridRowFocusS
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridRowFocusStateLocalStorageStore implements KbqAgGridRowFocusStateStore {
-    // TODO: Should use KBQ_WINDOW token
     private readonly localStorage = window.localStorage;
 
     getItem(key: string): KbqAgGridRowFocusStateValue | null {
@@ -59,7 +58,6 @@ export class KbqAgGridRowFocusStateLocalStorageStore implements KbqAgGridRowFocu
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridRowFocusStateQueryParamsStore implements KbqAgGridRowFocusStateStore {
     private readonly router = inject(Router);
-    // TODO: Should use KBQ_WINDOW token
     private readonly location = window.location;
 
     getItem(key: string): KbqAgGridRowFocusStateValue | null {

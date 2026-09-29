@@ -1,11 +1,20 @@
 import { Component, Directive, forwardRef, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { TestBed } from '@angular/core/testing';
 import { FormControl } from '@angular/forms';
+import { Router } from '@angular/router';
 import { render, waitFor } from '@testing-library/angular';
 import { AgGridAngular } from 'ag-grid-angular';
 import { AgEventType, GridApi } from 'ag-grid-community';
 import { Subject } from 'rxjs';
-import { KbqAgGridQuickFilterState, KbqAgGridQuickFilterStateStore } from '../src/quick-filter-state.ng';
+import {
+    KBQ_AG_GRID_QUICK_FILTER_STATE_STORE,
+    KbqAgGridQuickFilterState,
+    KbqAgGridQuickFilterStateLocalStorageStore,
+    KbqAgGridQuickFilterStateQueryParamsStore,
+    KbqAgGridQuickFilterStateStore,
+    kbqAgGridQuickFilterStateStoreProvider
+} from '../src/quick-filter-state.ng';
 
 type FilterChangedHandler = (event: { source?: string }) => void;
 
@@ -564,6 +573,133 @@ describe('KbqAgGridQuickFilterState', () => {
 
             await waitFor(() => {
                 expect(fixture.componentInstance.control.value).toBe('Bolt');
+            });
+        });
+    });
+
+    describe('built-in stores', () => {
+        const STATE_KEY = 'quick-filter-state-key';
+        const navigate = jest.fn();
+
+        beforeEach(() => {
+            navigate.mockClear();
+            localStorage.clear();
+            window.history.replaceState({}, '', '/');
+        });
+
+        afterEach(() => {
+            localStorage.clear();
+            window.history.replaceState({}, '', '/');
+        });
+
+        describe('KbqAgGridQuickFilterStateLocalStorageStore', () => {
+            const makeStore = (): KbqAgGridQuickFilterStateLocalStorageStore =>
+                TestBed.inject(KbqAgGridQuickFilterStateLocalStorageStore);
+
+            it('writes the filter text as a raw string', () => {
+                makeStore().setItem(STATE_KEY, 'Michael');
+
+                expect(localStorage.getItem(STATE_KEY)).toBe('Michael');
+            });
+
+            it('reads the filter text back', () => {
+                localStorage.setItem(STATE_KEY, 'Michael');
+
+                expect(makeStore().getItem(STATE_KEY)).toBe('Michael');
+            });
+
+            it('returns null when nothing is stored', () => {
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('returns the stored value as is, without json parsing', () => {
+                localStorage.setItem(STATE_KEY, '{ not json');
+
+                expect(makeStore().getItem(STATE_KEY)).toBe('{ not json');
+            });
+
+            it('removes the stored value', () => {
+                localStorage.setItem(STATE_KEY, 'Michael');
+                makeStore().removeItem(STATE_KEY);
+
+                expect(localStorage.getItem(STATE_KEY)).toBeNull();
+            });
+        });
+
+        describe('KbqAgGridQuickFilterStateQueryParamsStore', () => {
+            const makeStore = (): KbqAgGridQuickFilterStateQueryParamsStore => {
+                TestBed.configureTestingModule({ providers: [{ provide: Router, useValue: { navigate } }] });
+
+                return TestBed.inject(KbqAgGridQuickFilterStateQueryParamsStore);
+            };
+
+            it('reads the filter text from the query string', () => {
+                window.history.replaceState({}, '', `/?${STATE_KEY}=${encodeURIComponent('Michael Phelps')}`);
+
+                expect(makeStore().getItem(STATE_KEY)).toBe('Michael Phelps');
+            });
+
+            it('returns null when the query param is absent', () => {
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('returns the query param as is, without json parsing', () => {
+                window.history.replaceState({}, '', `/?${STATE_KEY}=not-json`);
+
+                expect(makeStore().getItem(STATE_KEY)).toBe('not-json');
+            });
+
+            it('writes the filter text into the query string', async () => {
+                await makeStore().setItem(STATE_KEY, 'Michael');
+
+                expect(navigate).toHaveBeenCalledWith([], {
+                    queryParams: { [STATE_KEY]: 'Michael' },
+                    queryParamsHandling: 'merge',
+                    replaceUrl: true
+                });
+            });
+
+            it('drops the query param on remove', async () => {
+                await makeStore().removeItem(STATE_KEY);
+
+                expect(navigate).toHaveBeenCalledWith([], {
+                    queryParams: { [STATE_KEY]: null },
+                    queryParamsHandling: 'merge',
+                    replaceUrl: true
+                });
+            });
+        });
+
+        describe('store injection', () => {
+            it('defaults to the localStorage store', () => {
+                expect(TestBed.inject(KBQ_AG_GRID_QUICK_FILTER_STATE_STORE)).toBeInstanceOf(
+                    KbqAgGridQuickFilterStateLocalStorageStore
+                );
+            });
+
+            it('binds the store class passed to kbqAgGridQuickFilterStateStoreProvider', () => {
+                TestBed.configureTestingModule({
+                    providers: [
+                        { provide: Router, useValue: { navigate } },
+                        kbqAgGridQuickFilterStateStoreProvider(KbqAgGridQuickFilterStateQueryParamsStore)
+                    ]
+                });
+
+                expect(TestBed.inject(KBQ_AG_GRID_QUICK_FILTER_STATE_STORE)).toBeInstanceOf(
+                    KbqAgGridQuickFilterStateQueryParamsStore
+                );
+            });
+
+            it('binds the store instance passed to kbqAgGridQuickFilterStateStoreProvider', () => {
+                const store: KbqAgGridQuickFilterStateStore = {
+                    getItem: () => null,
+                    setItem: () => undefined,
+                    removeItem: () => undefined
+                };
+
+                TestBed.configureTestingModule({ providers: [kbqAgGridQuickFilterStateStoreProvider(store)] });
+
+                expect(TestBed.inject(KBQ_AG_GRID_QUICK_FILTER_STATE_STORE)).toBe(store);
             });
         });
     });

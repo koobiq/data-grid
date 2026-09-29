@@ -17,7 +17,6 @@ export type KbqAgGridRowSelectionStateStore = KbqAgGridStateStore<string[]>;
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridRowSelectionStateLocalStorageStore implements KbqAgGridRowSelectionStateStore {
-    // TODO: Should use KBQ_WINDOW token
     private readonly localStorage = window.localStorage;
 
     getItem(key: string): string[] | null {
@@ -53,7 +52,6 @@ export class KbqAgGridRowSelectionStateLocalStorageStore implements KbqAgGridRow
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridRowSelectionStateQueryParamsStore implements KbqAgGridRowSelectionStateStore {
     private readonly router = inject(Router);
-    // TODO: Should use KBQ_WINDOW token
     private readonly location = window.location;
 
     getItem(key: string): string[] | null {

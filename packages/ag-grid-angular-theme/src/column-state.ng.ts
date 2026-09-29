@@ -22,7 +22,6 @@ export type KbqAgGridColumnStateStore = {
  */
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridColumnStateLocalStorageStore implements KbqAgGridColumnStateStore {
-    // TODO: Should use KBQ_WINDOW token
     private readonly localStorage = window.localStorage;
 
     getItem(key: string): ColumnState[] | null {
@@ -58,7 +57,6 @@ export class KbqAgGridColumnStateLocalStorageStore implements KbqAgGridColumnSta
 @Injectable({ providedIn: 'root' })
 export class KbqAgGridColumnStateQueryParamsStore implements KbqAgGridColumnStateStore {
     private readonly router = inject(Router);
-    // TODO: Should use KBQ_WINDOW token
     private readonly location = window.location;
 
     getItem(key: string): ColumnState[] | null {

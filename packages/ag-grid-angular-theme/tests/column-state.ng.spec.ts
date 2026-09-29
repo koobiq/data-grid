@@ -1,9 +1,18 @@
 import { Component, Directive, forwardRef, viewChild } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { Router } from '@angular/router';
 import { render, waitFor } from '@testing-library/angular';
 import { AgGridAngular } from 'ag-grid-angular';
 import { AgEventType, ColumnState, GridApi } from 'ag-grid-community';
 import { Subject } from 'rxjs';
-import { KbqAgGridColumnState, KbqAgGridColumnStateStore } from '../src/column-state.ng';
+import {
+    KBQ_AG_GRID_COLUMN_STATE_STORE,
+    KbqAgGridColumnState,
+    KbqAgGridColumnStateLocalStorageStore,
+    KbqAgGridColumnStateQueryParamsStore,
+    KbqAgGridColumnStateStore,
+    kbqAgGridColumnStateStoreProvider
+} from '../src/column-state.ng';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyEventHandler = (event?: any) => void;
@@ -351,5 +360,146 @@ describe('KbqAgGridColumnState', () => {
         expect(apiMock.api.removeEventListener).toHaveBeenCalledWith('columnVisible', getHandler('columnVisible'));
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(apiMock.api.removeEventListener).toHaveBeenCalledWith('columnResized', getHandler('columnResized'));
+    });
+
+    describe('built-in stores', () => {
+        const navigate = jest.fn();
+        const STATE_KEY = 'built-in-columns-state-key';
+        const STATE: ColumnState[] = [{ colId: 'name', width: 200 }];
+        const STATE_JSON = '[{"colId":"name","width":200}]';
+
+        beforeEach(() => {
+            navigate.mockClear();
+            localStorage.clear();
+            window.history.replaceState({}, '', '/');
+        });
+
+        afterEach(() => {
+            localStorage.clear();
+            window.history.replaceState({}, '', '/');
+        });
+
+        describe('KbqAgGridColumnStateLocalStorageStore', () => {
+            const makeStore = (): KbqAgGridColumnStateLocalStorageStore =>
+                TestBed.inject(KbqAgGridColumnStateLocalStorageStore);
+
+            it('writes the column state as json', () => {
+                makeStore().setItem(STATE_KEY, STATE);
+
+                expect(localStorage.getItem(STATE_KEY)).toBe(STATE_JSON);
+            });
+
+            it('reads the column state back', () => {
+                localStorage.setItem(STATE_KEY, STATE_JSON);
+
+                expect(makeStore().getItem(STATE_KEY)).toEqual(STATE);
+            });
+
+            it('returns null when nothing is stored', () => {
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('returns null for a malformed stored value', () => {
+                localStorage.setItem(STATE_KEY, 'not json');
+
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('removes the stored value', () => {
+                localStorage.setItem(STATE_KEY, STATE_JSON);
+                makeStore().removeItem(STATE_KEY);
+
+                expect(localStorage.getItem(STATE_KEY)).toBeNull();
+            });
+        });
+
+        describe('KbqAgGridColumnStateQueryParamsStore', () => {
+            const makeStore = (): KbqAgGridColumnStateQueryParamsStore => {
+                TestBed.configureTestingModule({ providers: [{ provide: Router, useValue: { navigate } }] });
+
+                return TestBed.inject(KbqAgGridColumnStateQueryParamsStore);
+            };
+
+            it('reads the column state from the query string', () => {
+                window.history.replaceState({}, '', `/?${STATE_KEY}=${encodeURIComponent(STATE_JSON)}`);
+
+                expect(makeStore().getItem(STATE_KEY)).toEqual(STATE);
+            });
+
+            it('returns null when the query param is absent', () => {
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('returns null for a malformed query param', () => {
+                window.history.replaceState({}, '', `/?${STATE_KEY}=not-json`);
+
+                expect(makeStore().getItem(STATE_KEY)).toBeNull();
+            });
+
+            it('writes the column state into the query string', async () => {
+                await makeStore().setItem(STATE_KEY, STATE);
+
+                expect(navigate).toHaveBeenCalledWith([], {
+                    queryParams: { [STATE_KEY]: STATE_JSON },
+                    queryParamsHandling: 'merge',
+                    replaceUrl: true
+                });
+            });
+
+            it('omits null and false column state values to keep the query string short', async () => {
+                await makeStore().setItem(STATE_KEY, [
+                    { colId: 'name', width: 200, sort: null, hide: false, pinned: 'left' }
+                ]);
+
+                expect(navigate).toHaveBeenCalledWith([], {
+                    queryParams: { [STATE_KEY]: '[{"colId":"name","width":200,"pinned":"left"}]' },
+                    queryParamsHandling: 'merge',
+                    replaceUrl: true
+                });
+            });
+
+            it('drops the query param on remove', async () => {
+                await makeStore().removeItem(STATE_KEY);
+
+                expect(navigate).toHaveBeenCalledWith([], {
+                    queryParams: { [STATE_KEY]: null },
+                    queryParamsHandling: 'merge',
+                    replaceUrl: true
+                });
+            });
+        });
+
+        describe('store injection', () => {
+            it('defaults to the localStorage store', () => {
+                expect(TestBed.inject(KBQ_AG_GRID_COLUMN_STATE_STORE)).toBeInstanceOf(
+                    KbqAgGridColumnStateLocalStorageStore
+                );
+            });
+
+            it('binds the store class passed to kbqAgGridColumnStateStoreProvider', () => {
+                TestBed.configureTestingModule({
+                    providers: [
+                        { provide: Router, useValue: { navigate } },
+                        kbqAgGridColumnStateStoreProvider(KbqAgGridColumnStateQueryParamsStore)
+                    ]
+                });
+
+                expect(TestBed.inject(KBQ_AG_GRID_COLUMN_STATE_STORE)).toBeInstanceOf(
+                    KbqAgGridColumnStateQueryParamsStore
+                );
+            });
+
+            it('binds the store instance passed to kbqAgGridColumnStateStoreProvider', () => {
+                const store: KbqAgGridColumnStateStore = {
+                    getItem: () => null,
+                    setItem: () => undefined,
+                    removeItem: () => undefined
+                };
+
+                TestBed.configureTestingModule({ providers: [kbqAgGridColumnStateStoreProvider(store)] });
+
+                expect(TestBed.inject(KBQ_AG_GRID_COLUMN_STATE_STORE)).toBe(store);
+            });
+        });
     });
 });
