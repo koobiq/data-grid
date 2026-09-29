@@ -19,7 +19,6 @@ import { KbqAgGridSelectRowsByShiftArrow } from './select-rows-by-shift-arrow.ng
 import { KbqAgGridSelectRowsByShiftClick } from './select-rows-by-shift-click.ng';
 import { KbqAgGridSettingsMenu } from './settings-menu.ng';
 import { KbqAgGridShortcuts } from './shortcuts.ng';
-import { KbqAgGridSkeletonSelection } from './skeleton-selection.ng';
 import { KbqAgGridStatusBar } from './status-bar.ng';
 import { KbqAgGridTheme } from './theme.ng';
 import { KbqAgGridToNextRowByTab } from './to-next-row-by-tab.ng';
@@ -48,8 +47,7 @@ const COMPONENTS = [
     KbqAgGridRowGroup,
     KbqAgGridRowSelectionState,
     KbqAgGridRowFocusState,
-    KbqAgGridLoadError,
-    KbqAgGridSkeletonSelection
+    KbqAgGridLoadError
 ];
 
 @NgModule({

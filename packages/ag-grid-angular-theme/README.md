@@ -284,9 +284,16 @@ Directives for persisting and restoring grid state across page reloads.
 
 ### Loading and load failures
 
-While a page of the infinite row model is loading, its rows have no data. Render `KbqAgGridSkeletonCellRenderer` for them through `cellRendererSelector`. In a cell every bar fills its column: the page arrives under rows that are already on screen, and bars of differing width would only make the grid look unsettled.
+While a page of the infinite row model is loading, its rows have no data. Two `cellRendererSelector` builders fill them with skeletons — one for your own columns, one for the selection column AG Grid generates:
 
-Add `kbqAgGridSkeletonSelection` to show a skeleton in the selection column as well, instead of a checkbox for a row that has no data yet. It merges into `selectionColumnDef`, so it composes with other directives that configure that column.
+```ts
+readonly defaultColDef: ColDef = { cellRendererSelector: kbqAgGridSkeletonCells() };
+readonly selectionColumnDef: SelectionColumnDef = { cellRendererSelector: kbqAgGridSkeletonCheckbox() };
+```
+
+In a cell every bar fills its column: the page arrives under rows that are already on screen, and bars of differing width would only make the grid look unsettled. The checkbox column gets a square the size of the checkbox it stands in for.
+
+Both are plain functions rather than a directive on purpose. A directive would have to merge its renderer into the column definition after the grid is ready, and AG Grid replaces that grid option wholesale whenever the Angular input emits a new reference — a `computed()` rebuilding `selectionColumnDef` would drop the skeleton with nothing to show for it. Written here, the column definition stays yours.
 
 Two AG Grid options control how many skeleton rows appear, both defaulting to `1`:
 

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { ILoadingCellRendererAngularComp } from 'ag-grid-angular';
-import { ILoadingCellRendererParams } from 'ag-grid-community';
+import { CellRendererSelectorResult, ICellRendererParams, ILoadingCellRendererParams } from 'ag-grid-community';
 
 /** Narrowest and widest a bar may get, in percent of its container. */
 const MIN_BAR_WIDTH = 45;
@@ -27,8 +27,8 @@ const skeletonBarWidth = (seed: number): string =>
  * Skeleton cell renderer for use with Infinite Row Model (`rowModelType="infinite"`).
  * Renders an animated skeleton placeholder inside each unloaded grid cell.
  *
- * Use via `cellRendererSelector` in `defaultColDef`: return this component when `params.data`
- * is `undefined` (row not yet fetched) and `undefined` otherwise to fall back to default rendering.
+ * Use via `cellRendererSelector` in `defaultColDef` — {@link kbqAgGridSkeletonCells} builds that
+ * selector — and pair it with `kbqAgGridSkeletonCheckbox()` in `selectionColumnDef`.
  *
  * In a grid cell every bar fills its cell. Bars of differing width belong to the cold start, where
  * the placeholder stands in for a grid that is not there yet and has to read as content; a page
@@ -38,10 +38,7 @@ const skeletonBarWidth = (seed: number): string =>
  *
  * @example
  * ```typescript
- * readonly defaultColDef: ColDef = {
- *   cellRendererSelector: (params) =>
- *     params.data === undefined ? { component: KbqAgGridSkeletonCellRenderer } : undefined
- * };
+ * readonly defaultColDef: ColDef = { cellRendererSelector: kbqAgGridSkeletonCells() };
  * ```
  */
 @Component({
@@ -72,3 +69,21 @@ export class KbqAgGridSkeletonCellRenderer implements ILoadingCellRendererAngula
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     agInit(_params: ILoadingCellRendererParams): void {}
 }
+
+/**
+ * `cellRendererSelector` for `defaultColDef`, drawing {@link KbqAgGridSkeletonCellRenderer} in every
+ * cell of a row that has no data yet. Pair it with `kbqAgGridSkeletonCheckbox()` in
+ * `selectionColumnDef` so that the checkbox column matches.
+ *
+ * Returns `undefined` for a loaded row, which hands it back to the column's own renderer. A column
+ * that needs something else while loading writes its own selector instead of using this one.
+ *
+ * @example
+ * ```typescript
+ * readonly defaultColDef: ColDef = { cellRendererSelector: kbqAgGridSkeletonCells() };
+ * ```
+ */
+export const kbqAgGridSkeletonCells =
+    () =>
+    (params: ICellRendererParams): CellRendererSelectorResult | undefined =>
+        params.data === undefined ? { component: KbqAgGridSkeletonCellRenderer } : undefined;

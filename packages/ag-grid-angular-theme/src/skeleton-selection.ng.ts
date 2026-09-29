@@ -1,12 +1,11 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, Directive, inject } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { AgGridAngular, ICellRendererAngularComp } from 'ag-grid-angular';
-import { CellRendererSelectorResult, GridApi, ICellRendererParams } from 'ag-grid-community';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ICellRendererAngularComp } from 'ag-grid-angular';
+import { CellRendererSelectorResult, ICellRendererParams } from 'ag-grid-community';
 import { KbqAgGridSkeletonCellRenderer } from './skeleton-cell-renderer.ng';
 
 /**
  * Skeleton placeholder shown in the selection column of a row that has not loaded yet.
- * Used internally by the {@link KbqAgGridSkeletonSelection} directive.
+ * Rendered through {@link kbqAgGridSkeletonCheckbox}.
  */
 @Component({
     standalone: true,
@@ -30,59 +29,24 @@ export class KbqAgGridSkeletonSelectionCellComponent implements ICellRendererAng
 }
 
 /**
- * Renders a skeleton in place of the selection checkbox while a row is still loading, so that the
- * checkbox column matches the skeleton cells next to it instead of showing an interactive checkbox
- * for a row that has no data.
+ * `cellRendererSelector` for `selectionColumnDef`, drawing a skeleton square the size of the
+ * checkbox while the row has no data. Pair it with {@link kbqAgGridSkeletonCells} on the data
+ * columns; rows are considered unloaded when `params.data` is `undefined`.
  *
- * Intended for `rowModelType="infinite"`, alongside {@link KbqAgGridSkeletonCellRenderer} on the
- * data columns. Rows are considered unloaded when `params.data` is `undefined`.
- *
- * Keep `[selectionColumnDef]` a stable object if the grid has one. This directive adds its renderer
- * to that grid option once, when the grid is ready; AG Grid replaces the option wholesale every time
- * the Angular input emits a new reference, which drops the renderer and silently brings the real
- * checkbox back. A plain field is safe, a `computed()` rebuilding the object is not. The column
- * width `kbqAgGridTheme` defaults there is lost the same way.
+ * The selection column is AG Grid's own, so `selectionColumnDef` is the only way into it. Wiring it
+ * here rather than from a directive keeps the column definition yours: a directive would have to
+ * merge into that grid option after the grid is ready, and AG Grid replaces the option wholesale
+ * whenever the Angular input emits a new reference — which would drop the renderer and silently
+ * bring the real checkbox back.
  *
  * @example
- * ```html
- * <ag-grid-angular
- *     kbqAgGridTheme
- *     kbqAgGridSkeletonSelection
- *     rowModelType="infinite"
- *     [rowSelection]="rowSelection"
- *     [datasource]="datasource"
- * />
+ * ```typescript
+ * readonly selectionColumnDef: SelectionColumnDef = {
+ *   cellRendererSelector: kbqAgGridSkeletonCheckbox()
+ * };
  * ```
  */
-@Directive({
-    standalone: true,
-    selector: 'ag-grid-angular[kbqAgGridSkeletonSelection]'
-})
-export class KbqAgGridSkeletonSelection {
-    private readonly grid = inject(AgGridAngular);
-    private readonly destroyRef = inject(DestroyRef);
-
-    constructor() {
-        this.grid.gridReady
-            .pipe(takeUntilDestroyed(this.destroyRef))
-            .subscribe(({ api }: { api: GridApi }) => this.configureSelectionColumn(api));
-    }
-
-    /**
-     * Merges into `selectionColumnDef` rather than replacing it: `KbqAgGridTheme` sets the column
-     * width there and `KbqAgGridRowGroup` sets its own renderers, and the order in which the
-     * `gridReady` handlers run is not defined.
-     */
-    private configureSelectionColumn(api: GridApi): void {
-        const existing = api.getGridOption('selectionColumnDef') ?? {};
-        const existingSelector = existing.cellRendererSelector;
-
-        api.setGridOption('selectionColumnDef', {
-            ...existing,
-            cellRendererSelector: (params: ICellRendererParams): CellRendererSelectorResult | undefined =>
-                params.data === undefined
-                    ? { component: KbqAgGridSkeletonSelectionCellComponent }
-                    : existingSelector?.(params)
-        });
-    }
-}
+export const kbqAgGridSkeletonCheckbox =
+    () =>
+    (params: ICellRendererParams): CellRendererSelectorResult | undefined =>
+        params.data === undefined ? { component: KbqAgGridSkeletonSelectionCellComponent } : undefined;
