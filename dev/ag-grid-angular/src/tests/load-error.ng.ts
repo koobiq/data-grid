@@ -1,5 +1,11 @@
 import { ChangeDetectionStrategy, Component, signal, viewChild } from '@angular/core';
-import { KbqAgGridLoadError, KbqAgGridSkeletonCellRenderer, KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
+import {
+    KBQ_AG_GRID_LOAD_ERROR_LABELS_EN,
+    KbqAgGridLoadError,
+    kbqAgGridLoadErrorLabelsProvider,
+    KbqAgGridSkeletonCellRenderer,
+    KbqAgGridThemeModule
+} from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule, ICellRendererAngularComp } from 'ag-grid-angular';
 import {
     AllCommunityModule,
@@ -18,23 +24,19 @@ import { DevRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-/** Размер блока кэша. Он же «страница» в терминах спеки DS-4087. */
+/** Cache block size — a "page" in the wording of the DS-4087 spec. */
 const PAGE_SIZE = 50;
 
-/** Искусственная задержка сети, чтобы скелетон-строки были видны глазами. */
+/** Artificial network delay, so the skeleton rows stay on screen long enough to see. */
 const REQUEST_DELAY = 500;
 
-/** Сколько строк-скелетонов грид рисует до первой загрузки. */
+/** Skeleton rows the grid draws before the first page arrives. */
 const INITIAL_ROW_COUNT = 3;
 
-/** Первая строка 4-й страницы — именно её загрузка падает по сценарию из спеки. */
-const FAILING_PAGE_START_ROW = PAGE_SIZE * 3;
-
 /**
- * Данные генерируются на месте, а не берутся из `devInjectRowData()`: тот тянет по HTTP
- * `olympic-winners.json` на 2.7 МБ, а этот стенд открывается в нескольких e2e-тестах подряд, у
- * каждого свой контекст браузера и свой кэш. Под параллельным прогоном загрузка становилась дороже
- * самого сценария и роняла тесты по таймауту.
+ * Generated here rather than taken from `devInjectRowData()`, which fetches a 2.7 MB
+ * `olympic-winners.json`. Several e2e tests open this page, each in its own browser context and
+ * cache, and under a parallel run that download cost more than the scenario and timed them out.
  */
 const ROW_DATA: DevRowData[] = Array.from({ length: 1000 }, (_, index) => ({
     id: String(index),
@@ -63,11 +65,11 @@ const COLUMN_DEFS: ColDef[] = [
     { field: 'total', headerName: 'Total', width: 100 }
 ];
 
-/** Колонки, которые закрепляет переключатель. Первая и последняя, чтобы баннер накрывал обе секции. */
+/** Columns the toggle pins. First and last, so the banner has to cover both sections. */
 const PINNED_LEFT = ['ag-Grid-SelectionColumn', 'athlete'];
 const PINNED_RIGHT = ['total'];
 
-/** Закреплена вместе с первой колонкой, чтобы чекбокс оставался у левого края грида. */
+/** Pinned along with the first column, so the checkbox stays at the left edge of the grid. */
 const SELECTION_COLUMN_DEF: SelectionColumnDef = { pinned: 'left' };
 
 const ROW_SELECTION: RowSelectionOptions = {
@@ -77,14 +79,14 @@ const ROW_SELECTION: RowSelectionOptions = {
 };
 
 /**
- * Текстовый индикатор вместо скелетон-строк. Строка во всю ширину, а не ячейка: ячейка обрезает
- * содержимое, и подпись не встала бы на место чекбокса.
+ * Text indicator in place of the skeleton rows. A full width row rather than a cell: a cell clips
+ * what sticks out of it, so the label could not start where the selection checkbox does.
  */
 @Component({
     standalone: true,
     selector: 'dev-load-error-text-row',
     template: `
-        Загрузка...
+        Loading...
     `,
     styles: `
         :host {
@@ -110,9 +112,11 @@ export class DevLoadErrorTextRow implements ICellRendererAngularComp {
     standalone: true,
     imports: [AgGridModule, KbqAgGridThemeModule],
     selector: 'dev-load-error',
+    // English labels, matching the rest of the e2e screenshots.
+    providers: [kbqAgGridLoadErrorLabelsProvider(KBQ_AG_GRID_LOAD_ERROR_LABELS_EN)],
     template: `
         <div class="dev-controls">
-            <button type="button" data-testid="resetBtn" (click)="reset()">Сбросить сценарий</button>
+            <button type="button" data-testid="resetBtn" (click)="reset()">Reset scenario</button>
             <label>
                 <input
                     type="checkbox"
@@ -120,15 +124,15 @@ export class DevLoadErrorTextRow implements ICellRendererAngularComp {
                     [checked]="textIndicator()"
                     (change)="toggleTextIndicator()"
                 />
-                Текст вместо скелетона
+                Text instead of skeleton
             </label>
             <label>
                 <input type="checkbox" data-testid="pinnedToggle" [checked]="pinned()" (change)="togglePinned()" />
-                Закрепить колонки
+                Pinned columns
             </label>
-            <span data-testid="networkRequests">запросов в сеть: {{ networkRequests() }}</span>
+            <span data-testid="networkRequests">network requests: {{ networkRequests() }}</span>
             <span data-testid="lastRowKnown">lastRowKnown: {{ lastRowKnown() }}</span>
-            <span data-testid="rowCount">строк: {{ rowCount() }}</span>
+            <span data-testid="rowCount">rows: {{ rowCount() }}</span>
         </div>
         <ag-grid-angular
             data-testid="e2eScreenshotTarget"
@@ -176,12 +180,11 @@ export class DevLoadErrorTextRow implements ICellRendererAngularComp {
 export class DevLoadError {
     private readonly loadError = viewChild.required(KbqAgGridLoadError);
 
-    /** Страницы, уже успешно полученные «с сервера». Повтор отдаёт их из памяти, не дёргая сеть. */
+    /** Pages already fetched. A retry serves them from here, so only the failed page hits the network. */
     private readonly pageCache = new Map<number, DevRowData[]>();
     private readonly pendingRequests = new Set<ReturnType<typeof setTimeout>>();
 
     private api?: GridApi;
-    private failingPageAlreadyFailed = false;
 
     protected readonly pageSize = PAGE_SIZE;
     protected readonly initialRowCount = INITIAL_ROW_COUNT;
@@ -197,12 +200,12 @@ export class DevLoadError {
     protected readonly pinned = signal(true);
 
     /**
-     * В текстовом режиме незагруженные строки становятся строками во всю ширину. Строку ошибки
-     * `KbqAgGridLoadError` добавляет к этому колбэку сам, по «или».
+     * In the text variant an unloaded row becomes a full width row. `KbqAgGridLoadError` adds the
+     * failed row to this callback itself.
      *
-     * Одна стабильная функция, читающая сигнал, а не `computed()`, отдающий каждый раз новую: на
-     * новую ссылку в инпуте AG Grid заменяет grid option целиком и выбрасывает то, что директива в
-     * него подмешала.
+     * One stable function reading the signal, not a `computed()` returning a new one: AG Grid
+     * replaces the whole grid option on every new input reference, discarding what the directive
+     * composed into it.
      */
     protected readonly isFullWidthRow = ({ rowNode }: IsFullWidthRowParams): boolean =>
         this.textIndicator() && rowNode.data === undefined;
@@ -221,15 +224,16 @@ export class DevLoadError {
         this.applyPinned();
     }
 
-    /** Возвращает сценарий в исходное состояние: кэш пуст, 4-я страница снова упадёт. */
+    /** Puts the scenario back to its starting state: empty cache, request counter at zero. */
     protected reset(): void {
-        // Запросы, начатые до сброса, грид уже не ждёт: их ответы приехали бы поверх нового состояния.
+        // The grid no longer waits for requests started before the reset; their answers would land
+        // on top of the new state.
         this.pendingRequests.forEach((request) => clearTimeout(request));
         this.pendingRequests.clear();
-        // Без этого баннер пережил бы перезагрузку, а грид остался бы уверен, что данные кончились.
+        // Without this the banner would survive the reload and the grid would stay convinced the
+        // dataset ended where the failure happened.
         this.loadError().clear();
         this.pageCache.clear();
-        this.failingPageAlreadyFailed = false;
         this.networkRequests.set(0);
         this.api?.purgeInfiniteCache();
         this.readGridState();
@@ -237,7 +241,7 @@ export class DevLoadError {
 
     protected toggleTextIndicator(): void {
         this.textIndicator.update((value) => !value);
-        // `isFullWidthRow` переоценивается только при создании строки.
+        // `isFullWidthRow` is only evaluated while a row is being built.
         this.api?.redrawRows();
     }
 
@@ -266,10 +270,9 @@ export class DevLoadError {
         const request = setTimeout(() => {
             this.pendingRequests.delete(request);
 
-            const shouldFail = params.startRow === FAILING_PAGE_START_ROW && !this.failingPageAlreadyFailed;
-
-            if (shouldFail) {
-                this.failingPageAlreadyFailed = true;
+            // Every second request that reaches the network fails, so the banner is a few scrolls
+            // away and a retry — served after the failed one — always succeeds.
+            if (this.networkRequests() % 2 === 0) {
                 params.failCallback();
                 this.loadError().fail(params.startRow);
                 this.readGridState();

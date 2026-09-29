@@ -19,7 +19,7 @@ const readNetworkRequests = async (page: Page): Promise<number> => {
     return Number(text.replace(/\D/g, ''));
 };
 
-/** Scrolls page by page until the demo datasource fails on the fourth one. */
+/** Scrolls page by page until the demo datasource fails; every second request does. */
 const scrollUntilError = async (page: Page): Promise<void> => {
     await page.locator('.ag-row[row-index]').first().waitFor();
 
@@ -71,8 +71,8 @@ test.describe('KbqAgGridLoadError', () => {
         await page.goto('/e2e/load-error');
         await scrollUntilError(page);
 
-        await expect(getBanner(page)).toContainText('Не удалось загрузить данные');
-        await expect(getRetryLink(page)).toHaveText('Повторить');
+        await expect(getBanner(page)).toContainText('Failed to load data');
+        await expect(getRetryLink(page)).toHaveText('Retry');
         await expect(page.getByTestId('lastRowKnown')).toHaveText('lastRowKnown: true');
 
         await expect(getScreenshotTarget(page)).toHaveScreenshot('load-error-banner-light.png');
@@ -136,7 +136,7 @@ test.describe('KbqAgGridLoadError', () => {
         await expect(page.getByTestId('lastRowKnown')).toHaveText('lastRowKnown: false');
         // Cached pages are served from memory, so exactly one page reaches the network.
         await expect.poll(async () => readNetworkRequests(page)).toBe(requestsBeforeRetry + 1);
-        await expect(page.getByTestId('rowCount')).toHaveText('строк: 201');
+        await expect(page.getByTestId('rowCount')).toHaveText('rows: 101');
     });
 
     test('does not let the error row be selected', async ({ page }) => {
