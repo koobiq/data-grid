@@ -284,82 +284,34 @@ Directives for persisting and restoring grid state across page reloads.
 
 ### Loading and load failures
 
-While a page of the infinite row model is loading, its rows have no data. Two `cellRendererSelector` builders fill them with skeletons — one for your own columns, one for the selection column AG Grid generates:
+Rows of a page the infinite row model is still loading have no data. Fill them with skeletons through `cellRendererSelector` — `KbqAgGridSkeletonCellRenderer` for your own columns, `KbqAgGridSkeletonSelectionCellComponent` for the selection column AG Grid generates:
 
 ```ts
-readonly defaultColDef: ColDef = { cellRendererSelector: kbqAgGridSkeletonCells() };
-readonly selectionColumnDef: SelectionColumnDef = { cellRendererSelector: kbqAgGridSkeletonCheckbox() };
+readonly defaultColDef: ColDef = {
+    cellRendererSelector: ({ data }) => (data === undefined ? { component: KbqAgGridSkeletonCellRenderer } : undefined)
+};
 ```
 
-In a cell every bar fills its column: the page arrives under rows that are already on screen, and bars of differing width would only make the grid look unsettled. The checkbox column gets a square the size of the checkbox it stands in for.
+Returning `undefined` leaves a loaded row to the column's own renderer. The theme stops at the renderers on purpose: AG Grid replaces a column definition wholesale on every new input reference, so a directive merging into one would be dropped without warning. `infiniteInitialRowCount` and `cacheOverflowSize`, both `1` by default, set how many skeleton rows appear before the first load and while the next page loads. Before the grid exists at all, `kbqAgGridLoadingOverlay` puts a grid-shaped placeholder in its place, sized by `kbqAgGridLoadingOverlayConfigProvider({ rows, cols, firstColWidth })`.
 
-Both are plain functions rather than a directive on purpose. A directive would have to merge its renderer into the column definition after the grid is ready, and AG Grid replaces that grid option wholesale whenever the Angular input emits a new reference — a `computed()` rebuilding `selectionColumnDef` would drop the skeleton with nothing to show for it. Written here, the column definition stays yours.
-
-Two AG Grid options control how many skeleton rows appear, both defaulting to `1`:
-
-| Option                    | Rows it governs                                                   |
-| ------------------------- | ----------------------------------------------------------------- |
-| `infiniteInitialRowCount` | Skeleton rows on the first load, before anything has arrived.     |
-| `cacheOverflowSize`       | Skeleton rows trailing the loaded data while the next page loads. |
-
-Before the grid exists at all, `kbqAgGridLoadingOverlay` puts a grid-shaped placeholder in its place — a header row plus `rows` rows of `cols` columns, the first of them a fixed `firstColWidth`. Here the bars do vary in width, so that the placeholder reads as content rather than as an empty frame; the variation comes from each bar's position, so it never changes between renders:
+When a page fails, `kbqAgGridLoadError` replaces it with a full width error row carrying a retry link, which scrolls with the data, stays put during horizontal scrolling and spans the pinned columns. `failCallback()` raises no grid event, so the datasource reports the failure itself:
 
 ```ts
-providers: [kbqAgGridLoadingOverlayConfigProvider({ rows: 3, cols: 3, firstColWidth: '148px' })];
+error: () => {
+    params.failCallback();
+    this.loadError().fail(params.startRow);
+};
 ```
 
-When a page fails to load, `kbqAgGridLoadError` replaces it with a full width error row carrying a retry link. The row scrolls vertically with the data, stays put during horizontal scrolling and spans the pinned columns. AG Grid's `failCallback()` leaves the rows of a failed block blank forever and raises no grid event, so the datasource has to report the failure to the directive itself:
+| Member                    | Description                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------- |
+| `fail(startRow)`          | Replaces the failed page with the error row and stops the grid requesting more blocks. |
+| `retry()`                 | Removes the error row and re-requests the failed page. Also bound to the retry link.   |
+| `clear()`                 | Removes the error row without requesting anything, releasing the focus it held.        |
+| `failedAtRow`             | Signal holding the index of the error row, or `null`.                                  |
+| `kbqAgGridLoadErrorRetry` | Emitted after the cache has been refreshed.                                            |
 
-```ts
-@Component({
-    imports: [AgGridModule, KbqAgGridTheme, KbqAgGridLoadError],
-    template: `
-        <ag-grid-angular
-            kbqAgGridTheme
-            kbqAgGridLoadError
-            rowModelType="infinite"
-            [datasource]="datasource"
-            (kbqAgGridLoadErrorRetry)="onRetry()"
-        />
-    `
-})
-export class MyGrid {
-    private readonly loadError = viewChild.required(KbqAgGridLoadError);
-
-    protected readonly datasource: IDatasource = {
-        getRows: (params: IGetRowsParams): void => {
-            this.fetchPage(params.startRow, params.endRow).subscribe({
-                next: ({ rows, lastRow }) => params.successCallback(rows, lastRow),
-                error: () => {
-                    params.failCallback();
-                    this.loadError().fail(params.startRow);
-                }
-            });
-        }
-    };
-}
-```
-
-| Member                     | Description                                                                                                                                                                                                   |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `fail(startRow)`           | Replaces the failed page with the error row and stops the grid requesting further blocks.                                                                                                                     |
-| `retry()`                  | Removes the error row and re-requests the failed page. Also bound to the retry link.                                                                                                                          |
-| `clear()`                  | Removes the error row without requesting anything. Call before reloading the grid yourself. Releases the grid focus if it was sitting on the error row, so the row taking its place does not come up focused. |
-| `failedAtRow`              | Signal holding the index of the error row, or `null`.                                                                                                                                                         |
-| `kbqAgGridLoadErrorRetry`  | Emitted after the cache has been refreshed.                                                                                                                                                                   |
-| `kbqAgGridLoadErrorLabels` | Overrides the labels for a single grid.                                                                                                                                                                       |
-
-Labels default to Russian. Supply English ones — or your own — through the provider:
-
-```ts
-providers: [kbqAgGridLoadErrorLabelsProvider(KBQ_AG_GRID_LOAD_ERROR_LABELS_EN)];
-```
-
-Retrying calls `refreshInfiniteCache()`, which marks **every** cached block for reload — Community has no per-block retry. Keep a cache of already fetched pages in your datasource and serve hits from it, so that only the failed page actually reaches the network.
-
-Sorting and filtering drop the error row, and the directive does that itself. Both are server side in the infinite row model, and AG Grid answers either by destroying the cache and re-requesting every block: the failure is about a query that no longer exists, and the page it covered may well load this time. The banner is not carried over or moved to the end of the new result — it marks the row where loading stopped, and after a fresh query it marks nothing. Call `clear()` yourself for the reloads the grid does not announce, such as `purgeInfiniteCache()`.
-
-The directive takes over the `fullWidthCellRenderer` grid option, of which AG Grid has exactly one. A renderer already registered there keeps working: the directive draws the banner on the failed row and hands every other full width row back to it. That is how a loading row of your own coexists with the banner — `loadingCellRenderer`, AG Grid's dedicated hook for it, is driven by `rowNode.stub`, which nothing in the Community edition ever sets.
+Labels default to Russian; swap them with `kbqAgGridLoadErrorLabelsProvider(KBQ_AG_GRID_LOAD_ERROR_LABELS_EN)` for an app or the `kbqAgGridLoadErrorLabels` input for one grid. Retrying calls `refreshInfiniteCache()`, which reloads **every** cached block, so cache fetched pages in your datasource to keep the network to the failed one. Sorting and filtering destroy the cache and the directive drops the error row itself; call `clear()` for the reloads it cannot see, such as `purgeInfiniteCache()`. It claims `fullWidthCellRenderer` but composes: a renderer you registered yourself still gets every full width row except the failed one.
 
 ---
 
