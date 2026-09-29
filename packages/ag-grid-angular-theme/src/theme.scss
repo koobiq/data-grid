@@ -1043,11 +1043,18 @@
             padding: 0;
             color: var(--kbq-foreground-theme);
             font: inherit;
-            text-decoration: underline;
+
+            // A pseudo link, as `kbq-link[pseudo]` is: no rule at rest. The underline is declared
+            // all the same and only coloured in on hover, so the label does not shift when it
+            // appears.
+            text-decoration-line: underline;
+            text-decoration-color: transparent;
+            text-decoration-thickness: var(--kbq-size-border-width);
             cursor: pointer;
 
             &:hover {
                 color: var(--kbq-foreground-theme-secondary);
+                text-decoration-color: var(--kbq-line-theme-less);
             }
 
             &:focus-visible {
