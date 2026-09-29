@@ -89,6 +89,8 @@ const fullWidthParamsAt = (rowIndex: number | null): IsFullWidthRowParams =>
 })
 class TestAgGridAngularStub {
     readonly gridReady = new Subject<{ api: GridApi }>();
+    readonly sortChanged = new Subject<void>();
+    readonly filterChanged = new Subject<void>();
 
     api?: GridApi;
 
@@ -128,7 +130,7 @@ class TestLoadErrorGridEn {
 
 const renderGrid = async (
     initialOptions: Record<string, unknown> = {}
-): Promise<{ component: TestLoadErrorGrid; directive: KbqAgGridLoadError } & ApiMock> => {
+): Promise<{ component: TestLoadErrorGrid; directive: KbqAgGridLoadError; grid: TestAgGridAngularStub } & ApiMock> => {
     const apiMock = createApiMock(initialOptions);
     const { fixture } = await render(TestLoadErrorGrid);
     const component = fixture.componentInstance;
@@ -136,7 +138,7 @@ const renderGrid = async (
     component.grid().emitGridReady(apiMock.api);
     fixture.detectChanges();
 
-    return { ...apiMock, component, directive: component.directive() };
+    return { ...apiMock, component, directive: component.directive(), grid: component.grid() };
 };
 
 describe('KbqAgGridLoadError', () => {
@@ -207,6 +209,30 @@ describe('KbqAgGridLoadError', () => {
         directive.clear();
 
         expect(focusedRow()).toBe(12);
+    });
+
+    it.each([['sortChanged'], ['filterChanged']] as const)('drops the error row on %s', async (event) => {
+        const { api, directive, grid } = await renderGrid();
+
+        directive.fail(150);
+        grid[event].next();
+
+        expect(directive.failedAtRow()).toBeNull();
+        // Only the call `fail()` made. The row model resets the count itself, and writing the old
+        // one back afterwards would claim rows the freshly emptied grid does not have.
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(api.setRowCount).toHaveBeenCalledTimes(1);
+    });
+
+    it('stops treating the remembered index as the error row after a sort', async () => {
+        const { options, directive, grid } = await renderGrid();
+        const isFullWidthRow = isFullWidthRowOf(options);
+
+        directive.fail(150);
+        grid.sortChanged.next();
+
+        // Otherwise a row of the new query landing on that index would be drawn as the banner.
+        expect(isFullWidthRow(fullWidthParamsAt(150))).toBe(false);
     });
 
     it('ignores clear() when there is no error row', async () => {

@@ -350,6 +350,8 @@ providers: [kbqAgGridLoadErrorLabelsProvider(KBQ_AG_GRID_LOAD_ERROR_LABELS_EN)];
 
 Retrying calls `refreshInfiniteCache()`, which marks **every** cached block for reload — Community has no per-block retry. Keep a cache of already fetched pages in your datasource and serve hits from it, so that only the failed page actually reaches the network.
 
+Sorting and filtering drop the error row, and the directive does that itself. Both are server side in the infinite row model, and AG Grid answers either by destroying the cache and re-requesting every block: the failure is about a query that no longer exists, and the page it covered may well load this time. The banner is not carried over or moved to the end of the new result — it marks the row where loading stopped, and after a fresh query it marks nothing. Call `clear()` yourself for the reloads the grid does not announce, such as `purgeInfiniteCache()`.
+
 The directive takes over the `fullWidthCellRenderer` grid option, of which AG Grid has exactly one. A renderer already registered there keeps working: the directive draws the banner on the failed row and hands every other full width row back to it. That is how a loading row of your own coexists with the banner — `loadingCellRenderer`, AG Grid's dedicated hook for it, is driven by `rowNode.stub`, which nothing in the Community edition ever sets.
 
 ---

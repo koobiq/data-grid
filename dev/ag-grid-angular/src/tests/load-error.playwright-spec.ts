@@ -139,6 +139,19 @@ test.describe('KbqAgGridLoadError', () => {
         await expect(page.getByTestId('rowCount')).toHaveText('rows: 101');
     });
 
+    test('drops the error row when the sorting changes', async ({ page }) => {
+        test.setTimeout(40_000);
+        await page.goto('/e2e/load-error');
+        await scrollUntilError(page);
+
+        await page.locator('.ag-header-cell[col-id="athlete"]').click();
+
+        // Sorting is server side here, so AG Grid throws the cache away and asks for everything
+        // again. The failure was about the previous query, and `setRowCount(n, true)` goes with it.
+        await expect(getBanner(page)).toBeHidden();
+        await expect(page.getByTestId('lastRowKnown')).toHaveText('lastRowKnown: false');
+    });
+
     test('does not let the error row be selected', async ({ page }) => {
         test.setTimeout(40_000);
         await page.goto('/e2e/load-error');

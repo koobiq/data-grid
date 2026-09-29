@@ -20,6 +20,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgGridAngular, ICellRendererAngularComp } from 'ag-grid-angular';
 import { GridApi, ICellRendererParams, IRowNode, IsFullWidthRowParams, IsRowSelectable } from 'ag-grid-community';
+import { merge } from 'rxjs';
 
 /** Localization strings used by the load error row. */
 export type KbqAgGridLoadErrorLabels = {
@@ -186,6 +187,12 @@ export class KbqAgGridLoadErrorRowComponent implements ICellRendererAngularComp 
  * The number of skeleton rows shown while the next page loads is AG Grid's own `cacheOverflowSize`
  * (default `1`), not an option of this directive.
  *
+ * Sorting and filtering drop the error row. Both are server side in the infinite row model, and AG
+ * Grid answers either by destroying the cache and re-requesting every block, so the failure is about
+ * a query that no longer exists and the page it covered may well load this time. The banner is not
+ * carried over or moved to the end of the new result: it marks the row where loading stopped, and
+ * after a fresh query it marks nothing.
+ *
  * The directive takes over the `fullWidthCellRenderer` grid option, of which AG Grid has exactly
  * one. A renderer already registered there keeps working: the directive draws the banner on the
  * failed row and hands every other full width row back to it. That is how a loading row of your own
@@ -238,6 +245,13 @@ export class KbqAgGridLoadError {
         this.grid.gridReady
             .pipe(takeUntilDestroyed(this.destroyRef))
             .subscribe(({ api }: { api: GridApi }) => this.configureGrid(api));
+
+        // The infinite row model wires both of these straight to its own `reset()`: the cache is
+        // destroyed and every block re-requested. The failure belonged to a request of the previous
+        // query and says nothing about the new one, so it is dropped — see `forget()`.
+        merge(this.grid.sortChanged, this.grid.filterChanged)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe(() => this.forget());
     }
 
     /**
@@ -275,8 +289,9 @@ export class KbqAgGridLoadError {
     /**
      * Removes the error row without requesting anything, and hands the grid back the rows the error
      * row was covering. Call this before reloading the grid for an unrelated reason — a new search,
-     * a filter change, `purgeInfiniteCache()` — otherwise the stale error row survives the reload
-     * and the grid stays convinced the dataset ended where the failure happened.
+     * `purgeInfiniteCache()` — otherwise the stale error row survives the reload and the grid stays
+     * convinced the dataset ended where the failure happened. Sorting and filtering are handled by
+     * the directive itself.
      *
      * `setRowCount(startRow, false)` is what restores the grid's "last row unknown" state, undoing
      * the lie told by {@link fail}.
@@ -287,10 +302,31 @@ export class KbqAgGridLoadError {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if (startRow === null || !this.grid.api) return;
 
-        this.failedRow.set(null);
-        this.releaseFocusFromErrorRow(this.grid.api, startRow);
+        this.forget();
         this.grid.api.setRowCount(startRow, false);
         this.grid.api.redrawRows();
+    }
+
+    /**
+     * Drops the failure without touching the row count, for when the grid has already discarded the
+     * model the failure was recorded against.
+     *
+     * The row count is deliberately left alone: the row model resets it itself, and the order in
+     * which it and this directive receive `sortChanged` is not defined — writing the old count back
+     * afterwards would tell a freshly emptied grid that it holds rows it does not have.
+     *
+     * Forgetting matters beyond the banner disappearing on its own. `isErrorRow` compares row
+     * indexes, so a remembered index outlives the rows it referred to: once the new query fills that
+     * position, a row with data would be drawn as the error row.
+     */
+    private forget(): void {
+        const startRow = this.failedRow();
+
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        if (startRow === null || !this.grid.api) return;
+
+        this.failedRow.set(null);
+        this.releaseFocusFromErrorRow(this.grid.api, startRow);
     }
 
     /**
