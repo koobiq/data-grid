@@ -112,3 +112,35 @@ export class DevThemePinnedColumns {
         pinned: PINNED_COLUMNS[colDef.field ?? '']
     }));
 }
+
+/** Grid whose columns leave empty space, covering the row painted across the width of the section. */
+@Component({
+    standalone: true,
+    imports: [AgGridModule, KbqAgGridThemeModule],
+    selector: 'dev-theme-narrow-columns',
+    template: `
+        <ag-grid-angular
+            data-testid="e2eScreenshotTarget"
+            kbqAgGridTheme
+            kbqAgGridThemeDisableCellFocusStyles
+            animateRows="false"
+            [rowData]="rowData()"
+            [columnDefs]="columnDefs"
+            [rowSelection]="rowSelection"
+        />
+    `,
+    styles: PAGE_STYLES,
+    changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class DevThemeNarrowColumns {
+    readonly rowData = devInjectRowData();
+    readonly rowSelection = ROW_SELECTION;
+    // Narrow enough to leave empty space at every viewport the e2e tests use, with a pinned column
+    // to keep the gap between the last column and the pinned section in the shot.
+    readonly columnDefs: ColDef[] = [
+        { field: 'athlete', headerName: 'Athlete', width: 200 },
+        { field: 'year', headerName: 'Year', width: 100 },
+        { field: 'country', headerName: 'Country', width: 160 },
+        { field: 'total', headerName: 'Total', width: 120, pinned: 'right' }
+    ];
+}

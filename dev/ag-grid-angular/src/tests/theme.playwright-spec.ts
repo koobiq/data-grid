@@ -1,6 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 import { getAgGridApi } from './utils/api';
-import { getCell, getRow, toggleRowSelection } from './utils/helpers';
+import { getCell, getRow, toggleRowSelection, waitForRowSelected } from './utils/helpers';
 import { enableDarkTheme } from './utils/theme';
 
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
@@ -102,6 +102,34 @@ test.describe('KbqAgGridAngularTheme', () => {
 
         await expect(grid).toHaveClass(/ag-theme-koobiq_pinned-left-cols-overflow/);
         await expect(grid).not.toHaveClass(/ag-theme-koobiq_pinned-right-cols-overflow/);
+    });
+
+    // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
+    test('paints a row across the space left by columns narrower than the grid', async ({ page }) => {
+        await page.goto('/e2e/theme-narrow-columns');
+        // Wait for row data to load via HTTP before measuring the grid.
+        await page.locator('.ag-row[row-index]').first().waitFor();
+        await toggleRowSelection(page, 1);
+        await waitForRowSelected(page, 1);
+
+        const measured = await page
+            .locator('.ag-center-cols-container .ag-row[row-index="1"]')
+            .evaluate((row: HTMLElement) => {
+                const viewport = row.closest<HTMLElement>('.ag-center-cols-viewport')!;
+                const cells = Array.from(row.querySelectorAll('.ag-cell'));
+
+                return {
+                    row: Math.round(row.getBoundingClientRect().width),
+                    viewport: viewport.clientWidth,
+                    cells: Math.round(cells.reduce((width, cell) => width + cell.getBoundingClientRect().width, 0))
+                };
+            });
+
+        // Without empty space left by the columns the assertion below would hold on its own.
+        expect(measured.cells).toBeLessThan(measured.viewport);
+        expect(measured.row).toBe(measured.viewport);
+
+        await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-narrow-columns-light.png');
     });
 
     test('drops the shadows of the pinned columns once every column fits the resized grid', async ({ page }) => {
