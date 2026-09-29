@@ -224,6 +224,18 @@ describe('KbqAgGridLoadError', () => {
         expect(api.setRowCount).toHaveBeenCalledTimes(1);
     });
 
+    it('never treats a row that has data as the error row', async () => {
+        const { options, directive } = await renderGrid();
+        const isFullWidthRow = isFullWidthRowOf(options);
+
+        directive.fail(150);
+
+        // The index outlives the model it pointed into, and not every cache reset announces itself.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        expect(isFullWidthRow({ rowNode: { rowIndex: 150, data: {} } } as IsFullWidthRowParams)).toBe(false);
+        expect(isFullWidthRow(fullWidthParamsAt(150))).toBe(true);
+    });
+
     it('stops treating the remembered index as the error row after a sort', async () => {
         const { options, directive, grid } = await renderGrid();
         const isFullWidthRow = isFullWidthRowOf(options);

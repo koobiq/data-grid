@@ -193,6 +193,11 @@ export class KbqAgGridLoadErrorRowComponent implements ICellRendererAngularComp 
  * carried over or moved to the end of the new result: it marks the row where loading stopped, and
  * after a fresh query it marks nothing.
  *
+ * Other things reset that cache without an event to listen to — a new `datasource`, a changed
+ * `cacheBlockSize`, `columnDefs` carrying a different sort, `purgeInfiniteCache()`. Call
+ * {@link clear} when you do any of them. Leaving it out costs a banner that lingers over a row that
+ * has yet to load, never one drawn over data.
+ *
  * The directive takes over the `fullWidthCellRenderer` grid option, of which AG Grid has exactly
  * one. A renderer already registered there keeps working: the directive draws the banner on the
  * failed row and hands every other full width row back to it. That is how a loading row of your own
@@ -404,7 +409,15 @@ export class KbqAgGridLoadError {
         return !this.isErrorRow(node) && (existing?.(node) ?? true);
     }
 
+    /**
+     * A row index alone would not be enough. The index is a position in a model the grid is free to
+     * throw away — `sortChanged` and `filterChanged` are handled above, but a new `datasource`, a
+     * changed `cacheBlockSize` or `columnDefs` carrying a different sort reset the cache just as
+     * quietly. Requiring the row to still be empty means a loaded row can never be drawn as the
+     * banner, whichever reset went unnoticed; the page under a stale banner then either arrives and
+     * takes the row back, or fails again and earns it.
+     */
     private isErrorRow(node: IRowNode): boolean {
-        return node.rowIndex !== null && node.rowIndex === this.failedRow();
+        return node.data === undefined && node.rowIndex !== null && node.rowIndex === this.failedRow();
     }
 }
