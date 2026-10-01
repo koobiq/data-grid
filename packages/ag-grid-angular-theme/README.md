@@ -12,6 +12,7 @@ Navigation:
 - [Expandable Rows](#expandable-rows)
 - [Custom Keyboard Shortcuts](#custom-keyboard-shortcuts)
 - [State Persistence](#state-persistence)
+- [Loading and Load Failures](#loading-and-load-failures)
 - [Development](#development)
 
 ## Installation
@@ -280,6 +281,37 @@ Directives for persisting and restoring grid state across page reloads.
 | `kbqAgGridRowDetail`           | Expanded row ids                      | `KbqAgGridRowDetailStateLocalStorageStore` (default), `KbqAgGridRowDetailStateQueryParamsStore`           |
 
 `kbqAgGridRowSelectionState`, `kbqAgGridRowFocusState` and `kbqAgGridRowDetail` also need `getRowId` set on the grid, so that row identity survives a reload.
+
+### Loading and load failures
+
+Rows of a page the infinite row model is still loading have no data. Fill them with skeletons through `cellRendererSelector` — `KbqAgGridSkeletonCellRenderer` for your own columns, `KbqAgGridSkeletonSelectionCellComponent` for the selection column AG Grid generates:
+
+```ts
+readonly defaultColDef: ColDef = {
+    cellRendererSelector: ({ data }) => (data === undefined ? { component: KbqAgGridSkeletonCellRenderer } : undefined)
+};
+```
+
+Returning `undefined` leaves a loaded row to the column's own renderer. The theme stops at the renderers on purpose: AG Grid replaces a column definition wholesale on every new input reference, so a directive merging into one would be dropped without warning. `infiniteInitialRowCount` and `cacheOverflowSize`, both `1` by default, set how many skeleton rows appear before the first load and while the next page loads. Before the grid exists at all, `kbqAgGridLoadingOverlay` puts a grid-shaped placeholder in its place, sized by `kbqAgGridLoadingOverlayConfigProvider({ rows, cols, firstColWidth })`.
+
+When a page fails, `kbqAgGridLoadError` replaces it with a full width error row carrying a retry link, which scrolls with the data, stays put during horizontal scrolling and spans the pinned columns. `failCallback()` raises no grid event, so the datasource reports the failure itself:
+
+```ts
+error: () => {
+    params.failCallback();
+    this.loadError().fail(params.startRow);
+};
+```
+
+| Member                    | Description                                                                            |
+| ------------------------- | -------------------------------------------------------------------------------------- |
+| `fail(startRow)`          | Replaces the failed page with the error row and stops the grid requesting more blocks. |
+| `retry()`                 | Removes the error row and re-requests the failed page. Also bound to the retry link.   |
+| `clear()`                 | Removes the error row without requesting anything, releasing the focus it held.        |
+| `failedAtRow`             | Signal holding the index of the error row, or `null`.                                  |
+| `kbqAgGridLoadErrorRetry` | Emitted after the cache has been refreshed.                                            |
+
+Labels default to Russian; swap them with `kbqAgGridLoadErrorLabelsProvider(KBQ_AG_GRID_LOAD_ERROR_LABELS_EN)` for an app or the `kbqAgGridLoadErrorLabels` input for one grid. Retrying calls `refreshInfiniteCache()`, which reloads **every** cached block, so cache fetched pages in your datasource to keep the network to the failed one. Sorting and filtering destroy the cache and the directive drops the error row itself; call `clear()` for the reloads it cannot see, such as `purgeInfiniteCache()`. It claims `fullWidthCellRenderer` but composes: a renderer you registered yourself still gets every full width row except the failed one.
 
 ---
 
