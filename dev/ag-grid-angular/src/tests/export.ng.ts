@@ -4,7 +4,7 @@ import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, GridApi, GridReadyEvent, ModuleRegistry } from 'ag-grid-community';
 import { jsPDF } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
-import { utils, writeFile } from 'xlsx';
+import writeXlsxFile from 'write-excel-file/browser';
 import { devInjectRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -79,13 +79,10 @@ export class DevExport {
     }
 
     /** Downloads the grid data as an .xlsx file. */
-    protected downloadXlsx(): void {
+    protected async downloadXlsx(): Promise<void> {
         const table = this.getExportTable();
         if (!table) return;
-        const worksheet = utils.aoa_to_sheet([table.headers, ...table.rows]);
-        const workbook = utils.book_new();
-        utils.book_append_sheet(workbook, worksheet, 'Export');
-        writeFile(workbook, `${this.filename}.xlsx`);
+        await writeXlsxFile([table.headers, ...table.rows], { sheet: 'Export' }).toFile(`${this.filename}.xlsx`);
     }
 
     /** Downloads the grid data as a .pdf file. */
