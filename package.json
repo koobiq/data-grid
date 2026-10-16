@@ -83,7 +83,7 @@
         "jspdf": "^4.2.1",
         "jspdf-autotable": "^5.0.8",
         "rxjs": "~7.8.0",
-        "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+        "write-excel-file": "^4.1.1",
         "zone.js": "~0.16.3"
     },
     "devDependencies": {
