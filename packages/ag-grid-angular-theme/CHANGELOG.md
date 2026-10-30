@@ -1,3 +1,13 @@
+## 34.7.0 (2026-10-30)
+
+### 🚀 Features
+
+- **ag-grid-angular-theme:** added KbqAgGridLoadError and KbqAgGridSkeletonSelection directives (#DS-4087) ([#234](https://github.com/koobiq/data-grid/pull/234))
+
+### ❤️ Thank You
+
+- Nikita Guryev
+
 ## 34.6.0 (2026-09-29)
 
 ### 🚀 Features
