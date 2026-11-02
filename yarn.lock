@@ -9961,7 +9961,7 @@ __metadata:
     jest-preset-angular: "npm:14.6.2"
     jiti: "npm:^2.7.0"
     jspdf: "npm:^4.2.1"
-    jspdf-autotable: "npm:^5.0.8"
+    jspdf-autotable: "npm:^5.0.9"
     lint-staged: "npm:^15.5.2"
     ng-packagr: "npm:^18.2.0"
     nx: "npm:^20.8.4"
@@ -13973,12 +13973,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jspdf-autotable@npm:^5.0.8":
-  version: 5.0.8
-  resolution: "jspdf-autotable@npm:5.0.8"
+"jspdf-autotable@npm:^5.0.9":
+  version: 5.0.9
+  resolution: "jspdf-autotable@npm:5.0.9"
   peerDependencies:
     jspdf: ^2 || ^3 || ^4
-  checksum: 10c0/c5e695d6d31692b9d2c11d284948ad508fc3e616d0b555119451dfd307176bdd80c880459cef6fee9e7db5140272b6fa281ee0ffaeeffddca6bf2497b577b40e
+  checksum: 10c0/c0e217765df1895560b7850a057b297ee82677db0608516ff25c81722416fc92149189c3f9f9361df6d31e5e8784c1367d63b1228d225b7bc4e59eb34bf32c3e
   languageName: node
   linkType: hard
 
