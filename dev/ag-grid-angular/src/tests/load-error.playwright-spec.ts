@@ -123,6 +123,17 @@ test.describe('KbqAgGridLoadError', () => {
         expect(banner?.height).toBe(dataRow?.height);
     });
 
+    test('keeps the bottom corners of the error row rounded', async ({ page }) => {
+        test.setTimeout(40_000);
+        await page.goto('/e2e/load-error');
+        await scrollUntilError(page);
+
+        const row = page.locator('.ag-row:has(.kbq-ag-grid-load-error-row_error)');
+
+        await expect(row).toHaveCSS('border-bottom-left-radius', '8px');
+        await expect(row).toHaveCSS('border-bottom-right-radius', '8px');
+    });
+
     test('re-requests only the failed page on retry', async ({ page }) => {
         test.setTimeout(40_000);
         await page.goto('/e2e/load-error');

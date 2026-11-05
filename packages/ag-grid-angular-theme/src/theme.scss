@@ -990,6 +990,14 @@
         z-index: 2;
     }
 
+    // The failed row is always the last one, and `_ag-row-border-radius()` squares the bottom corners of the last
+    // row. The banner has to keep them rounded: it can float above the horizontal scrollbar, not only against the
+    // grid frame.
+    .ag-row:has(.kbq-ag-grid-load-error-row_error) {
+        --ag-theme-koobiq-row-border-bottom-right-radius: var(--ag-border-radius);
+        --ag-theme-koobiq-row-border-bottom-left-radius: var(--ag-border-radius);
+    }
+
     .kbq-ag-grid-load-error-row {
         // A custom element defaults to `display: inline`, and an inline box paints its background
         // only behind its own text. The backing below has to cover the whole row.
