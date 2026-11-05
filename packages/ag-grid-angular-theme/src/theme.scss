@@ -785,6 +785,18 @@
             }
         }
     }
+
+    .ag-body-horizontal-scroll {
+        .ag-horizontal-left-spacer,
+        .ag-horizontal-right-spacer {
+            scrollbar-width: none;
+        }
+
+        .ag-horizontal-left-spacer::-webkit-scrollbar,
+        .ag-horizontal-right-spacer::-webkit-scrollbar {
+            display: none;
+        }
+    }
 }
 
 @mixin _ag-theme-typography() {
