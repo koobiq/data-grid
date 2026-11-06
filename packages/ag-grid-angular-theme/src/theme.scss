@@ -165,8 +165,18 @@
 
         background-color: var(--ag-theme-koobiq-row-background-color);
 
-        // Prevent interaction with the row when it contains a skeleton loader
+        // Prevent interaction with the row when it contains a skeleton loader. The next rule does not make this one
+        // redundant: AG Grid never removes `row-id`, so a row that loses its data in place keeps it. The two stay
+        // apart because a browser without `:has()` would drop a rule listing both.
         &:has(.kbq-ag-grid-skeleton-cell-renderer) {
+            pointer-events: none;
+        }
+
+        // AG Grid inserts a row ahead of its cell renderers and rebuilds every row without data whenever a page lands,
+        // so waiting for the skeleton would leave a moment for the row under the cursor to catch `ag-row-hover`. The
+        // missing `row-id` is there from the start. Full width rows stay out: the error row of `KbqAgGridLoadError`
+        // has no data either, and its retry link has to stay clickable.
+        &:not([row-id], .ag-full-width-row) {
             pointer-events: none;
         }
 
@@ -886,7 +896,6 @@
         .kbq-ag-grid-skeleton-cell {
             --kbq-ag-grid-skeleton-wave-width: 100px;
             --kbq-ag-grid-skeleton-animation-duration: 1200ms;
-            --kbq-ag-grid-skeleton-animation-delay: 0ms;
             --kbq-ag-grid-skeleton-border-radius: var(--kbq-size-xxs);
             --kbq-ag-grid-skeleton-z-index: 1;
             --kbq-ag-grid-skeleton-background: var(--kbq-skeleton-background);
@@ -918,8 +927,10 @@
                     var(--kbq-ag-grid-skeleton-animation-wave-center) 50%,
                     var(--kbq-ag-grid-skeleton-animation-wave-end) 100%
                 );
+
+                // The delay is set per cell by `KbqAgGridSkeletonCellRenderer`, so bars share one clock.
                 animation: kbq-ag-grid-skeleton-wave var(--kbq-ag-grid-skeleton-animation-duration) ease-in
-                    var(--kbq-ag-grid-skeleton-animation-delay) infinite;
+                    var(--kbq-ag-grid-skeleton-animation-delay, 0ms) infinite;
             }
         }
     }

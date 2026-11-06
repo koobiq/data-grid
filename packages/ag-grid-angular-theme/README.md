@@ -294,6 +294,8 @@ readonly defaultColDef: ColDef = {
 
 Returning `undefined` leaves a loaded row to the column's own renderer. The theme stops at the renderers on purpose: AG Grid replaces a column definition wholesale on every new input reference, so a directive merging into one would be dropped without warning. `infiniteInitialRowCount` and `cacheOverflowSize`, both `1` by default, set how many skeleton rows appear before the first load and while the next page loads. Before the grid exists at all, `kbqAgGridLoadingOverlay` puts a grid-shaped placeholder in its place, sized by `kbqAgGridLoadingOverlayConfigProvider({ rows, cols, firstColWidth })`.
 
+Under the theme a row without data ignores the pointer in any infinite grid, skeletons or not: it neither highlights on hover nor takes clicks, so keep anything interactive out of a loading cell. Full width rows are the exception, which is what keeps the retry link below clickable.
+
 When a page fails, `kbqAgGridLoadError` replaces it with a full width error row carrying a retry link, which scrolls with the data, stays put during horizontal scrolling and spans the pinned columns. `failCallback()` raises no grid event, so the datasource reports the failure itself:
 
 ```ts
