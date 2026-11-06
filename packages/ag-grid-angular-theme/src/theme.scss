@@ -219,6 +219,22 @@
             --ag-theme-koobiq-row-background-color: var(--kbq-states-background-theme-less-active);
         }
     }
+
+    // `:active` matches only the pressed element, while pinned columns split a row into several `.ag-row`, so the
+    // active background would stop at the edge of the pressed section and leave the rest of the row in its hover
+    // colour. The pressed row is the hovered one and ag-grid sets `ag-row-hover` on every part of it, so the active
+    // background is passed on to the parts the pointer is not over. Each rule outweighs the hover rule of its state.
+    .ag-root-wrapper:has(.ag-row-hover:active) .ag-row-hover {
+        --ag-theme-koobiq-row-background-color: var(--kbq-states-background-transparent-active);
+
+        &.ag-row-selected {
+            --ag-theme-koobiq-row-background-color: var(--kbq-states-background-contrast-less-active);
+        }
+    }
+
+    .ag-root-wrapper:has(.ag-row-focus:focus-within):has(.ag-row-hover:active) .ag-row-focus.ag-row-hover {
+        --ag-theme-koobiq-row-background-color: var(--kbq-states-background-theme-less-active);
+    }
 }
 
 @mixin _ag-drag-and-drop() {

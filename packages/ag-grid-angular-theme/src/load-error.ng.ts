@@ -372,7 +372,8 @@ export class KbqAgGridLoadError {
         const fallbackRenderer = fullWidthRendererOf(api);
         const fallbackParams = fullWidthParamsOf(api);
 
-        api.setGridOption('fullWidthCellRenderer', KbqAgGridLoadErrorRowComponent);
+        // The params go first: setting the renderer rebuilds the full width rows already on screen, and
+        // the banner created for them reads `isErrorRow` from the params.
         api.setGridOption('fullWidthCellRendererParams', {
             labels: this.labels,
             retry: (): void => this.retry(),
@@ -380,6 +381,7 @@ export class KbqAgGridLoadError {
             fallbackRenderer,
             fallbackParams
         });
+        api.setGridOption('fullWidthCellRenderer', KbqAgGridLoadErrorRowComponent);
     }
 
     /**

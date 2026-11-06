@@ -132,6 +132,53 @@ test.describe('KbqAgGridAngularTheme', () => {
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-narrow-columns-light.png');
     });
 
+    test('keeps the active background across the row parts split by a pinned column', async ({ page }) => {
+        await page.goto('/e2e/theme-narrow-columns');
+        // Wait for row data to load via HTTP before interacting with the grid.
+        await page.locator('.ag-row[row-index]').first().waitFor();
+        await expect(getRow(page, 2)).toHaveCount(2);
+
+        // Hovers the target, then returns the backgrounds of every row part before and while it is pressed.
+        const press = async (
+            target: Locator,
+            position?: { x: number; y: number }
+        ): Promise<{ hover: string[]; active: string[] }> => {
+            await target.hover({ position });
+            const hover = await getRowBackgrounds(page, 2);
+
+            await page.mouse.down();
+            const active = await getRowBackgrounds(page, 2);
+
+            await page.mouse.up();
+
+            return { hover, active };
+        };
+
+        // The space left by the narrow columns: pressing it keeps the focus out of the row.
+        const centerPart = getRow(page, 2).first();
+        const emptySpace = { x: (await centerPart.evaluate((row) => row.clientWidth)) - 40, y: 10 };
+
+        const plain = await press(centerPart, emptySpace);
+
+        expect(plain.active).toEqual([plain.active[0], plain.active[0]]);
+        expect(plain.active[0]).not.toBe(plain.hover[0]);
+
+        await (await getAgGridApi(page)).evaluate((api) => api.getDisplayedRowAtIndex(2)?.setSelected(true));
+        await waitForRowSelected(page, 2);
+
+        const selected = await press(centerPart, emptySpace);
+
+        expect(selected.active).toEqual([selected.active[0], selected.active[0]]);
+        expect(selected.active[0]).not.toBe(selected.hover[0]);
+        expect(selected.active[0]).not.toBe(plain.active[0]);
+
+        // Pressing a cell moves the focus into the row, and the pinned part is the pressed one this time.
+        const focused = await press(getCell(page, 2, 'total'));
+
+        expect(focused.active).toEqual([focused.active[0], focused.active[0]]);
+        expect(focused.active[0]).not.toBe(selected.active[0]);
+    });
+
     test('drops the shadows of the pinned columns once every column fits the resized grid', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 500 });
         await page.goto('/e2e/theme-pinned-columns');

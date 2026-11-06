@@ -346,6 +346,15 @@ describe('KbqAgGridLoadError', () => {
         expect(params.labels()).toEqual(KBQ_AG_GRID_LOAD_ERROR_LABELS_RU);
     });
 
+    it('sets the renderer params before the renderer, which rebuilds the full width rows on screen', async () => {
+        const { api } = await renderGrid();
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        const keys = jest.mocked(api.setGridOption).mock.calls.map(([key]) => key);
+
+        expect(keys.indexOf('fullWidthCellRendererParams')).toBeGreaterThan(-1);
+        expect(keys.indexOf('fullWidthCellRendererParams')).toBeLessThan(keys.indexOf('fullWidthCellRenderer'));
+    });
+
     it('carries a full width renderer the grid already had into the params', async () => {
         const ownRenderer = class {};
         const ownParams = { mine: true };
