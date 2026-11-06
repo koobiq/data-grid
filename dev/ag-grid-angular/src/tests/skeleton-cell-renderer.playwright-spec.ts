@@ -50,7 +50,8 @@ test.describe('DevSkeletonCellRenderer', () => {
         await expect(page.locator('.ag-row[row-id]').first()).toBeVisible({ timeout: 5_000 });
 
         // Read from a mutation callback, which runs ahead of the animation frame AG Grid renders cells in:
-        // waiting for the skeleton to show up would miss the moment this test is about.
+        // waiting for the skeleton to show up would miss the moment this test is about. Rows that already have
+        // a skeleton are left out, because the rule for them would pass this check on its own.
         const pointerEvents = await getScreenshotTarget(page).evaluate(
             async (grid) =>
                 new Promise<string[]>((resolve) => {
@@ -58,7 +59,9 @@ test.describe('DevSkeletonCellRenderer', () => {
                         const rows = records
                             .flatMap(({ addedNodes }) => Array.from(addedNodes))
                             .filter((node): node is Element => node instanceof Element)
-                            .filter((element) => element.matches('.ag-row:not([row-id])'));
+                            .filter((element) =>
+                                element.matches('.ag-row:not([row-id]):not(:has(.kbq-ag-grid-skeleton-cell-renderer))')
+                            );
 
                         if (rows.length > 0) {
                             observer.disconnect();
