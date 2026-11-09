@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { ILoadingCellRendererAngularComp } from 'ag-grid-angular';
 import { ILoadingCellRendererParams } from 'ag-grid-community';
 
@@ -22,6 +23,17 @@ const pseudoRandom = (seed: number): number => {
  */
 const skeletonBarWidth = (seed: number): string =>
     `${Math.round(MIN_BAR_WIDTH + BAR_WIDTH_RANGE * pseudoRandom(seed))}%`;
+
+/**
+ * Time on the document timeline, the clock CSS animations run on. Unlike `performance.now()` it holds
+ * still within a frame, so all the cells AG Grid renders in one frame get the same value. The DOM of
+ * a test or a server has no timeline, and a document that is not active has no time on it.
+ */
+const documentTime = (target: Partial<Document>): number => {
+    const currentTime = target.timeline?.currentTime;
+
+    return typeof currentTime === 'number' ? currentTime : 0;
+};
 
 /**
  * Skeleton cell renderer for use with Infinite Row Model (`rowModelType="infinite"`).
@@ -52,7 +64,8 @@ const skeletonBarWidth = (seed: number): string =>
     selector: 'kbq-ag-grid-skeleton-cell-renderer',
     host: {
         class: 'kbq-ag-grid-skeleton-cell-renderer',
-        '[style.--kbq-ag-grid-skeleton-bar-width]': 'barWidth()'
+        '[style.--kbq-ag-grid-skeleton-bar-width]': 'barWidth()',
+        '[style.--kbq-ag-grid-skeleton-animation-delay]': 'waveDelay'
     },
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
@@ -71,6 +84,13 @@ export class KbqAgGridSkeletonCellRenderer implements ILoadingCellRendererAngula
 
         return seed === null ? '100%' : skeletonBarWidth(seed);
     });
+
+    /**
+     * AG Grid rebuilds every row without data each time a page lands, so a wave timed from the moment
+     * its bar appeared would snap back to the start mid-sweep. Back-dating it to the start of the
+     * document timeline puts all the bars on one clock, however often they are recreated.
+     */
+    protected readonly waveDelay = `-${documentTime(inject(DOCUMENT))}ms`;
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     agInit(_params: ILoadingCellRendererParams): void {}

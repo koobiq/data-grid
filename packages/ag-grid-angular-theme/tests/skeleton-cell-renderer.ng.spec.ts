@@ -14,12 +14,16 @@ class TestSkeletonCell {
     readonly seed = signal<number | null>(null);
 }
 
-/** The width the renderer publishes for the stylesheet to read. */
-const barWidthOf = (container: Element): string => {
+/** A custom property the renderer publishes for the stylesheet to read. */
+const publishedBy = (container: Element, property: string): string => {
     const bar = container.querySelector<HTMLElement>('kbq-ag-grid-skeleton-cell-renderer');
 
-    return bar!.style.getPropertyValue('--kbq-ag-grid-skeleton-bar-width');
+    return bar!.style.getPropertyValue(property);
 };
+
+const barWidthOf = (container: Element): string => publishedBy(container, '--kbq-ag-grid-skeleton-bar-width');
+
+const waveDelayOf = (container: Element): string => publishedBy(container, '--kbq-ag-grid-skeleton-animation-delay');
 
 const widthForSeed = (rendered: RenderResult<TestSkeletonCell>, seed: number): number => {
     rendered.fixture.componentInstance.seed.set(seed);
@@ -61,5 +65,39 @@ describe('KbqAgGridSkeletonCellRenderer', () => {
         widthForSeed(rendered, 8);
 
         expect(widthForSeed(rendered, 7)).toBe(first);
+    });
+
+    describe('wave', () => {
+        const stubTimeline = (currentTime: number | null): void => {
+            Object.defineProperty(document, 'timeline', { configurable: true, value: { currentTime } });
+        };
+
+        afterEach(() => {
+            Reflect.deleteProperty(document, 'timeline');
+        });
+
+        /** AG Grid rebuilds rows without data whenever a page lands, and that must not restart the wave. */
+        it('back-dates the wave to the start of the document timeline', async () => {
+            stubTimeline(1500);
+
+            const { container } = await render(TestSkeletonCell);
+
+            expect(waveDelayOf(container)).toBe('-1500ms');
+        });
+
+        it('starts the wave right away in a document without a timeline', async () => {
+            const { container } = await render(TestSkeletonCell);
+
+            expect(waveDelayOf(container)).toBe('-0ms');
+        });
+
+        /** Anything but a number here would leave a delay CSS rejects, and the wave would be gone altogether. */
+        it('starts the wave right away while the timeline has no time on it', async () => {
+            stubTimeline(null);
+
+            const { container } = await render(TestSkeletonCell);
+
+            expect(waveDelayOf(container)).toBe('-0ms');
+        });
     });
 });
