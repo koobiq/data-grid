@@ -11,6 +11,9 @@ services:
     # Playwright recommendation: share host IPC namespace so Chromium renderer processes
     # get unrestricted /dev/shm access (avoids crashes with the Docker default of 64 MB).
     ipc: host
+    # Passed through from the host when set: the number of Playwright workers, see playwright.config.ts.
+    environment:
+      - WORKERS
     volumes:
       # Mount only test output directories back to the host so snapshots and reports are accessible
       # after the container exits. Source, node_modules, and the dev server stay inside the container.

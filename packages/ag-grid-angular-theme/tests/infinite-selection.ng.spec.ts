@@ -112,6 +112,8 @@ const makeParams = (overrides: Partial<IGetRowsParams> = {}): IGetRowsParams => 
     failCallback: jest.fn(),
     sortModel: [],
     filterModel: {},
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    api: {} as unknown as GridApi,
     context: null,
     ...overrides
 });

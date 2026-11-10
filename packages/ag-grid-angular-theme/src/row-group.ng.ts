@@ -907,7 +907,8 @@ export const kbqAgGridRowGroupSelectionStateStoreProvider = (
  * - The comparison is a generic numeric/locale-aware comparison of the field's raw value — it
  *   does NOT invoke a consumer-supplied ColDef `comparator` or `valueGetter`. A column whose
  *   display value is derived/formatted will sort by its underlying raw value instead, while
- *   grouping is active.
+ *   grouping is active. The sort type is ignored as well: an `absolute` sort compares the raw
+ *   values the same way a `default` one does.
  * - Only one column's sort is ever honored (no multi-column/shift-click sort chaining), and
  *   there is no way to sort group headers themselves by an aggregate of a data field.
  *
@@ -1529,9 +1530,8 @@ export class KbqAgGridRowGroup {
         // Render the custom group checkbox in the shared selection column so it lines up
         // with the native row-selection checkboxes instead of sitting inside the group cell.
         // Merged onto whatever's already there (the consumer's own [selectionColumnDef]
-        // input, or KbqAgGridTheme's default width) rather than replacing it outright, so
-        // neither is silently discarded regardless of which directive's gridReady handler
-        // runs first — see KbqAgGridTheme.applyDefaultSelectionColumnWidth for the other half.
+        // input, and KbqAgGridTheme's default width, set before the grid is created) rather
+        // than replacing it outright, so neither is silently discarded.
         api.setGridOption('selectionColumnDef', {
             ...api.getGridOption('selectionColumnDef'),
             ...this.makeSelectionColumnDef()

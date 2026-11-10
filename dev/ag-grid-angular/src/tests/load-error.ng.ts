@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import {
     KBQ_AG_GRID_LOAD_ERROR_LABELS_EN,
     KbqAgGridLoadError,
@@ -30,6 +31,16 @@ const PAGE_SIZE = 50;
 
 /** Artificial network delay, so the skeleton rows stay on screen long enough to see. */
 const REQUEST_DELAY = 500;
+
+/**
+ * The delay from the `requestDelay` query param, which a test that has to catch the skeleton rows sets instead of
+ * racing the default one. Anything but a non-negative number keeps the default.
+ */
+const readRequestDelay = (value: string | null): number => {
+    const delay = Number(value ?? Number.NaN);
+
+    return Number.isFinite(delay) && delay >= 0 ? delay : REQUEST_DELAY;
+};
 
 /** Skeleton rows the grid draws before the first page arrives. */
 const INITIAL_ROW_COUNT = 3;
@@ -187,6 +198,7 @@ export class DevLoadError {
     /** Pages already fetched. A retry serves them from here, so only the failed page hits the network. */
     private readonly pageCache = new Map<number, DevRowData[]>();
     private readonly pendingRequests = new Set<ReturnType<typeof setTimeout>>();
+    private readonly requestDelay = readRequestDelay(inject(ActivatedRoute).snapshot.queryParamMap.get('requestDelay'));
 
     private api?: GridApi;
 
@@ -287,7 +299,7 @@ export class DevLoadError {
 
             this.pageCache.set(params.startRow, rows);
             this.succeed(params, rows);
-        }, REQUEST_DELAY);
+        }, this.requestDelay);
 
         this.pendingRequests.add(request);
     }

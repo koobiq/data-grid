@@ -46,6 +46,8 @@
         --ag-icon-font-code-radio-button-off: '',
         // Overridden by _ag-svg-icons
         --ag-icon-font-code-radio-button-on: '',
+        --ag-icon-font-code-aasc: '\f5d0',
+        --ag-icon-font-code-adesc: '\f5cd',
         --ag-icon-font-code-asc: '\f5d0',
         --ag-icon-font-code-cancel: '\f664',
         --ag-icon-font-code-chart: '\f763',
@@ -80,6 +82,7 @@
         --ag-icon-font-code-right: '\f5b8',
         --ag-icon-font-code-minus: '\f5c7',
         --ag-icon-font-code-plus: '\f5f5',
+        --ag-icon-font-code-search: '\f687',
         --ag-icon-font-code-down: '\f641',
         --ag-icon-font-code-up: '\f5eb',
         --ag-icon-font-code-unlinked: '\f57c',
@@ -589,6 +592,29 @@
     .ag-header,
     .ag-advanced-filter-header {
         border-bottom: var(--ag-theme-koobiq-border);
+    }
+
+    // The grid sets the header height to the height of its rows plus the border width it measures, and the rule it
+    // measures that width with exists only in the Theming API. Under a legacy theme the width comes out as 0, so
+    // the border is placed on top of the given height, otherwise it would cover the bottom of the header rows.
+    .ag-header {
+        box-sizing: content-box;
+    }
+}
+
+// The grid sets `content-visibility: auto` on its wrapper since AG Grid 35.3. A grid that starts on a busy page can
+// then stay blank for good: its rows get no layout boxes, and neither scrolling nor resizing brings them back.
+@mixin _ag-root-wrapper() {
+    .ag-root-wrapper.ag-layout-normal {
+        content-visibility: visible;
+    }
+}
+
+// The simple filter body has laid out its items with a flex gap since AG Grid 35.1. The empty wrapper of the popup
+// resizers counts as an item, which adds the gap to the bottom padding. The resizers themselves are out of the flow.
+@mixin _ag-simple-filter-body() {
+    .ag-simple-filter-body-wrapper .ag-resizer-wrapper {
+        display: contents;
     }
 }
 
@@ -2078,6 +2104,8 @@
     @include _ag-radio-button-focus();
     @include _ag-paging-panel();
     @include _ag-select();
+    @include _ag-root-wrapper();
+    @include _ag-simple-filter-body();
     @include _ag-header-border();
     @include _ag-cell-padding();
     @include _ag-header-cell-border();

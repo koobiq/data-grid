@@ -4,7 +4,7 @@
 
 ## Project Overview
 
-Nx monorepo for `@koobiq/ag-grid-angular-theme` - an Angular theme package for AG Grid Community 34.x that integrates `@koobiq/design-tokens` and provides enhanced keyboard shortcuts.
+Nx monorepo for `@koobiq/ag-grid-angular-theme` - an Angular theme package for AG Grid Community 35.x that integrates `@koobiq/design-tokens` and provides enhanced keyboard shortcuts.
 
 ## Getting Started
 
@@ -53,6 +53,8 @@ npx playwright show-report                      # Show the last E2E test report
 # Screenshots differ across operating systems — always use Docker to update snapshots:
 yarn run e2e:docker                             # Run E2E tests in Docker (matches CI environment)
 yarn run e2e:docker:update-snapshots            # Run E2E tests in Docker and update snapshots
+node tools/e2e/run.cjs yarn playwright test <TEST_PATH_PATTERN>  # Run specific E2E tests in Docker
+# Locally prefix the Docker commands with WORKERS=4 (a count or a share like 50%), see Testing
 
 # Clean
 yarn run clean                                  # Reset Nx cache, clear Playwright cache, remove dist/tmp
@@ -105,7 +107,8 @@ Feature families, all in `packages/ag-grid-angular-theme/src/`:
 
 Cross-directive rules (see the comments in `theme.ng.ts` and `row-selection-state.ng.ts`):
 
-- Several directives may write the same grid option (`selectionColumnDef` is touched by both `KbqAgGridTheme` and `KbqAgGridRowGroup`). Always read the current value with `api.getGridOption()` and merge; never overwrite.
+- Several directives may write the same grid option (`selectionColumnDef` is touched by `KbqAgGridTheme`, `KbqAgGridRowGroup` and `KbqAgGridInfiniteSelection`). Always read the current value with `api.getGridOption()` and merge; never overwrite.
+- An option that changes the column layout belongs on the `AgGridAngular` instance in `ngOnInit`, before the grid is created in `ngAfterViewInit`. Set in `gridReady`, it makes the columns visibly slide while the page loads (see `KbqAgGridTheme.applyDefaultSelectionColumnWidth`).
 - Subscribe to grid outputs in the directive constructor, not from inside a `gridReady` callback. `ag-grid-angular` only defers native events for outputs that already have a subscriber, so a `firstDataRendered` listener registered later can miss the event permanently.
 - User-facing default strings are Russian (`KBQ_AG_GRID_COLUMN_MENU_LABELS_RU`, the row-group column header). English presets exist and are supplied through the `kbqAgGrid*Provider()` helpers.
 
@@ -136,6 +139,7 @@ Directives that persist per-row state (selection, focus, group collapse) require
 - `/` loads `overview.ng.ts`, the public showcase deployed to https://data-grid-next.web.app by `deploy-next.yml` on every push to `main`. PRs get a temporary Firebase preview built with `--configuration=development` so that the E2E routes are included.
 - `/e2e/<feature>` routes are added in `main.ts` only under `isDevMode()`. Each lazy-loads a `Dev<Feature>` component from `src/tests/<feature>.ng.ts`; one component per scenario (e.g. `DevColumnState` and `DevColumnStateQueryParams`), each with a minimal grid and `data-testid="e2eScreenshotTarget"` on the grid element.
 - Row data is fetched over HTTP from `public/olympic-winners.json` through `devInjectRowData()`, so tests wait for `.ag-row[row-index]` before touching the grid.
+- The `/e2e/*` pages load nothing from outside the dev server (`dev-app.playwright-spec.ts` checks it): a third-party request holds up the load event every navigation waits for, and its answer can change the layout. Keep such resources, like the GitHub badge, on the overview page rather than in `index.html`.
 - `src/tests/utils/api.ts` reaches the `GridApi` through Angular's dev-mode `window.ng.getComponent()`. It is the only way to drive grid state that has no Community-edition UI (hiding columns, applying column state).
 
 ## Adding a Feature
@@ -159,6 +163,9 @@ E2E tests (Playwright, `playwright.config.ts` at the repo root):
 - The config starts `yarn run dev:theme` itself through `webServer` (reused if already running). Do not start a server manually. One Chromium project, 1200x720 viewport, `deviceScaleFactor: 2`, reduced motion, 15 s test timeout, 2 s expect timeout.
 - `toHaveScreenshot('<feature>-<state>-<light|dark>.png')` writes to `__screenshots__/` with `threshold: 0`; `toMatchSnapshot('*.txt')` writes to `__snapshots__/`. Dark variants call `enableDarkTheme(page)` from `src/tests/utils/theme.ts`.
 - Screenshots are only reproducible inside the Docker image in `tools/e2e` (`linux/arm64`, the same image CI uses on `ubuntu-24.04-arm`). Never commit screenshots generated on a host OS. Alternatively, comment `/approve-snapshots` on the PR and CI regenerates and commits them.
+- The Dockerfile sets `CI=true`, so a local Docker run takes the same config branch as CI, including its `'100%'` workers. That is 4 on the CI runner, but a bigger machine starts more browsers than the Docker VM can serve, so pass `WORKERS=4` locally (`tools/e2e/docker-compose.yml` forwards it into the container). `yarn run e2e:dev-ag-grid-angular <path>` does not narrow the run: the script already passes `./dev/ag-grid-angular`, which matches every test. Use `yarn playwright test <path>`.
+- Failures that move between runs and report no `N pixels (ratio ...)` line are timeouts from a starved machine, not regressions. The Docker VM is shared with every other container on the machine; check `docker ps`, and compare with the base branch before looking for a cause in the code.
+- A rare, stable screenshot diff in which columns look gone but are still in the DOM means the grid got scrolled sideways: Playwright retries a pointer action on a moving element with `scrollIntoView`. Find what moves the element instead of waiting around it.
 
 ## Conventions Enforced by Tooling
 
@@ -169,11 +176,17 @@ E2E tests (Playwright, `playwright.config.ts` at the repo root):
 - Prettier: 4-space indent, 120 columns, single quotes, no trailing commas. Imports are sorted by `prettier-plugin-organize-imports`, so do not order them by hand.
 - `lint-staged` runs prettier, `eslint --max-warnings=0` and `stylelint --max-warnings=0` on commit, and CI runs the same, so lint warnings are effectively errors.
 
-## Commits, PRs and Releases
+## Commit Naming
 
-- Conventional Commits, checked by commitlint on each commit message and on the PR title (PRs are squash-merged, so the title becomes the commit on `main`). Allowed scopes: `ag-grid-angular-theme`, `deps`, `deps-dev`, `release`; header max 120 characters. Package changes look like `feat(ag-grid-angular-theme): added KbqAgGridX directive (#DS-1234)`, with the tracker ticket in parentheses.
+PRs are squash-merged, so the PR title becomes the commit on `main`. commitlint checks it along with every commit message, and `nx release` derives the next version from it (`version.conventionalCommits` in `nx.json`).
+
+- Conventional Commits: `<type>(<scope>): <subject> (#DS-1234)`, with the tracker ticket in parentheses, e.g. `feat(ag-grid-angular-theme): added KbqAgGridX directive (#DS-1234)`. Allowed scopes: `ag-grid-angular-theme`, `deps`, `deps-dev`, `release`. The header is at most 120 characters, and the subject starts with a lowercase letter and has no trailing period.
+- Mark a change that breaks consumers with `!` after the scope: `feat(ag-grid-angular-theme)!: updated ag-grid to 35 version (#DS-5094)`. It breaks them when they have to change something to upgrade: a new AG Grid major, a higher floor of a peer dependency, a removed or renamed public export, input or CSS class. Without `!` the release is a minor (`feat`) or a patch (`fix`), and consumers on a `^` range get the break with a plain update. The AG Grid majors before 35 were merged without `!` and got their major version by hand at release; do not follow that.
+
+## Releases
+
 - Releases are a maintainer action: `yarn run release:theme` runs `nx release` locally (independent versioning, tag `ag-grid-angular-theme@X.Y.Z`, changelog and GitHub release from the conventional commits). Pushing that tag triggers `publish.yml`, which publishes to npm with provenance. `yarn run release:theme:preview` is the dry run.
-- The package major version tracks the supported AG Grid major (34.x pairs with `ag-grid-community@^34`). Older majors are maintained on `ag-grid-angular-theme-<major>.x` branches such as `ag-grid-angular-theme-33.0.x`.
+- The package major version tracks the supported AG Grid major (35.x pairs with `ag-grid-community@^35`). Older majors are maintained on `ag-grid-angular-theme-<major>.x` branches such as `ag-grid-angular-theme-33.0.x`.
 
 ## Best Practices
 

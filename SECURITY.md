@@ -10,7 +10,8 @@ Security fixes are provided for every released version of this package.
 
 | Version         | Supported |
 | --------------- | --------- |
-| `34.x` (latest) | ✅        |
+| `35.x` (latest) | ✅        |
+| `34.x`          | ✅        |
 | `33.x`          | ✅        |
 | `32.x`          | ✅        |
 | `31.x`          | ✅        |
