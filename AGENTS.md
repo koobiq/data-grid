@@ -176,9 +176,15 @@ E2E tests (Playwright, `playwright.config.ts` at the repo root):
 - Prettier: 4-space indent, 120 columns, single quotes, no trailing commas. Imports are sorted by `prettier-plugin-organize-imports`, so do not order them by hand.
 - `lint-staged` runs prettier, `eslint --max-warnings=0` and `stylelint --max-warnings=0` on commit, and CI runs the same, so lint warnings are effectively errors.
 
-## Commits, PRs and Releases
+## Commit Naming
 
-- Conventional Commits, checked by commitlint on each commit message and on the PR title (PRs are squash-merged, so the title becomes the commit on `main`). Allowed scopes: `ag-grid-angular-theme`, `deps`, `deps-dev`, `release`; header max 120 characters. Package changes look like `feat(ag-grid-angular-theme): added KbqAgGridX directive (#DS-1234)`, with the tracker ticket in parentheses.
+PRs are squash-merged, so the PR title becomes the commit on `main`. commitlint checks it along with every commit message, and `nx release` derives the next version from it (`version.conventionalCommits` in `nx.json`).
+
+- Conventional Commits: `<type>(<scope>): <subject> (#DS-1234)`, with the tracker ticket in parentheses, e.g. `feat(ag-grid-angular-theme): added KbqAgGridX directive (#DS-1234)`. Allowed scopes: `ag-grid-angular-theme`, `deps`, `deps-dev`, `release`. The header is at most 120 characters, and the subject starts with a lowercase letter and has no trailing period.
+- Mark a change that breaks consumers with `!` after the scope: `feat(ag-grid-angular-theme)!: updated ag-grid to 35 version (#DS-5094)`. It breaks them when they have to change something to upgrade: a new AG Grid major, a higher floor of a peer dependency, a removed or renamed public export, input or CSS class. Without `!` the release is a minor (`feat`) or a patch (`fix`), and consumers on a `^` range get the break with a plain update. The AG Grid majors before 35 were merged without `!` and got their major version by hand at release; do not follow that.
+
+## Releases
+
 - Releases are a maintainer action: `yarn run release:theme` runs `nx release` locally (independent versioning, tag `ag-grid-angular-theme@X.Y.Z`, changelog and GitHub release from the conventional commits). Pushing that tag triggers `publish.yml`, which publishes to npm with provenance. `yarn run release:theme:preview` is the dry run.
 - The package major version tracks the supported AG Grid major (35.x pairs with `ag-grid-community@^35`). Older majors are maintained on `ag-grid-angular-theme-<major>.x` branches such as `ag-grid-angular-theme-33.0.x`.
 
