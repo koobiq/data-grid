@@ -2,7 +2,7 @@
 
 [![NPM Version](https://img.shields.io/npm/v/%40koobiq%2Fag-grid-angular-theme?label=%40koobiq%2Fag-grid-angular-theme&link=https%3A%2F%2Fwww.npmjs.com%2Fpackage%2F%40koobiq%2Fag-grid-angular-theme)](https://www.npmjs.com/package/@koobiq/ag-grid-angular-theme)
 
-The package provides a theme for the [ag-grid-angular@^35](https://www.ag-grid.com/archive/35.3.1/angular-data-grid/) (see [overview](https://data-grid-next.web.app/)).
+The package provides a theme for the [ag-grid-angular@^35.1.0](https://www.ag-grid.com/archive/35.3.1/angular-data-grid/) (see [overview](https://data-grid-next.web.app/)).
 
 Navigation:
 
@@ -18,7 +18,7 @@ Navigation:
 ## Installation
 
 ```bash
-npm install @koobiq/ag-grid-angular-theme@^35 ag-grid-community@^35 ag-grid-angular@^35
+npm install @koobiq/ag-grid-angular-theme@^35 ag-grid-community@^35.1.0 ag-grid-angular@^35.1.0
 ```
 
 ## Usage
