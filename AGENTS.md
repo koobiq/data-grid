@@ -186,7 +186,8 @@ PRs are squash-merged, so the PR title becomes the commit on `main`. commitlint 
 ## Releases
 
 - Releases are a maintainer action: `yarn run release:theme` runs `nx release` locally (independent versioning, tag `ag-grid-angular-theme@X.Y.Z`, changelog and GitHub release from the conventional commits). Pushing that tag triggers `publish.yml`, which publishes to npm with provenance. `yarn run release:theme:preview` is the dry run.
-- The package major version tracks the supported AG Grid major (35.x pairs with `ag-grid-community@^35`). Older majors are maintained on `ag-grid-angular-theme-<major>.x` branches such as `ag-grid-angular-theme-33.0.x`.
+- The package major version tracks the supported AG Grid major (35.x pairs with `ag-grid-community@^35`). An older major is maintained on an `ag-grid-angular-theme-<major>.x` branch cut from the last `main` commit before the migration to the next major, such as `ag-grid-angular-theme-34.x`. Its fixes are merged and released from that branch: `nx release` reads the current version from the tags reachable from the branch. Branches up to `ag-grid-angular-theme-33.0.x` were named `<major>.<minor>.x` after the release they were cut from.
+- `publish.yml` publishes a version lower than the npm `latest` under `v<major>-lts` and a prerelease under `next`, so a patch to an older major never takes `latest` over. The workflow runs from the tagged commit, so a maintenance branch cut before this logic existed needs it backported.
 
 ## Best Practices
 

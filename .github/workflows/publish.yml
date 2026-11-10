@@ -23,7 +23,28 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - uses: ./.github/actions/setup-node
-      - run: yarn nx release publish --registry=https://registry.npmjs.org/
+      # `nx release publish` hands npm `--tag=latest` explicitly, which skips npm's own refusal to tag a lower
+      # version as `latest`. A patch released from an older major's branch would then take `latest` over from the
+      # current major, so it goes under `v<major>-lts`, as in koobiq/angular-components. A prerelease goes under
+      # `next`. The workflow runs from the tagged commit, so a maintenance branch needs this step in its own copy.
+      - name: Resolve npm dist-tag
+        id: dist-tag
+        run: |
+          version=$(jq -r .version packages/ag-grid-angular-theme/package.json)
+          latest=$(npm view @koobiq/ag-grid-angular-theme dist-tags.latest)
+
+          if [[ $version == *-* ]]; then
+            tag=next
+          elif [[ $(printf '%s\n' "$latest" "$version" | sort -V | tail -n 1) == "$version" ]]; then
+            tag=latest
+          else
+            tag="v${version%%.*}-lts"
+          fi
+
+          echo "Publishing $version under \"$tag\", latest is $latest"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+      - run: yarn nx release publish --registry=https://registry.npmjs.org/ --tag="$DIST_TAG"
         env:
+          DIST_TAG: ${{ steps.dist-tag.outputs.tag }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
