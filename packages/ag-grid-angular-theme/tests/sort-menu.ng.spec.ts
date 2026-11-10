@@ -2,7 +2,7 @@ import { SharedResizeObserver } from '@angular/cdk/observers/private';
 import { Component, Directive, forwardRef, viewChild } from '@angular/core';
 import { fireEvent, render, RenderResult, waitFor } from '@testing-library/angular';
 import { AgGridAngular } from 'ag-grid-angular';
-import { AgEventType, ColDef, Column, GridApi, SortDirection } from 'ag-grid-community';
+import { AgEventType, ColDef, Column, GridApi, SortDirection, SortType } from 'ag-grid-community';
 import { Observable, Subject } from 'rxjs';
 import { KbqAgGridSettingsMenu, kbqAgGridSettingsMenuSortItem } from '../src/settings-menu.ng';
 
@@ -22,6 +22,7 @@ const createColumnMock = ({
     headerName = colId,
     sortable = true,
     sort = null,
+    sortType = 'default',
     sortIndex = null,
     colDef = {}
 }: {
@@ -29,6 +30,7 @@ const createColumnMock = ({
     headerName?: string;
     sortable?: boolean;
     sort?: SortDirection;
+    sortType?: SortType;
     sortIndex?: number | null;
     colDef?: ColDef;
 }): Column =>
@@ -41,6 +43,7 @@ const createColumnMock = ({
         isPinnedRight: jest.fn(() => false),
         isSortable: jest.fn(() => sortable),
         getSort: jest.fn(() => sort ?? undefined),
+        getSortDef: jest.fn(() => (sort ? { type: sortType, direction: sort } : null)),
         getSortIndex: jest.fn(() => sortIndex)
     }) as unknown as Column;
 
@@ -225,8 +228,8 @@ describe('sort screen of KbqAgGridSettingsMenu', () => {
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(api.applyColumnState).toHaveBeenCalledWith({
                 state: [
-                    { colId: 'year', sort: 'asc', sortIndex: 0 },
-                    { colId: 'athlete', sort: 'asc', sortIndex: 1 }
+                    { colId: 'year', sort: 'asc', sortType: 'default', sortIndex: 0 },
+                    { colId: 'athlete', sort: 'asc', sortType: 'default', sortIndex: 1 }
                 ]
             });
         });
@@ -240,7 +243,70 @@ describe('sort screen of KbqAgGridSettingsMenu', () => {
 
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(api.applyColumnState).toHaveBeenCalledWith({
-                state: [{ colId: 'age', sort: 'desc', sortIndex: 0 }]
+                state: [{ colId: 'age', sort: 'desc', sortType: 'default', sortIndex: 0 }]
+            });
+        });
+
+        it('uses the first definition of sortingOrder, including its sort type, as the default one', async () => {
+            const { container, api } = await openSortScreen([
+                createColumnMock({
+                    colId: 'age',
+                    headerName: 'Age',
+                    colDef: {
+                        sortingOrder: [
+                            { type: 'absolute', direction: 'desc' },
+                            { type: 'absolute', direction: 'asc' },
+                            null
+                        ]
+                    }
+                })
+            ]);
+
+            fireEvent.click(rowByLabel(container, 'Age'));
+
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(api.applyColumnState).toHaveBeenCalledWith({
+                state: [{ colId: 'age', sort: 'desc', sortType: 'absolute', sortIndex: 0 }]
+            });
+        });
+
+        it('defaults to an absolute sort for a column that declares one', async () => {
+            const { container, api } = await openSortScreen([
+                createColumnMock({
+                    colId: 'age',
+                    headerName: 'Age',
+                    colDef: { sort: { type: 'absolute', direction: null } }
+                })
+            ]);
+
+            fireEvent.click(rowByLabel(container, 'Age'));
+
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(api.applyColumnState).toHaveBeenCalledWith({
+                state: [{ colId: 'age', sort: 'asc', sortType: 'absolute', sortIndex: 0 }]
+            });
+        });
+
+        it('keeps the absolute sort of the other columns when the sorting changes', async () => {
+            const { container, api } = await openSortScreen([
+                createColumnMock({
+                    colId: 'year',
+                    headerName: 'Year',
+                    sort: 'desc',
+                    sortType: 'absolute',
+                    sortIndex: 0
+                }),
+                createColumnMock({ colId: 'age', headerName: 'Age' })
+            ]);
+
+            fireEvent.click(rowByLabel(container, 'Age'));
+
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(api.applyColumnState).toHaveBeenCalledWith({
+                state: [
+                    { colId: 'year', sort: 'desc', sortType: 'absolute', sortIndex: 0 },
+                    { colId: 'age', sort: 'asc', sortType: 'default', sortIndex: 1 }
+                ]
             });
         });
 
@@ -256,7 +322,7 @@ describe('sort screen of KbqAgGridSettingsMenu', () => {
             expect(api.applyColumnState).toHaveBeenCalledWith({
                 state: [
                     { colId: 'year', sort: null, sortIndex: null },
-                    { colId: 'age', sort: 'desc', sortIndex: 0 }
+                    { colId: 'age', sort: 'desc', sortType: 'default', sortIndex: 0 }
                 ]
             });
         });
@@ -290,7 +356,7 @@ describe('sort screen of KbqAgGridSettingsMenu', () => {
             expect(api.applyColumnState).toHaveBeenCalledWith({
                 state: [
                     { colId: 'year', sort: null, sortIndex: null },
-                    { colId: 'athlete', sort: 'asc', sortIndex: 0 }
+                    { colId: 'athlete', sort: 'asc', sortType: 'default', sortIndex: 0 }
                 ]
             });
         });
@@ -310,7 +376,7 @@ describe('sort screen of KbqAgGridSettingsMenu', () => {
             expect(api.applyColumnState).toHaveBeenCalledTimes(2);
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(api.applyColumnState).toHaveBeenCalledWith({
-                state: [{ colId: 'year', sort: 'desc', sortIndex: 0 }]
+                state: [{ colId: 'year', sort: 'desc', sortType: 'default', sortIndex: 0 }]
             });
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(api.applyColumnState).not.toHaveBeenCalledWith({
@@ -362,7 +428,7 @@ describe('sort screen of KbqAgGridSettingsMenu', () => {
 
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(api.applyColumnState).toHaveBeenCalledWith({
-                state: [{ colId: 'year', sort: 'desc', sortIndex: 0 }]
+                state: [{ colId: 'year', sort: 'desc', sortType: 'default', sortIndex: 0 }]
             });
         });
 
@@ -418,6 +484,23 @@ describe('sort screen of KbqAgGridSettingsMenu', () => {
     });
 
     describe('reset', () => {
+        it('restores a sort declared as a definition together with its sort type', async () => {
+            const { container, api } = await openSortScreen([
+                createColumnMock({
+                    colId: 'age',
+                    headerName: 'Age',
+                    colDef: { initialSort: { type: 'absolute', direction: 'desc' }, initialSortIndex: 0 }
+                })
+            ]);
+
+            fireEvent.click(container.querySelector('.kbq-settings-menu-reset-btn')!);
+
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            expect(api.applyColumnState).toHaveBeenCalledWith({
+                state: [{ colId: 'age', sort: 'desc', sortType: 'absolute', sortIndex: 0 }]
+            });
+        });
+
         it('restores the sorting defined by the column definitions and clears the search query', async () => {
             const { container, api } = await openSortScreen([
                 createColumnMock({ colId: 'year', headerName: 'Year', sort: 'desc', sortIndex: 0 }),
@@ -437,8 +520,8 @@ describe('sort screen of KbqAgGridSettingsMenu', () => {
             // eslint-disable-next-line @typescript-eslint/unbound-method
             expect(api.applyColumnState).toHaveBeenCalledWith({
                 state: [
-                    { colId: 'year', sort: null, sortIndex: null },
-                    { colId: 'age', sort: 'asc', sortIndex: null }
+                    { colId: 'year', sort: null, sortType: 'default', sortIndex: null },
+                    { colId: 'age', sort: 'asc', sortType: 'default', sortIndex: null }
                 ]
             });
 

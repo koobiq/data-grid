@@ -44,6 +44,15 @@ const buildStateUrl = (state: object[]): string => {
     return `/e2e/column-state-query-params?${columnStateQueryParamKey}=${encoded}`;
 };
 
+/**
+ * Waits for the grid to render its rows, which come over HTTP. Without it an assertion after a navigation shares its
+ * timeout with loading the app, and `toBeHidden` passes before the grid exists. The column state may be restored
+ * after the rows, so keep the assertions that follow it retrying.
+ */
+const waitForRows = async (page: Page): Promise<void> => {
+    await page.locator('.ag-row[row-index]').first().waitFor();
+};
+
 test.describe('KbqAgGridColumnState', () => {
     test.describe('KbqAgGridColumnStateLocalStorageStore', () => {
         test('saves sort state to localStorage when column header is clicked', async ({ page }) => {
@@ -63,6 +72,7 @@ test.describe('KbqAgGridColumnState', () => {
             await clearColumnState(page);
             await page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-label').click();
             await page.reload();
+            await waitForRows(page);
 
             await expect(page.locator('.ag-header-cell[col-id="athlete"][aria-sort="ascending"]')).toBeVisible();
         });
@@ -111,6 +121,7 @@ test.describe('KbqAgGridColumnState', () => {
                 .evaluate((el: Element) => Math.round(el.getBoundingClientRect().width));
 
             await page.reload();
+            await waitForRows(page);
 
             await expect
                 .poll(async () =>
@@ -138,6 +149,7 @@ test.describe('KbqAgGridColumnState', () => {
                 ])
             });
             await page.goto('/e2e/column-state');
+            await waitForRows(page);
 
             await expect(page.locator('.ag-header-cell[col-id="athlete"][aria-sort="descending"]')).toBeVisible();
         });
@@ -159,6 +171,7 @@ test.describe('KbqAgGridColumnState', () => {
                 ])
             });
             await page.goto('/e2e/column-state');
+            await waitForRows(page);
 
             // AG Grid uses absolute positioning, so visual order is determined by CSS left, not DOM order.
             // Country should appear to the left of Athlete after the saved order is restored.
@@ -212,6 +225,7 @@ test.describe('KbqAgGridColumnState', () => {
                 }
             );
             await page.goto('/e2e/column-state');
+            await waitForRows(page);
 
             await expect(page.locator('.ag-header-cell[col-id="athlete"]')).toBeHidden();
         });
@@ -242,6 +256,7 @@ test.describe('KbqAgGridColumnState', () => {
                 .toBe('asc');
 
             await page.reload();
+            await waitForRows(page);
 
             await expect(page.locator('.ag-header-cell[col-id="athlete"][aria-sort="ascending"]')).toBeVisible();
         });
@@ -298,6 +313,7 @@ test.describe('KbqAgGridColumnState', () => {
                 .toBe(widthBeforeReload);
 
             await page.reload();
+            await waitForRows(page);
 
             await expect
                 .poll(async () =>
@@ -323,6 +339,7 @@ test.describe('KbqAgGridColumnState', () => {
                     { colId: 'total', width: 200 }
                 ])
             );
+            await waitForRows(page);
 
             await expect(page.locator('.ag-header-cell[col-id="athlete"][aria-sort="descending"]')).toBeVisible();
         });
@@ -342,6 +359,7 @@ test.describe('KbqAgGridColumnState', () => {
                     { colId: 'total', width: 200 }
                 ])
             );
+            await waitForRows(page);
 
             // AG Grid uses absolute positioning, so visual order is determined by CSS left, not DOM order.
             // Country should appear to the left of Athlete after the saved order is restored.
@@ -389,6 +407,7 @@ test.describe('KbqAgGridColumnState', () => {
                     { colId: 'total', width: 200 }
                 ])
             );
+            await waitForRows(page);
 
             await expect(page.locator('.ag-header-cell[col-id="athlete"]')).toBeHidden();
         });

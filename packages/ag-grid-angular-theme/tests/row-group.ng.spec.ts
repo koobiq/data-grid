@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { render, waitFor } from '@testing-library/angular';
 import { AgGridAngular } from 'ag-grid-angular';
-import { ColDef, ColGroupDef, GridApi, IRowNode } from 'ag-grid-community';
+import { ColDef, ColGroupDef, GridApi, IRowNode, SortComparatorFn } from 'ag-grid-community';
 import { Subject } from 'rxjs';
 import {
     KBQ_AG_GRID_ROW_GROUP_COLLAPSED_STATE_STORE,
@@ -47,6 +47,16 @@ const makeMockNode = (data: Record<string, unknown>, selected = false): MockNode
 };
 
 const INITIAL_COL_DEFS: ColDef[] = [{ field: 'country' }, { field: 'sport' }];
+
+/** Calls the no-op comparator the directive sets on a column: `ColDef.comparator` may also be a per sort type map. */
+const callComparator = (colDef: ColDef): number => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const comparator = colDef.comparator as SortComparatorFn;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const node = {} as unknown as IRowNode;
+
+    return comparator(null, null, node, node, false);
+};
 
 /** Overridable per-test initial columnDefs — reset to `INITIAL_COL_DEFS` in `afterEach` below.
  * Lets a test (e.g. one exercising `ColGroupDef` nesting) configure the columns the mock grid
@@ -690,9 +700,7 @@ describe('KbqAgGridRowGroup', () => {
 
             const groupColDef = grid.mock.colDefs[0] as ColDef;
             expect(groupColDef.sortable).toBe(true);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const dummyNode = {} as unknown as IRowNode;
-            expect(groupColDef.comparator?.(null, null, dummyNode, dummyNode, false)).toBe(0);
+            expect(callComparator(groupColDef)).toBe(0);
         });
 
         it('merges its own selectionColumnDef onto an existing one instead of replacing it', async () => {
@@ -905,10 +913,8 @@ describe('KbqAgGridRowGroup', () => {
             const fields = grid.mock.colDefs.slice(1).map((c) => (c as ColDef).field);
             expect(fields).toEqual(['country', 'sport', 'athlete']);
             // The newly-added data column also gets the no-op comparator, same as the others.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const dummyNode = {} as unknown as IRowNode;
             const athleteColDef = grid.mock.colDefs.find((c): c is ColDef => (c as ColDef).field === 'athlete')!;
-            expect(athleteColDef.comparator?.(null, null, dummyNode, dummyNode, false)).toBe(0);
+            expect(callComparator(athleteColDef)).toBe(0);
         });
 
         it('resolves sorting for a data column added via an external columnDefs change', async () => {
@@ -1114,14 +1120,12 @@ describe('KbqAgGridRowGroup', () => {
                 expect(grid.mock.setGridOption).toHaveBeenCalledWith('columnDefs', expect.any(Array));
             });
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const dummyNode = {} as unknown as IRowNode;
             const dataColDefs = grid.mock.colDefs.filter(
                 (c) => (c as ColDef).colId !== 'KbqAgGridRowGroup'
             ) as ColDef[];
             expect(dataColDefs).toHaveLength(INITIAL_COL_DEFS.length);
             for (const colDef of dataColDefs) {
-                expect(colDef.comparator?.(null, null, dummyNode, dummyNode, false)).toBe(0);
+                expect(callComparator(colDef)).toBe(0);
             }
 
             directive.clearGroupColumns();
@@ -1143,9 +1147,7 @@ describe('KbqAgGridRowGroup', () => {
 
             const statsGroup = grid.mock.colDefs.find((c): c is ColGroupDef => 'children' in c)!;
             const nestedAthlete = statsGroup.children[0] as ColDef;
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const dummyNode = {} as unknown as IRowNode;
-            expect(nestedAthlete.comparator?.(null, null, dummyNode, dummyNode, false)).toBe(0);
+            expect(callComparator(nestedAthlete)).toBe(0);
         });
 
         it('sorting a data column reorders leaf rows within a group without scattering group headers', async () => {

@@ -31,7 +31,8 @@ const scrollUntilError = async (page: Page): Promise<void> => {
 
 test.describe('KbqAgGridSkeletonSelectionCellComponent', () => {
     test('replaces the selection checkbox with a skeleton while the row has no data', async ({ page }) => {
-        await page.goto('/e2e/load-error');
+        // The first page has to stay away: by default it can arrive between two polls of the assertion below.
+        await page.goto('/e2e/load-error?requestDelay=60000');
 
         const skeletonCheckbox = page.locator('kbq-ag-grid-skeleton-selection-cell').first();
 

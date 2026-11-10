@@ -230,7 +230,7 @@ test.describe('KbqAgGridRowGroup', () => {
         // All visible children should be selected
         await waitForRowSelected(page, 1);
         await waitForRowSelected(page, 2);
-        expect(await isRowSelected(page, 0)).toBe(true);
+        await expect.poll(async () => isRowSelected(page, 0)).toBe(true);
     });
 
     test('deselecting a group row deselects all its children', async ({ page }) => {

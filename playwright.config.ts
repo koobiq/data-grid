@@ -5,6 +5,16 @@ const viewport: ViewportSize = { width: 1200, height: 720 };
 const baseURL = process.env.BASE_URL ?? 'http://localhost:4200';
 const webServerCommand = process.env.WEB_SERVER_COMMAND ?? 'yarn run dev:theme';
 
+/**
+ * Reads `WORKERS`, a number of workers or a share of the CPUs such as `50%`. Only a whole number is converted: the
+ * config accepts a count as a number, and anything else is left for Playwright to accept as a share or reject.
+ */
+const parseWorkers = (value: string | undefined): number | string | undefined => {
+    if (!value) return undefined;
+
+    return /^\d+$/.test(value) ? Number(value) : value;
+};
+
 /** @see https://playwright.dev/docs/test-configuration */
 export default defineConfig({
     testDir: __dirname,
@@ -14,7 +24,9 @@ export default defineConfig({
     timeout: 15 * 1000,
     forbidOnly: isCI,
     retries: isCI ? 0 : undefined,
-    workers: isCI ? '100%' : undefined,
+    // The Dockerfile sets `CI` for local runs too, and all the CPUs of a machine bigger than the CI runner start more
+    // browsers than the Docker VM can serve: tests then fail on timeouts, differently on every run. Pass `WORKERS=4`.
+    workers: parseWorkers(process.env.WORKERS) ?? (isCI ? '100%' : undefined),
     reporter: [
         ['list', { printSteps: true }],
         ['html', { open: 'never' }]

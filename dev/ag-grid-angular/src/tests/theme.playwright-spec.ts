@@ -10,6 +10,27 @@ const getRowBackgrounds = async (page: Page, rowIndex: number): Promise<string[]
     getRow(page, rowIndex).evaluateAll((rows) => rows.map((row) => getComputedStyle(row).backgroundColor));
 
 test.describe('KbqAgGridAngularTheme', () => {
+    test('does not let the browser skip rendering the grid', async ({ page }) => {
+        await page.goto('/e2e/theme');
+
+        await expect(getScreenshotTarget(page).locator('.ag-root-wrapper')).toHaveCSS('content-visibility', 'visible');
+    });
+
+    test('places the header border on top of the height of the header rows', async ({ page }) => {
+        await page.goto('/e2e/theme');
+
+        const header = getScreenshotTarget(page).locator('.ag-header');
+
+        await header.waitFor();
+
+        const { headerHeight, rowHeight } = await header.evaluate((element) => ({
+            headerHeight: element.getBoundingClientRect().height,
+            rowHeight: element.querySelector('.ag-header-row')!.getBoundingClientRect().height
+        }));
+
+        expect(headerHeight).toBe(rowHeight + 1);
+    });
+
     // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('default state', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 500 });
@@ -78,12 +99,32 @@ test.describe('KbqAgGridAngularTheme', () => {
         await page.keyboard.press('ArrowDown');
         await page.keyboard.press('ArrowDown');
         await expect(page.getByRole('option', { name: 'Equals', exact: true })).toHaveClass(/ag-active-item/);
-        // The selection checkbox column can still be settling at this point; re-check right before
-        // capturing to avoid a race where it briefly disappears and shifts every column.
-        await expect(page.locator('.ag-header-cell input[type="checkbox"]').first()).toBeVisible();
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-filter-popup-light.png');
         await enableDarkTheme(page);
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-filter-popup-dark.png');
+    });
+
+    test('keeps the columns in place while the grid loads', async ({ page }) => {
+        // Sampled from the first frame: a position read after the page has loaded says nothing about how it got there.
+        await page.addInitScript(() => {
+            const lefts = new Set<string>();
+            const sample = (): void => {
+                const header = document.querySelector('.ag-header-cell[col-id="athlete"]');
+
+                if (header) {
+                    lefts.add(getComputedStyle(header).left);
+                    document.documentElement.dataset.devHeaderLefts = [...lefts].join();
+                }
+
+                requestAnimationFrame(sample);
+            };
+
+            requestAnimationFrame(sample);
+        });
+        await page.goto('/e2e/theme');
+        await page.locator('.ag-row[row-index]').first().waitFor();
+
+        await expect(page.locator('html')).toHaveAttribute('data-dev-header-lefts', '36px');
     });
 
     test('shades the columns hidden behind the pinned ones before the grid is scrolled', async ({ page }) => {

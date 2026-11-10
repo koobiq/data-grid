@@ -25,9 +25,8 @@ body {
     height: 100%;
 }
 
-// The header keeps its own height and the routed page takes the rest of the viewport, so a page
-// that fills it with a grid never runs below the viewport and the grid is measured the same way on
-// every page of the e2e tests.
+// The routed page takes the viewport, so a page that fills it with a grid never runs below the viewport and the grid is
+// measured the same way on every page of the e2e tests.
 body {
     display: flex;
     flex-direction: column;
@@ -41,12 +40,6 @@ body {
     letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
     background: var(--kbq-background-bg);
     color: var(--kbq-foreground-contrast);
-}
-
-header {
-    display: flex;
-    justify-content: flex-end;
-    padding: var(--kbq-size-xs);
 }
 
 dev-root {

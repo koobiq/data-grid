@@ -24,7 +24,7 @@ import {
     viewChildren
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Column, ColumnState, SortDirection } from 'ag-grid-community';
+import { Column, ColumnState, SortDef, SortDirection, SortType } from 'ag-grid-community';
 import {
     kbqListenColumnStateChanges,
     kbqResolveColumnName,
@@ -40,7 +40,12 @@ const KBQ_SORT_MENU_CONTEXT = new InjectionToken<KbqAgGridSortPanel>('KBQ_SORT_M
 type ActiveSort = {
     colId: string;
     sort: 'asc' | 'desc';
+    sortType: SortType;
 };
+
+/** A `ColDef` declares sorting either as a plain direction or as a definition that also carries the sort type. */
+const toSortDef = (sort: SortDirection | SortDef | undefined): SortDef =>
+    typeof sort === 'object' && sort !== null ? sort : { type: 'default', direction: sort ?? null };
 
 @Component({
     selector: 'kbq-sort-menu-row',
@@ -324,7 +329,9 @@ export class KbqAgGridSortPanel {
 
     /** Whether the sort direction of the given column can be changed. */
     canChangeDirection(col: Column): boolean {
-        return this.sortingOrder(col).filter((direction) => direction !== null).length > 1;
+        const directions = this.sortingOrder(col).map(({ direction }) => direction);
+
+        return new Set(directions.filter((direction) => direction !== null)).size > 1;
     }
 
     /** Enables sorting by the given column, or disables it when the column is already sorted. */
@@ -334,7 +341,8 @@ export class KbqAgGridSortPanel {
         const index = active.findIndex((item) => item.colId === colId);
 
         if (index === -1) {
-            const sort: ActiveSort = { colId, sort: this.defaultDirection(col) };
+            const { direction, type } = this.defaultSort(col);
+            const sort: ActiveSort = { colId, sort: direction === 'desc' ? 'desc' : 'asc', sortType: type };
 
             // Without multi-column sorting a new sort replaces the applied one, the way a header click does.
             this.applyActiveSorts(this.api.getGridOption('suppressMultiSort') ? [sort] : [...active, sort]);
@@ -355,7 +363,7 @@ export class KbqAgGridSortPanel {
         const next: 'asc' | 'desc' = col.getSort() === 'asc' ? 'desc' : 'asc';
 
         this.applyActiveSorts(
-            this.toActiveSorts().map((item) => (item.colId === colId ? { colId, sort: next } : item))
+            this.toActiveSorts().map((item) => (item.colId === colId ? { ...item, sort: next } : item))
         );
     }
 
@@ -363,10 +371,12 @@ export class KbqAgGridSortPanel {
     reset(): void {
         const state: ColumnState[] = this.sortableColumns().map((col) => {
             const { sort, initialSort, sortIndex, initialSortIndex } = col.getColDef();
+            const { direction, type } = toSortDef(sort ?? initialSort);
 
             return {
                 colId: col.getColId(),
-                sort: sort ?? initialSort ?? null,
+                sort: direction,
+                sortType: type,
                 sortIndex: sortIndex ?? initialSortIndex ?? null
             };
         });
@@ -418,7 +428,8 @@ export class KbqAgGridSortPanel {
     private toActiveSorts(): ActiveSort[] {
         return this.sortedColumns().map((col) => ({
             colId: col.getColId(),
-            sort: col.getSort() === 'desc' ? 'desc' : 'asc'
+            sort: col.getSort() === 'desc' ? 'desc' : 'asc',
+            sortType: col.getSortDef()?.type ?? 'default'
         }));
     }
 
@@ -427,20 +438,39 @@ export class KbqAgGridSortPanel {
             const colId = col.getColId();
             const index = active.findIndex((item) => item.colId === colId);
 
-            return index === -1
-                ? { colId, sort: null, sortIndex: null }
-                : { colId, sort: active[index].sort, sortIndex: index };
+            if (index === -1) return { colId, sort: null, sortIndex: null };
+
+            // `applyColumnState` treats a missing `sortType` as `default`, which would drop an absolute sort.
+            const { sort, sortType } = active[index];
+
+            return { colId, sort, sortType, sortIndex: index };
         });
 
         this.api.applyColumnState({ state });
         this.gridStateVersion.update((version) => version + 1);
     }
 
-    private sortingOrder(col: Column): SortDirection[] {
-        return col.getColDef().sortingOrder ?? this.api.getGridOption('sortingOrder') ?? ['asc', 'desc', null];
+    /**
+     * Sort definitions the column cycles through. Mirrors the grid's own resolution, which the `Column` interface
+     * does not expose: a column declaring an absolute sort defaults to the absolute order, and the deprecated
+     * `sortingOrder` grid option is still honored.
+     */
+    private sortingOrder(col: Column): SortDef[] {
+        const { sortingOrder, sort, initialSort } = col.getColDef();
+        const isAbsolute = toSortDef(sort).type === 'absolute' || toSortDef(initialSort).type === 'absolute';
+        const type: SortType = isAbsolute ? 'absolute' : 'default';
+        const defaultOrder: SortDef[] = [
+            { type, direction: 'asc' },
+            { type, direction: 'desc' },
+            { type, direction: null }
+        ];
+
+        return (sortingOrder ?? this.api.getGridOption('sortingOrder') ?? defaultOrder).map((item) => toSortDef(item));
     }
 
-    private defaultDirection(col: Column): 'asc' | 'desc' {
-        return this.sortingOrder(col).find((direction) => direction === 'asc' || direction === 'desc') ?? 'asc';
+    private defaultSort(col: Column): SortDef {
+        return (
+            this.sortingOrder(col).find(({ direction }) => direction !== null) ?? { type: 'default', direction: 'asc' }
+        );
     }
 }

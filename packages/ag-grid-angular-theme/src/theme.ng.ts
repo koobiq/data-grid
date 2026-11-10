@@ -1,5 +1,5 @@
 import { SharedResizeObserver } from '@angular/cdk/observers/private';
-import { booleanAttribute, DestroyRef, Directive, ElementRef, inject, input, signal } from '@angular/core';
+import { booleanAttribute, DestroyRef, Directive, ElementRef, inject, input, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AgGridAngular } from 'ag-grid-angular';
 import { GridApi } from 'ag-grid-community';
@@ -27,7 +27,7 @@ const SELECTION_COLUMN_WIDTH = 36;
         '[class.ag-theme-koobiq_pinned-right-cols-overflow]': 'columnsOverflowRight()'
     }
 })
-export class KbqAgGridTheme {
+export class KbqAgGridTheme implements OnInit {
     private readonly grid = inject(AgGridAngular);
     private readonly elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
     private readonly destroyRef = inject(DestroyRef);
@@ -60,24 +60,30 @@ export class KbqAgGridTheme {
         this.grid.theme = 'legacy';
 
         this.observeColumnsOverflow();
+    }
+
+    /** Applies the defaults that depend on the inputs of the grid, which the constructor is too early to read. */
+    ngOnInit(): void {
         this.applyDefaultSelectionColumnWidth();
     }
 
     /**
-     * Defaults the auto-generated selection checkbox column to `SELECTION_COLUMN_WIDTH`. Merges
-     * with — never overrides — any `width` already present on `selectionColumnDef`, whether from
-     * the consumer's own `[selectionColumnDef]` input or another directive on the same grid (e.g.
-     * `KbqAgGridRowGroup`, which also touches `selectionColumnDef` for its own renderers). Reading
-     * the current value via `getGridOption` right before writing, rather than assuming an empty
-     * starting point, keeps this correct regardless of which directive's `gridReady` handler
-     * happens to run first — see `KbqAgGridRowGroup`'s own `selectionColumnDef` merge for the
-     * matching half of this.
+     * Defaults the auto-generated selection checkbox column to `SELECTION_COLUMN_WIDTH`, keeping whatever the consumer
+     * has set on `selectionColumnDef`, including its own `width`.
+     *
+     * Written to the input, which `AgGridAngular` reads when it creates the grid in `ngAfterViewInit`. A width set
+     * once the grid is ready makes every column slide from AG Grid's default width to this one while the page loads.
+     *
+     * The directives that add to `selectionColumnDef` in `gridReady`, such as `KbqAgGridRowGroup`, merge onto this
+     * value. `gridOptions` is read the way the grid does: the input replaces its `selectionColumnDef` as a whole.
      */
     private applyDefaultSelectionColumnWidth(): void {
-        this.grid.gridReady.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ api }) => {
-            const existing = api.getGridOption('selectionColumnDef');
-            api.setGridOption('selectionColumnDef', { width: SELECTION_COLUMN_WIDTH, ...existing });
-        });
+        const { selectionColumnDef, gridOptions } = this.grid;
+
+        this.grid.selectionColumnDef = {
+            width: SELECTION_COLUMN_WIDTH,
+            ...(selectionColumnDef ?? gridOptions?.selectionColumnDef)
+        };
     }
 
     /**

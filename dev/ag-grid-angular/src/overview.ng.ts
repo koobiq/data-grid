@@ -132,6 +132,11 @@ export class DevAgGridStatusBarComponent {
     imports: [AgGridModule, KbqAgGridThemeModule, FormsModule],
     selector: 'dev-overview',
     template: `
+        <header class="dev-header">
+            <a href="https://github.com/koobiq/data-grid" target="_blank" rel="noopener noreferrer">
+                <img src="https://img.shields.io/github/stars/koobiq/data-grid?style=social" alt="GitHub" />
+            </a>
+        </header>
         <details class="dev-accordion" data-testid="e2eOptionsAccordion">
             <summary>Options</summary>
             <fieldset class="dev-options">
@@ -339,6 +344,11 @@ export class DevAgGridStatusBarComponent {
         ag-grid-angular {
             height: 100%;
             max-width: 2036px;
+        }
+
+        .dev-header {
+            display: flex;
+            justify-content: flex-end;
         }
 
         .dev-accordion {

@@ -45,8 +45,8 @@ test.describe('KbqAgGridInfiniteSelection', () => {
         await page.goto('/e2e/infinite-selection');
         await waitForDataLoaded(page);
 
-        expect(await isRowSelected(page, 0)).toBe(false);
-        expect(await isRowSelected(page, 1)).toBe(false);
+        await expect.poll(async () => isRowSelected(page, 0)).toBe(false);
+        await expect.poll(async () => isRowSelected(page, 1)).toBe(false);
     });
 
     test('clicking header checkbox selects all visible rows', async ({ page }) => {
@@ -80,7 +80,7 @@ test.describe('KbqAgGridInfiniteSelection', () => {
         const state = await getState(page);
         expect(state.selectAll).toBe(false);
         expect(state.excludedIds).toHaveLength(0);
-        expect(await isRowSelected(page, 0)).toBe(false);
+        await expect.poll(async () => isRowSelected(page, 0)).toBe(false);
     });
 
     test('unchecking a row after select-all adds it to excludedIds', async ({ page }) => {
@@ -97,8 +97,8 @@ test.describe('KbqAgGridInfiniteSelection', () => {
         const state = await getState(page);
         expect(state.selectAll).toBe(true);
         expect(state.excludedIds).toHaveLength(1);
-        expect(await isRowSelected(page, 0)).toBe(false);
-        expect(await isRowSelected(page, 1)).toBe(true);
+        await expect.poll(async () => isRowSelected(page, 0)).toBe(false);
+        await expect.poll(async () => isRowSelected(page, 1)).toBe(true);
     });
 
     test('header checkbox becomes indeterminate after partial exclusion', async ({ page }) => {
@@ -135,8 +135,8 @@ test.describe('KbqAgGridInfiniteSelection', () => {
         const state = await getState(page);
         expect(state.selectAll).toBe(false);
         expect(state.excludedIds).toHaveLength(0);
-        expect(await isRowSelected(page, 0)).toBe(false);
-        expect(await isRowSelected(page, 1)).toBe(false);
+        await expect.poll(async () => isRowSelected(page, 0)).toBe(false);
+        await expect.poll(async () => isRowSelected(page, 1)).toBe(false);
 
         const isCheckedAfter = await getHeaderCheckbox(page).evaluate((el: HTMLInputElement) => el.checked);
         const isIndeterminateAfter = await getHeaderCheckbox(page).evaluate((el: HTMLInputElement) => el.indeterminate);
@@ -209,7 +209,7 @@ test.describe('KbqAgGridInfiniteSelection', () => {
         const state = await getState(page);
         expect(state.selectAll).toBe(true);
         expect(state.excludedIds).toHaveLength(0);
-        expect(await isRowSelected(page, 0)).toBe(true);
+        await expect.poll(async () => isRowSelected(page, 0)).toBe(true);
     });
 
     test('Ctrl+A from indeterminate state selects all', async ({ page }) => {
@@ -227,7 +227,7 @@ test.describe('KbqAgGridInfiniteSelection', () => {
         const state = await getState(page);
         expect(state.selectAll).toBe(true);
         expect(state.excludedIds).toHaveLength(0);
-        expect(await isRowSelected(page, 0)).toBe(true);
-        expect(await isRowSelected(page, 1)).toBe(true);
+        await expect.poll(async () => isRowSelected(page, 0)).toBe(true);
+        await expect.poll(async () => isRowSelected(page, 1)).toBe(true);
     });
 });
