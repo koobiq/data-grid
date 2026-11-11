@@ -38,6 +38,7 @@ Setup your main [`styles.scss`](/dev/ag-grid-angular/src/styles.scss) file:
 @use '@koobiq/design-tokens/web/css-tokens';
 @use '@koobiq/design-tokens/web/css-tokens-light';
 @use '@koobiq/design-tokens/web/css-tokens-dark';
+@use '@koobiq/design-tokens/web/css/components/skeleton.css';
 
 // Import Inter font
 // https://koobiq.io/en/main/typography/overview#installing-fonts
