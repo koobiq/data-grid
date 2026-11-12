@@ -1055,6 +1055,11 @@
         z-index: 2;
     }
 
+    .ag-row:has(.kbq-ag-grid-load-error-row_error) {
+        --ag-theme-koobiq-row-border-bottom-right-radius: var(--ag-border-radius);
+        --ag-theme-koobiq-row-border-bottom-left-radius: var(--ag-border-radius);
+    }
+
     .kbq-ag-grid-load-error-row {
         // A custom element defaults to `display: inline`, and an inline box paints its background
         // only behind its own text. The backing below has to cover the whole row.
