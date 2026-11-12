@@ -3826,10 +3826,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@koobiq/design-tokens@npm:^3.20.1":
-  version: 3.20.1
-  resolution: "@koobiq/design-tokens@npm:3.20.1"
-  checksum: 10c0/c6c2666d6e114e4b9e65e2cadd9ff5422ec30654ac920a666a2556f6a826a9a923d8aa5927b2265e130e7f33dd0e04c692bd0219f36a44256a1d9f0d12edeb0a
+"@koobiq/design-tokens@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "@koobiq/design-tokens@npm:4.1.0"
+  bin:
+    koobiq-tokens-codemod: codemod/v3-to-v4.mjs
+  checksum: 10c0/05eefdac35061a124b88a0625bb3e4770d53c9322e4aa238e24fd0d00d48c71c211863cd1d9b545886efafba4d0fb7b69e0279d12d87da43b725f2d2992b9efb
   languageName: node
   linkType: hard
 
@@ -9928,7 +9930,7 @@ __metadata:
     "@eslint/js": "npm:^9.39.5"
     "@fontsource/inter": "npm:^5.3.0"
     "@jest/globals": "npm:^29.7.0"
-    "@koobiq/design-tokens": "npm:^3.20.1"
+    "@koobiq/design-tokens": "npm:^4.1.0"
     "@koobiq/icons": "npm:^10.10.3"
     "@nx/angular": "npm:^20.8.4"
     "@nx/jest": "npm:^20.8.4"

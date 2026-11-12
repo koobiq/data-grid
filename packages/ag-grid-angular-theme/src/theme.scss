@@ -11,7 +11,7 @@
         --ag-odd-row-background-color: var(--ag-background-color),
         --ag-control-panel-background-color: var(--ag-background-color),
         --ag-subheader-background-color: var(--ag-header-background-color),
-        --ag-invalid-color: var(--kbq-error-default),
+        --ag-invalid-color: var(--kbq-background-error),
         --ag-secondary-foreground-color: var(--ag-foreground-color),
         --ag-disabled-foreground-color: var(--kbq-states-foreground-disabled),
         --ag-chip-background-color: rgba(24, 29, 31, 0.07),
@@ -730,14 +730,11 @@
         --ag-theme-koobiq-scrollbar-offset: 3px;
         --ag-theme-koobiq-scrollbar-size: calc(var(--kbq-size-s) + var(--ag-theme-koobiq-scrollbar-offset) * 2);
         --ag-theme-koobiq-scrollbar-track-color: transparent;
-        --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-contrast-a3, var(--kbq-palette-grey-50-a32));
+        --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-contrast-a3);
         --ag-theme-koobiq-scrollbar-thumb-min-size: var(--kbq-size-3xl);
 
         @include _dark-theme {
-            --ag-theme-koobiq-scrollbar-thumb-color: var(
-                --kbq-semantic-dark-contrast-a9,
-                var(--kbq-palette-grey-50-a48)
-            );
+            --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-dark-contrast-a9);
         }
 
         &::-webkit-scrollbar {
@@ -774,30 +771,18 @@
             }
 
             &:active {
-                --ag-theme-koobiq-scrollbar-thumb-color: var(
-                    --kbq-semantic-contrast-a5,
-                    var(--kbq-palette-grey-20-a55)
-                );
+                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-contrast-a5);
 
                 @include _dark-theme {
-                    --ag-theme-koobiq-scrollbar-thumb-color: var(
-                        --kbq-semantic-dark-contrast-a11,
-                        var(--kbq-palette-grey-50-a80)
-                    );
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-dark-contrast-a11);
                 }
             }
 
             &:hover {
-                --ag-theme-koobiq-scrollbar-thumb-color: var(
-                    --kbq-semantic-contrast-a4,
-                    var(--kbq-palette-grey-50-a48)
-                );
+                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-contrast-a4);
 
                 @include _dark-theme {
-                    --ag-theme-koobiq-scrollbar-thumb-color: var(
-                        --kbq-semantic-dark-contrast-a10,
-                        var(--kbq-palette-grey-50-a60)
-                    );
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-dark-contrast-a10);
                 }
             }
         }
@@ -809,30 +794,18 @@
             scrollbar-color: var(--ag-theme-koobiq-scrollbar-thumb-color) var(--ag-theme-koobiq-scrollbar-track-color);
 
             &:active {
-                --ag-theme-koobiq-scrollbar-thumb-color: var(
-                    --kbq-semantic-contrast-a5,
-                    var(--kbq-palette-grey-20-a55)
-                );
+                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-contrast-a5);
 
                 @include _dark-theme {
-                    --ag-theme-koobiq-scrollbar-thumb-color: var(
-                        --kbq-semantic-dark-contrast-a11,
-                        var(--kbq-palette-grey-50-a80)
-                    );
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-dark-contrast-a11);
                 }
             }
 
             &:hover {
-                --ag-theme-koobiq-scrollbar-thumb-color: var(
-                    --kbq-semantic-contrast-a4,
-                    var(--kbq-palette-grey-50-a48)
-                );
+                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-contrast-a4);
 
                 @include _dark-theme {
-                    --ag-theme-koobiq-scrollbar-thumb-color: var(
-                        --kbq-semantic-dark-contrast-a10,
-                        var(--kbq-palette-grey-50-a60)
-                    );
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-dark-contrast-a10);
                 }
             }
         }
@@ -1095,7 +1068,7 @@
             flex-shrink: 0;
 
             // Stated rather than inherited from the row: an app that also uses @koobiq/components
-            // gets `.kbq-icon { color: var(--kbq-icon-contrast-color) }` from the icon theme, which
+            // gets `.kbq-icon { color: var(--kbq-icon-contrast) }` from the icon theme, which
             // would otherwise leave this one the default dark while the message beside it is red.
             color: var(--kbq-icon-error);
         }
@@ -1190,7 +1163,7 @@
         align-items: center;
 
         .kbq-icon {
-            color: var(--kbq-icon-fade-contrast-color);
+            color: var(--kbq-icon-contrast-fade);
 
             &:hover {
                 color: var(--kbq-states-icon-contrast-fade-hover);
@@ -1308,17 +1281,11 @@
         --ag-theme-koobiq-scrollbar-size: calc(var(--kbq-size-s) + var(--ag-theme-koobiq-scrollbar-offset) * 2);
         --ag-theme-koobiq-scrollbar-track-color: transparent;
         --ag-theme-koobiq-scrollbar-thumb-color: transparent;
-        --ag-theme-koobiq-scrollbar-thumb-color-visible: var(
-            --kbq-semantic-contrast-a3,
-            var(--kbq-palette-grey-50-a32)
-        );
+        --ag-theme-koobiq-scrollbar-thumb-color-visible: var(--kbq-semantic-contrast-a3);
         --ag-theme-koobiq-scrollbar-thumb-min-size: var(--kbq-size-3xl);
 
         @include _dark-theme {
-            --ag-theme-koobiq-scrollbar-thumb-color-visible: var(
-                --kbq-semantic-dark-contrast-a9,
-                var(--kbq-palette-grey-50-a48)
-            );
+            --ag-theme-koobiq-scrollbar-thumb-color-visible: var(--kbq-semantic-dark-contrast-a9);
         }
 
         overflow-y: auto;
@@ -1358,30 +1325,18 @@
             min-height: var(--ag-theme-koobiq-scrollbar-thumb-min-size);
 
             &:hover {
-                --ag-theme-koobiq-scrollbar-thumb-color: var(
-                    --kbq-semantic-contrast-a4,
-                    var(--kbq-palette-grey-50-a48)
-                );
+                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-contrast-a4);
 
                 @include _dark-theme {
-                    --ag-theme-koobiq-scrollbar-thumb-color: var(
-                        --kbq-semantic-dark-contrast-a10,
-                        var(--kbq-palette-grey-50-a60)
-                    );
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-dark-contrast-a10);
                 }
             }
 
             &:active {
-                --ag-theme-koobiq-scrollbar-thumb-color: var(
-                    --kbq-semantic-contrast-a5,
-                    var(--kbq-palette-grey-20-a55)
-                );
+                --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-contrast-a5);
 
                 @include _dark-theme {
-                    --ag-theme-koobiq-scrollbar-thumb-color: var(
-                        --kbq-semantic-dark-contrast-a11,
-                        var(--kbq-palette-grey-50-a80)
-                    );
+                    --ag-theme-koobiq-scrollbar-thumb-color: var(--kbq-semantic-dark-contrast-a11);
                 }
             }
         }
