@@ -13,6 +13,12 @@ permissions:
   # https://nx.dev/recipes/nx-release/publish-in-ci-cd#npm-provenance
   id-token: write
 
+# The dist-tag is resolved from the registry before the publish, so two releases running side by side could both
+# take `latest`. They run one at a time instead, and a publish in progress is never cancelled.
+concurrency:
+  group: publish-ag-grid-angular-theme
+  cancel-in-progress: false
+
 jobs:
   publish:
     if: ${{ github.repository_owner == 'koobiq' }}
@@ -23,7 +29,41 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - uses: ./.github/actions/setup-node
-      - run: yarn nx release publish --registry=https://registry.npmjs.org/
+      # `nx release publish` hands npm `--tag=latest` explicitly, which skips npm's own refusal to tag a lower
+      # version as `latest`. A patch released from an older major's branch would then take `latest` over from the
+      # current major, so it goes under `v<major>-lts`, and a prerelease under `next`. The comparison with the
+      # registry lives in `@koobiq/cli` (`resolve-npm-tag`), shared with koobiq/icons and koobiq/angular-components.
+      # The workflow runs from the tagged commit, so a maintenance branch needs this step in its own copy.
+      - name: Resolve npm dist-tag
+        id: dist-tag
+        run: |
+          set -euo pipefail
+
+          package=@koobiq/ag-grid-angular-theme
+          version=$(jq -r .version packages/ag-grid-angular-theme/package.json)
+
+          # `--quiet` keeps yarn's install log out of stdout, which then holds the tag alone. The CLI fails to
+          # load chalk, so each of its errors ends in a `TypeError` under a dump of its minified bundle. That
+          # line is cut from the log, and the values the CLI compares are printed in its place.
+          if ! tag=$(yarn dlx --quiet @koobiq/cli@20.3.0 resolve-npm-tag \
+            --package-name "$package" \
+            --project-dir packages/ag-grid-angular-theme 2> "$RUNNER_TEMP/resolve-npm-tag.log"); then
+            awk 'length($0) < 1000' "$RUNNER_TEMP/resolve-npm-tag.log" >&2
+            echo "resolve-npm-tag failed for $package@$version: either the registry did not answer or" \
+              "the version is lower than the one under its v<major>-lts tag. Published dist-tags:" >&2
+            npm view "$package" dist-tags >&2 || true
+            exit 1
+          fi
+
+          if [[ ! $tag =~ ^(latest|next|v[0-9]+-lts)$ ]]; then
+            echo "resolve-npm-tag returned an unexpected dist-tag: \"$tag\"" >&2
+            exit 1
+          fi
+
+          echo "Publishing $package@$version under \"$tag\""
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+      - run: yarn nx release publish --registry=https://registry.npmjs.org/ --tag="$DIST_TAG"
         env:
+          DIST_TAG: ${{ steps.dist-tag.outputs.tag }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
