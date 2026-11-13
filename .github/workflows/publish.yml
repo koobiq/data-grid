@@ -13,6 +13,12 @@ permissions:
   # https://nx.dev/recipes/nx-release/publish-in-ci-cd#npm-provenance
   id-token: write
 
+# The dist-tag is resolved from the registry before the publish, so two releases running side by side could both
+# take `latest`. They run one at a time instead, and a publish in progress is never cancelled.
+concurrency:
+  group: publish-ag-grid-angular-theme
+  cancel-in-progress: false
+
 jobs:
   publish:
     if: ${{ github.repository_owner == 'koobiq' }}
