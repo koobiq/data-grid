@@ -37,4 +37,4 @@ jobs:
 
             ---
 
-            💡 If the changes are expected, update the snapshots in Docker: `WORKERS=4 yarn run e2e:docker:update-snapshots`.
+            💡 Comment `/approve-snapshots` to approve snapshot changes.

@@ -79,7 +79,7 @@ Pull requests are squash-merged, and the pull request title becomes the commit m
 - CI runs the build, linters, unit and E2E tests, the title check and CodeQL. On your first pull request from a fork, the workflows may wait until a maintainer approves them.
 - When the E2E tests fail, the Playwright report is in the `playwright-report` artifact of the workflow run.
 - Keep the branch up to date with the target branch by merging or rebasing it locally: a pull request with conflicts gets no CI runs at all.
-- Pull requests from branches of this repository get a preview of the dev app; pull requests from forks do not.
+- Pull requests from branches of this repository get a preview of the dev app, and a maintainer can comment `/approve-snapshots` to have CI update the screenshots. Pull requests from forks get neither.
 
 ## Ready to merge
 
