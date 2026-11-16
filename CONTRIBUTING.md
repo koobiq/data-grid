@@ -25,7 +25,7 @@ The repository layout, the architecture of the package and the full list of comm
 ## Making a change
 
 1. Fork the repository, or push a branch to it if you have write access.
-2. Create a branch from `main`. When pushing to this repository, do not name it `test/<name>` or `legacy/<name>`: branches `test` and `legacy` already exist, so git rejects the push.
+2. Create a branch from `main`. When pushing to this repository, do not name it like a maintenance branch, `ag-grid-angular-theme-<major>.x`: those branches maintain the older majors.
 3. Make the change along with its tests and documentation, as [Adding a Feature](AGENTS.md#adding-a-feature) lists. Do not edit `CHANGELOG.md`: it is generated at release. Yarn installs a dependency version only once it is a day old, except `@koobiq/*` (see [`.yarnrc.yml`](.yarnrc.yml)).
 4. Run the checks with the same flags as CI:
 
