@@ -19,6 +19,18 @@ jobs:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 10
     steps:
+      # The snapshots are pushed to the branch of this repository named after the head branch of the pull request.
+      # For a fork that branch lives in another repository and its name may even be `main`; the fork's code would also
+      # run with a write token. So a fork is refused before anything is checked out.
+      - name: Refuse pull requests from forks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          if [ "$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json isCrossRepository --jq .isCrossRepository)" != false ]; then
+            echo '::error::Snapshots of a pull request from a fork are not updated here, run yarn run e2e:docker:update-snapshots instead.'
+            exit 1
+          fi
       - uses: xt0rted/pull-request-comment-branch@e8b8daa837e8ea7331c0003c9c316a64c6d8b0b1 # v3.0.0
         id: comment-branch
       - uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
@@ -33,6 +45,13 @@ jobs:
         with:
           commit_message: 'test: updated e2e snapshots'
           file_pattern: '**/*.png **/*.txt'
+          # The checkout above is a detached HEAD at the commit the snapshots were taken from, and the comment event
+          # has no `github.head_ref` for the default `branch`. Without a branch the action runs a bare `git push`,
+          # which fails there. Commit on top of that HEAD and push it to the branch of the pull request: if the branch
+          # moved meanwhile, the push is rejected rather than mixing new code with snapshots of the old one.
+          branch: ${{ steps.comment-branch.outputs.head_ref }}
+          skip_fetch: true
+          skip_checkout: true
       - uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
         if: ${{ steps.commit-and-push.outputs.changes_detected == 'true' }}
         with:
