@@ -29,6 +29,12 @@ updates:
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
     groups:
+      # Security fixes come in one pull request instead of one per alert. The groups below apply to
+      # version updates only: a group without `applies-to` never takes a security update.
+      security:
+        applies-to: security-updates
+        patterns:
+          - '*'
       eslint:
         patterns:
           - 'eslint*'
