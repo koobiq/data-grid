@@ -25,9 +25,32 @@ updates:
       exclude:
         - '@koobiq/*'
     ignore:
-      # Ignores any major updates
+      # Ignores major version updates. Security updates do not read `update-types` and move a package
+      # to whatever major has the fix, so the packages below are also capped by `versions`, which
+      # security updates respect. Raise a bound together with the migration to the next major.
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
+      # The repository builds with Angular 18.
+      - dependency-name: '@angular/*'
+        versions: ['>=19']
+      - dependency-name: '@angular-devkit/*'
+        versions: ['>=19']
+      - dependency-name: '@schematics/angular'
+        versions: ['>=19']
+      - dependency-name: 'ng-packagr'
+        versions: ['>=19']
+      - dependency-name: 'angular-eslint'
+        versions: ['>=19']
+      # Angular 18 supports TypeScript >=5.4 <5.6, and a TypeScript minor is a breaking change.
+      - dependency-name: 'typescript'
+        versions: ['>=5.6']
+      - dependency-name: 'nx'
+        versions: ['>=21']
+      - dependency-name: '@nx/*'
+        versions: ['>=21']
+      # The package major follows the AG Grid major.
+      - dependency-name: 'ag-grid-*'
+        versions: ['>=36']
     groups:
       # Security fixes come in one pull request instead of one per alert. The groups below apply to
       # version updates only: a group without `applies-to` never takes a security update.
