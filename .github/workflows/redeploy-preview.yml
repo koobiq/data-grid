@@ -19,8 +19,39 @@ jobs:
     if: ${{ github.event.issue.pull_request && contains(github.event.comment.body, '/redeploy-preview') && contains(fromJSON('["OWNER", "MEMBER"]'), github.event.comment.author_association) }}
     runs-on: ubuntu-latest
     steps:
+      # The code is built with the Firebase deployment secret, and anyone can push to the branch of a fork. Previews
+      # are for branches of this repository only, as in deploy-preview.yml, so a fork is refused before anything is
+      # checked out.
+      - name: Refuse pull requests from forks
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          if [ "$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json isCrossRepository --jq .isCrossRepository)" != false ]; then
+            echo '::error::A pull request from a fork gets no preview: its code would be built with the Firebase deployment secret.'
+            exit 1
+          fi
       - uses: xt0rted/pull-request-comment-branch@e8b8daa837e8ea7331c0003c9c316a64c6d8b0b1 # v3.0.0
         id: comment-branch
+      # The comment approves the code its author reviewed, but the head SHA above is read after the comment: a commit
+      # pushed in between would be built with the secret unreviewed. GitHub sets `pushed_at` on every push, unlike the
+      # date of a commit, which its author picks. A push to the repository after the comment stops the job, even to
+      # another branch; comment again to rerun it.
+      - name: Refuse commits pushed after the comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          COMMENT_AT: ${{ github.event.comment.created_at }}
+        run: |
+          pushed_at=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq .head.repo.pushed_at)
+          if [[ -z $pushed_at ]]; then
+            echo '::error::The time of the last push to the pull request branch is unknown.'
+            exit 1
+          fi
+          if [[ $(date -d "$pushed_at" +%s) -gt $(date -d "$COMMENT_AT" +%s) ]]; then
+            echo '::error::The repository was pushed to after the comment. Review the pull request again and comment once more.'
+            exit 1
+          fi
       - uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
         with:
           message: 🔄 [Redeploying](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) documentation preview.
