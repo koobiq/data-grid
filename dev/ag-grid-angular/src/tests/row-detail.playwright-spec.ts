@@ -1,4 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { getAgGridApi } from './utils/api';
 import { enableDarkTheme } from './utils/theme';
 
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
@@ -167,6 +168,57 @@ test.describe('KbqAgGridRowDetail', () => {
             await scrollBody(page, 0);
             await expect(getDetail(page, 1)).toBeVisible();
             await waitForDetails(page);
+        });
+
+        test('grows the expanded row in step with the rows below while rows animate', async ({ page }) => {
+            const api = await getAgGridApi(page);
+
+            await api.evaluate((gridApi) => gridApi.setGridOption('animateRows', true));
+            await expect(getScreenshotTarget(page).locator('.ag-body-viewport.ag-row-animation')).toHaveCount(1);
+            // A late font would re-measure the panel and restart the transitions frozen below.
+            await page.evaluate(async () => {
+                await document.fonts.ready;
+            });
+
+            const collapsedHeight = await getRowHeight(page, 0);
+
+            // Freezes every transition halfway the moment the next row starts sliding down, so the rows are compared
+            // at one moment of the animation rather than at whatever frames the machine manages to draw, and a slow
+            // machine cannot finish the animation before the check. The promise is wrapped, so that the listener is in
+            // place once this call returns, before the click.
+            const frozen = await getRow(page, 1).evaluateHandle((nextRow: HTMLElement) => ({
+                done: new Promise<void>((resolve) => {
+                    const onTransitionRun = ({ propertyName }: TransitionEvent): void => {
+                        if (propertyName !== 'transform') return;
+
+                        nextRow.removeEventListener('transitionrun', onTransitionRun);
+
+                        for (const animation of document.getAnimations()) {
+                            animation.pause();
+                            animation.currentTime = 200;
+                        }
+
+                        resolve();
+                    };
+
+                    nextRow.addEventListener('transitionrun', onTransitionRun);
+                })
+            }));
+
+            await getToggle(page, 0).click();
+            await frozen.evaluate(async ({ done }) => done);
+
+            const rowBox = (await getRow(page, 0).boundingBox())!;
+            const nextRowBox = (await getRow(page, 1).boundingBox())!;
+
+            // Still growing, so the check below is not made after the animation is over.
+            expect(rowBox.height).toBeGreaterThan(collapsedHeight);
+            expect(rowBox.height).toBeLessThan(await getRow(page, 0).evaluate((row) => parseFloat(row.style.height)));
+            expect(Math.abs(nextRowBox.y - (rowBox.y + rowBox.height))).toBeLessThanOrEqual(1);
+            // Shows the panel cut off at the bottom edge of the row instead of laid over the rows below.
+            await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-expanding-light.png', {
+                animations: 'allow'
+            });
         });
 
         test('collapses the previously expanded row in single expand mode', async ({ page }) => {

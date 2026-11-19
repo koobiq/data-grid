@@ -1966,6 +1966,13 @@
 @mixin _ag-row-detail() {
     // Based on `KbqAgGridRowDetail` directive and `KbqAgGridRowDetailCellRenderer` component
     .ag-row.kbq-ag-grid-row-detail-row {
+        // The panel is laid out at its full height as soon as the row is expanded, but the row only grows to it a task
+        // later, once the panel is measured, and then grows over time while rows animate (see below). Clipping keeps
+        // the panel from being painted over the rows below in the meantime. A clip path rather than `overflow`:
+        // `hidden` makes the row a scroll container, which would break the sticky panel and the sticky row actions
+        // overlay, and `clip` follows the row's rounded corners, cutting off detail content that reaches them.
+        clip-path: inset(0);
+
         // An expanded row is as tall as its cells plus the detail panel, so the cells are pinned
         // back to the height the row has while collapsed and the panel starts right below them.
         .ag-cell {
@@ -1973,16 +1980,37 @@
         }
     }
 
+    // With `animateRows` AG Grid slides the rows below a resized row into place, but animates the height only of rows it
+    // rendered while scrolling (`ag-after-created`). Any other expanded row would take its full height at once, with
+    // its panel and background over the rows still sliding down. Every expanded row gets the transitions of
+    // `ag-after-created` instead, so its bottom edge moves in step with the row below it.
+    .ag-row-animation .ag-row.kbq-ag-grid-row-detail-row {
+        transition:
+            transform 0.4s,
+            top 0.4s,
+            height 0.4s,
+            opacity 0.2s;
+    }
+
     // `kbqAgGridRowDetailSticky`: instead of stretching across every column, the expanded part keeps
     // to the visible width of the grid and stays there while the columns scroll. Sticky needs the
     // panel in normal flow, hence the margin in place of the offset used by the default layout.
     .kbq-ag-grid-row-detail.kbq-ag-grid-row-detail_sticky {
+        --kbq-ag-grid-row-detail-outline-width: 2px;
+
         position: sticky;
         top: auto;
         left: 0;
         width: var(--kbq-ag-grid-row-detail-viewport-width, 100%);
         margin-top: var(--kbq-ag-grid-row-detail-row-height, var(--ag-row-height));
         overflow: auto;
+
+        // Focusable as a scrollable region (see `KbqAgGridRowDetail.attachPanel`). The panel ends at the bottom edge of
+        // the row, which clips it, so a ring drawn outside the panel would lose its bottom side: it is drawn inside.
+        &:focus-visible {
+            outline: var(--kbq-ag-grid-row-detail-outline-width) solid var(--kbq-states-line-focus-theme);
+            outline-offset: calc(var(--kbq-ag-grid-row-detail-outline-width) * -1);
+        }
     }
 
     // `kbqAgGridRowDetailFilled`: an expanded row keeps one static fill instead of reacting to hover, active, selection
