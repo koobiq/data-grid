@@ -1,4 +1,4 @@
-import { expect, Locator, Page, test } from '@playwright/test';
+import { expect, JSHandle, Locator, Page, test } from '@playwright/test';
 import { enableDarkTheme } from './utils/theme';
 
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
@@ -100,6 +100,59 @@ const scrollBody = async (page: Page, top: number): Promise<void> =>
         .first()
         .evaluate((element: HTMLElement, value: number) => element.scrollTo({ top: value }), top);
 
+const enableRowAnimation = async (page: Page): Promise<void> => {
+    await page.getByTestId('e2eAnimateRowsButton').click();
+    await expect(getScreenshotTarget(page).locator('.ag-body-viewport.ag-row-animation')).toHaveCount(1);
+    // A late font would re-measure the panel and restart the transitions frozen by `freezeWhenRowSlides`.
+    await page.evaluate(async () => {
+        await document.fonts.ready;
+    });
+};
+
+/**
+ * Freezes every transition halfway the moment the row starts sliding, so the rows are compared at one moment of the
+ * animation rather than at whatever frames the machine manages to draw, and a slow machine cannot finish the animation
+ * before the check. The promise is wrapped, so that the listener is already in place once this call returns: await
+ * `done` on the handle after the action that starts the animation.
+ */
+const freezeWhenRowSlides = async (page: Page, rowIndex: number): Promise<JSHandle<{ done: Promise<void> }>> =>
+    getRow(page, rowIndex).evaluateHandle((row: HTMLElement) => ({
+        done: new Promise<void>((resolve) => {
+            const onTransitionRun = ({ propertyName }: TransitionEvent): void => {
+                if (propertyName !== 'transform') return;
+
+                row.removeEventListener('transitionrun', onTransitionRun);
+
+                for (const animation of document.getAnimations()) {
+                    animation.pause();
+                    animation.currentTime = 200;
+                }
+
+                resolve();
+            };
+
+            row.addEventListener('transitionrun', onTransitionRun);
+        })
+    }));
+
+/** Lets the transitions frozen by `freezeWhenRowSlides` run to their end. */
+const resumeTransitions = async (page: Page): Promise<void> =>
+    page.evaluate(() => {
+        for (const animation of document.getAnimations()) animation.play();
+    });
+
+/** Height the grid has set on the row, which a transition reaches only at its end. */
+const getTargetRowHeight = async (page: Page, rowIndex: number): Promise<number> =>
+    getRow(page, rowIndex).evaluate((row: HTMLElement) => parseFloat(row.style.height));
+
+/** Distance from the bottom edge of the row to the top edge of the next one: negative when they overlap. */
+const getGapBelow = async (page: Page, rowIndex: number): Promise<number> => {
+    const rowBox = (await getRow(page, rowIndex).boundingBox())!;
+    const nextRowBox = (await getRow(page, rowIndex + 1).boundingBox())!;
+
+    return nextRowBox.y - (rowBox.y + rowBox.height);
+};
+
 const STATE_KEY = 'dev-ag-grid-row-detail-state';
 
 const getStoredState = async (page: Page): Promise<string[] | null> =>
@@ -170,52 +223,58 @@ test.describe('KbqAgGridRowDetail', () => {
         });
 
         test('grows the expanded row in step with the rows below while rows animate', async ({ page }) => {
-            await page.getByTestId('e2eAnimateRowsButton').click();
-            await expect(getScreenshotTarget(page).locator('.ag-body-viewport.ag-row-animation')).toHaveCount(1);
-            // A late font would re-measure the panel and restart the transitions frozen below.
-            await page.evaluate(async () => {
-                await document.fonts.ready;
-            });
+            await enableRowAnimation(page);
 
             const collapsedHeight = await getRowHeight(page, 0);
-
-            // Freezes every transition halfway the moment the next row starts sliding down, so the rows are compared
-            // at one moment of the animation rather than at whatever frames the machine manages to draw, and a slow
-            // machine cannot finish the animation before the check. The promise is wrapped, so that the listener is in
-            // place once this call returns, before the click.
-            const frozen = await getRow(page, 1).evaluateHandle((nextRow: HTMLElement) => ({
-                done: new Promise<void>((resolve) => {
-                    const onTransitionRun = ({ propertyName }: TransitionEvent): void => {
-                        if (propertyName !== 'transform') return;
-
-                        nextRow.removeEventListener('transitionrun', onTransitionRun);
-
-                        for (const animation of document.getAnimations()) {
-                            animation.pause();
-                            animation.currentTime = 200;
-                        }
-
-                        resolve();
-                    };
-
-                    nextRow.addEventListener('transitionrun', onTransitionRun);
-                })
-            }));
+            const frozen = await freezeWhenRowSlides(page, 1);
 
             await getToggle(page, 0).click();
             await frozen.evaluate(async ({ done }) => done);
 
-            const rowBox = (await getRow(page, 0).boundingBox())!;
-            const nextRowBox = (await getRow(page, 1).boundingBox())!;
+            const rowHeight = await getRowHeight(page, 0);
 
             // Still growing, so the check below is not made after the animation is over.
-            expect(rowBox.height).toBeGreaterThan(collapsedHeight);
-            expect(rowBox.height).toBeLessThan(await getRow(page, 0).evaluate((row) => parseFloat(row.style.height)));
-            expect(Math.abs(nextRowBox.y - (rowBox.y + rowBox.height))).toBeLessThanOrEqual(1);
+            expect(rowHeight).toBeGreaterThan(collapsedHeight);
+            expect(rowHeight).toBeLessThan(await getTargetRowHeight(page, 0));
+            expect(Math.abs(await getGapBelow(page, 0))).toBeLessThanOrEqual(1);
             // Shows the panel cut off at the bottom edge of the row instead of laid over the rows below.
             await expect(getScreenshotTarget(page)).toHaveScreenshot('row-detail-expanding-light.png', {
                 animations: 'allow'
             });
+        });
+
+        test('keeps the expanded part until the row has closed while rows animate', async ({ page }) => {
+            await enableRowAnimation(page);
+
+            const collapsedHeight = await getRowHeight(page, 0);
+
+            // Even rows expand into the text card, which carries the close button.
+            await getToggle(page, 0).click();
+            await waitForDetails(page);
+            // The expansion is over, so the transitions frozen below are the ones of the collapse.
+            await expect.poll(async () => page.evaluate(() => document.getAnimations().length)).toBe(0);
+
+            const expandedHeight = await getRowHeight(page, 0);
+            const frozen = await freezeWhenRowSlides(page, 1);
+
+            await getRow(page, 0).getByTestId('e2eRowDetailCloseButton').click();
+            await frozen.evaluate(async ({ done }) => done);
+
+            // Halfway through, the content is still in the shrinking row, out of reach, and focus is already back on
+            // the toggle.
+            await expect(getToggle(page, 0)).toBeFocused();
+            await expect(getDetail(page, 0)).toHaveCount(1);
+            expect(await getDetail(page, 0).evaluate((detail: HTMLElement) => detail.inert)).toBe(true);
+
+            const rowHeight = await getRowHeight(page, 0);
+
+            expect(rowHeight).toBeGreaterThan(collapsedHeight);
+            expect(rowHeight).toBeLessThan(expandedHeight);
+            expect(Math.abs(await getGapBelow(page, 0))).toBeLessThanOrEqual(1);
+
+            await resumeTransitions(page);
+            await expect(getDetail(page, 0)).toHaveCount(0);
+            expect(await getRowHeight(page, 0)).toBe(collapsedHeight);
         });
 
         test('collapses the previously expanded row in single expand mode', async ({ page }) => {

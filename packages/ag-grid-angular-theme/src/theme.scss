@@ -1983,7 +1983,8 @@
     // With `animateRows` AG Grid slides the rows below a resized row into place, but animates the height only of rows it
     // rendered while scrolling (`ag-after-created`). Any other expanded row would take its full height at once, with
     // its panel and background over the rows still sliding down. Every expanded row gets the transitions of
-    // `ag-after-created` instead, so its bottom edge moves in step with the row below it.
+    // `ag-after-created` instead, so its bottom edge moves in step with the row below it. A collapsed row keeps the
+    // class until it has closed, so this goes for closing too (see `KbqAgGridRowDetail.closePanel`).
     .ag-row-animation .ag-row.kbq-ag-grid-row-detail-row {
         transition:
             transform 0.4s,

@@ -87,7 +87,7 @@ class TestOtherDetail {}
             [rowData]="rowData"
             [columnDefs]="columnDefs"
             [kbqAgGridRowDetailComponent]="component()"
-            [kbqAgGridRowDetailHeight]="detailHeight"
+            [kbqAgGridRowDetailHeight]="detailHeight()"
             [kbqAgGridRowDetailSingleExpand]="singleExpand()"
             [kbqAgGridRowDetailFilled]="filled()"
             [kbqAgGridRowDetailSticky]="sticky()"
@@ -109,7 +109,7 @@ class TestGrid {
     readonly rowData = ROW_DATA;
     readonly columnDefs = COLUMN_DEFS;
     readonly getRowId = GET_ROW_ID;
-    readonly detailHeight = DETAIL_HEIGHT;
+    readonly detailHeight = signal(DETAIL_HEIGHT);
 }
 
 /** Host binding nothing but the component, so the directive's own defaults are in play. */
@@ -303,6 +303,199 @@ describe('KbqAgGridRowDetail', () => {
 
         await waitFor(() => {
             expect(container.querySelector('.test-detail')).toBeNull();
+        });
+    });
+
+    describe('while the grid animates rows', () => {
+        /** Height transition of a row, finished by the test instead of the clock. */
+        class TestHeightTransition {
+            readonly transitionProperty = 'height';
+            playState: AnimationPlayState = 'running';
+            readonly finished: Promise<void>;
+            private resolveFinished: () => void = () => undefined;
+
+            constructor() {
+                this.finished = new Promise((resolve) => {
+                    this.resolveFinished = resolve;
+                });
+            }
+
+            finish(): void {
+                this.playState = 'finished';
+                this.resolveFinished();
+            }
+        }
+
+        const transitions = new Map<Element, TestHeightTransition>();
+        // The finished transitions stay in the map, so the rows report them as over instead of handing out new ones.
+        const finishTransitions = (): void => {
+            for (const transition of transitions.values()) transition.finish();
+        };
+
+        const restores: (() => void)[] = [];
+
+        /** Puts a value in place of a property for one test, and whatever was there back after it. */
+        const replaceProperty = (target: object, key: string, value: unknown): void => {
+            const original = Object.getOwnPropertyDescriptor(target, key);
+
+            Object.defineProperty(target, key, { configurable: true, writable: true, value });
+            restores.push(() => {
+                if (original) {
+                    Object.defineProperty(target, key, original);
+                } else {
+                    Reflect.deleteProperty(target, key);
+                }
+            });
+        };
+
+        // jsdom runs no CSS transitions: an expanded row reports the height transition the theme gives it while rows
+        // animate, and every row resized in that state hands out a transition the test finishes.
+        beforeEach(() => {
+            const getComputedStyle = window.getComputedStyle.bind(window);
+            const getComputedStyleSpy = jest
+                .spyOn(window, 'getComputedStyle')
+                .mockImplementation((element, pseudoElement) => {
+                    const style = getComputedStyle(element, pseudoElement);
+
+                    if (!element.classList.contains('kbq-ag-grid-row-detail-row')) return style;
+
+                    return new Proxy(style, {
+                        get: (target, property): unknown => {
+                            if (property === 'transitionProperty') return 'height';
+                            if (property === 'transitionDuration') return '0.4s';
+
+                            const value: unknown = Reflect.get(target, property, target);
+
+                            // Methods run against the real declaration, the only `this` jsdom accepts for them.
+                            return typeof value === 'function'
+                                ? (...args: unknown[]): unknown => Reflect.apply(value, target, args)
+                                : value;
+                        }
+                    });
+                });
+
+            restores.push(() => getComputedStyleSpy.mockRestore());
+            replaceProperty(globalThis, 'CSSTransition', TestHeightTransition);
+            replaceProperty(Element.prototype, 'getAnimations', function getAnimations(this: Element) {
+                if (!this.classList.contains('kbq-ag-grid-row-detail-row')) return [];
+
+                const transition = transitions.get(this) ?? new TestHeightTransition();
+
+                transitions.set(this, transition);
+
+                return transition.playState === 'finished' ? [] : [transition];
+            });
+        });
+
+        afterEach(() => {
+            for (const restore of restores.splice(0).reverse()) restore();
+
+            transitions.clear();
+        });
+
+        const expandRow = async (
+            container: Element,
+            fixture: Awaited<ReturnType<typeof renderGrid>>['fixture']
+        ): Promise<number> => {
+            const collapsedHeight = fixture.componentInstance.grid().api.getRowNode('a')!.rowHeight!;
+
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(fixture.componentInstance.grid().api.getRowNode('a')!.rowHeight).toBe(
+                    collapsedHeight + DETAIL_HEIGHT
+                );
+            });
+
+            return collapsedHeight;
+        };
+
+        it('keeps the component in the collapsing row until the row has closed', async () => {
+            const { container, fixture } = await renderGrid();
+            const collapsedHeight = await expandRow(container, fixture);
+
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(fixture.componentInstance.grid().api.getRowNode('a')!.rowHeight).toBe(collapsedHeight);
+            });
+
+            expect(toggleOf(container, 'a')).toHaveAttribute('aria-expanded', 'false');
+            expect(rowElement(container, 'a').querySelector('.test-detail')).toBeTruthy();
+            expect(rowElement(container, 'a').querySelector<HTMLElement>(PANEL_SELECTOR)!.inert).toBe(true);
+
+            finishTransitions();
+
+            await waitFor(() => {
+                expect(container.querySelector('.test-detail')).toBeNull();
+            });
+        });
+
+        it('keeps the same component when the row is expanded again before it has closed', async () => {
+            const { container, fixture } = await renderGrid();
+            const collapsedHeight = await expandRow(container, fixture);
+            const detail = rowElement(container, 'a').querySelector('.test-detail');
+
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(fixture.componentInstance.grid().api.getRowNode('a')!.rowHeight).toBe(collapsedHeight);
+            });
+
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(fixture.componentInstance.grid().api.getRowNode('a')!.rowHeight).toBe(
+                    collapsedHeight + DETAIL_HEIGHT
+                );
+            });
+
+            // The transition of the abandoned collapse settles without taking the panel along.
+            finishTransitions();
+            await fixture.whenStable();
+
+            expect(rowElement(container, 'a').querySelector('.test-detail')).toBe(detail);
+            expect(rowElement(container, 'a').querySelector<HTMLElement>(PANEL_SELECTOR)!.inert).toBe(false);
+        });
+
+        it('takes a detail height changed while the row was closing once it is expanded again', async () => {
+            const { container, fixture } = await renderGrid();
+            const collapsedHeight = await expandRow(container, fixture);
+
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(fixture.componentInstance.grid().api.getRowNode('a')!.rowHeight).toBe(collapsedHeight);
+            });
+
+            fixture.componentInstance.detailHeight.set(DETAIL_HEIGHT * 2);
+            fixture.detectChanges();
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(fixture.componentInstance.grid().api.getRowNode('a')!.rowHeight).toBe(
+                    collapsedHeight + DETAIL_HEIGHT * 2
+                );
+            });
+        });
+
+        it('hands focus back to the toggle as soon as the row starts closing', async () => {
+            const { container, fixture } = await renderGrid();
+
+            fixture.componentInstance.component.set(TestClosableDetail);
+            fixture.detectChanges();
+            await expandRow(container, fixture);
+
+            const closeButton = rowElement(container, 'a').querySelector<HTMLElement>('.test-close')!;
+
+            closeButton.focus();
+            fireEvent.click(closeButton);
+
+            await waitFor(() => {
+                expect(toggleOf(container, 'a')).toHaveFocus();
+            });
+
+            expect(rowElement(container, 'a').querySelector('.test-close')).toBeTruthy();
         });
     });
 
