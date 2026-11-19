@@ -1,5 +1,4 @@
 import { expect, Locator, Page, test } from '@playwright/test';
-import { getAgGridApi } from './utils/api';
 import { enableDarkTheme } from './utils/theme';
 
 const getScreenshotTarget = (page: Page): Locator => page.getByTestId('e2eScreenshotTarget');
@@ -171,9 +170,7 @@ test.describe('KbqAgGridRowDetail', () => {
         });
 
         test('grows the expanded row in step with the rows below while rows animate', async ({ page }) => {
-            const api = await getAgGridApi(page);
-
-            await api.evaluate((gridApi) => gridApi.setGridOption('animateRows', true));
+            await page.getByTestId('e2eAnimateRowsButton').click();
             await expect(getScreenshotTarget(page).locator('.ag-body-viewport.ag-row-animation')).toHaveCount(1);
             // A late font would re-measure the panel and restart the transitions frozen below.
             await page.evaluate(async () => {
