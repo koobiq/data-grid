@@ -220,7 +220,7 @@ export default defineConfig([
         rules: {
             'playwright/expect-expect': [
                 'warn',
-                { assertFunctionNames: ['expect', 'expectFilterValue', 'waitForRowSelected'] }
+                { assertFunctionNames: ['expect', 'expectFilterValue', 'expectScreenshots', 'waitForRowSelected'] }
             ]
         }
     },
