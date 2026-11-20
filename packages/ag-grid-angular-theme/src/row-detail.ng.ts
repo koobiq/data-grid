@@ -69,7 +69,7 @@ export type KbqAgGridRowDetailParams = {
     node: IRowNode;
     data: unknown;
     rowIndex: number | null;
-    /** Collapses this row and destroys the detail component, e.g. from a close button inside it. */
+    /** Collapses this row, e.g. from a close button inside the detail component, which is then destroyed. */
     collapse: () => void;
 };
 
@@ -453,6 +453,23 @@ type KbqAgGridRowDetailPanel = {
     height: number;
     /** Alive while the panel's height is measured instead of fixed by `kbqAgGridRowDetailHeight`. */
     resize: Subscription | null;
+    /** Set on a collapsed row's panel once the row has been given its collapsed height back, from when the panel waits
+     * for the row to finish animating to it (see `KbqAgGridRowDetail.finishClosing`). */
+    awaitingClose: boolean;
+};
+
+/**
+ * Whether a change of the element's height runs as a CSS transition. The theme sets one up on an expanded row while
+ * the grid animates its rows (`animateRows`), and drops it while AG Grid prevents animations, e.g. during a row resize.
+ */
+const animatesHeight = (element: HTMLElement): boolean => {
+    const { transitionProperty, transitionDuration } = getComputedStyle(element);
+    const properties = transitionProperty.split(',').map((property) => property.trim());
+    const durations = transitionDuration.split(',').map((duration) => parseFloat(duration));
+    const index = properties.findIndex((property) => property === 'height' || property === 'all');
+
+    // The durations repeat when the list is shorter than the properties, the way the browser pairs them.
+    return index !== -1 && durations.length > 0 && durations[index % durations.length] > 0;
 };
 
 /** `colId` of a `ColDef`, defaulting to `field` exactly like AG Grid's own default. */
@@ -499,7 +516,9 @@ const unwrapColDef = (def: ColDef): ColDef => {
  * The toggle is rendered in the first non-pinned column (override with
  * `kbqAgGridRowDetailToggleColumn`), in front of that column's value. The component is created
  * on expand and destroyed on collapse, and receives {@link KbqAgGridRowDetailParams} via the
- * {@link KBQ_AG_GRID_ROW_DETAIL_PARAMS} injection token.
+ * {@link KBQ_AG_GRID_ROW_DETAIL_PARAMS} injection token. While the grid animates its rows
+ * (`animateRows`), the component stays in the collapsing row until the row has closed, and is
+ * destroyed after that; expanding the row again in the meantime keeps the same instance.
  *
  * **Height:** the component's own host element defines the height of the expanded part — it is
  * measured and reported to the grid, so a component that grows while loading its data (skeleton,
@@ -603,6 +622,8 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
 
     private readonly api = signal<GridApi | null>(null);
     private readonly panels = new Map<string, KbqAgGridRowDetailPanel>();
+    /** Panels of collapsed rows, kept in place while the row animates back to its collapsed height. */
+    private readonly closingPanels = new Map<string, KbqAgGridRowDetailPanel>();
     private readonly stateRestored = signal(false);
     /** Rows that were collapsed and still have to be given their collapsed height back. */
     private readonly collapsedNodes = new Map<IRowNode, number>();
@@ -720,7 +741,7 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
 
             if (this.heightUpdateTimeout !== null) clearTimeout(this.heightUpdateTimeout);
 
-            for (const [id, panel] of this.panels) this.destroyPanel(id, panel);
+            for (const [id, panel] of [...this.panels, ...this.closingPanels]) this.destroyPanel(id, panel);
         });
     }
 
@@ -808,14 +829,36 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
             // A row that is only filtered out keeps its node, so this is about rows that left the
             // model for good: their panel would otherwise stay alive with its component and
             // subscription, and its height would keep being written to a node nobody displays.
-            if (!expanded.has(id) || !api.getRowNode(id)) {
+            if (!api.getRowNode(id)) {
                 this.destroyPanel(id, panel);
+
+                continue;
+            }
+
+            if (!expanded.has(id)) {
+                this.closePanel(id, panel);
 
                 continue;
             }
 
             // The selector may now resolve a different component (or none) for this row.
             if (this.resolveComponent(this.makeParams(api, panel.node)) !== panel.componentRef.componentType) {
+                this.destroyPanel(id, panel);
+            }
+        }
+
+        for (const [id, panel] of this.closingPanels) {
+            const node = api.getRowNode(id);
+
+            // Expanded again before it has closed: the panel goes back to its row as it is, with the state of the
+            // component, unless the selector now picks another component for the row.
+            if (
+                node &&
+                expanded.has(id) &&
+                this.resolveComponent(this.makeParams(api, node)) === panel.componentRef.componentType
+            ) {
+                this.reopenPanel(id, panel);
+            } else if (!node || expanded.has(id)) {
                 this.destroyPanel(id, panel);
             }
         }
@@ -880,7 +923,8 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
             node,
             baseHeight: node.rowHeight ?? null,
             height: this.detailHeight() ?? 0,
-            resize: null
+            resize: null,
+            awaitingClose: false
         };
 
         this.panels.set(id, panel);
@@ -893,8 +937,11 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
         // Focus inside the panel would go away together with the destroyed component, e.g. after a
         // close button inside it collapsed the row: it is handed back to the row's toggle below.
         const hadFocus = !this.destroyed && panel.element.contains(this.document.activeElement);
+        const open = this.panels.get(id) === panel;
 
-        this.panels.delete(id);
+        if (open) this.panels.delete(id);
+        if (this.closingPanels.get(id) === panel) this.closingPanels.delete(id);
+
         this.unobservePanel(panel);
         panel.element.remove();
         this.applicationRef.detachView(panel.componentRef.hostView);
@@ -905,11 +952,82 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
             rowElement.style.removeProperty(ROW_HEIGHT_PROPERTY);
         }
 
-        if (panel.baseHeight !== null) this.collapsedNodes.set(panel.node, panel.baseHeight);
+        // A closing panel's row has had its height back since `closePanel`: queuing it again would undo whatever has
+        // resized the row while it was closing.
+        if (open && panel.baseHeight !== null) this.collapsedNodes.set(panel.node, panel.baseHeight);
 
         this.scheduleHeightUpdate();
 
         if (hadFocus) this.toggleElement(id)?.focus();
+    }
+
+    /**
+     * Gives a collapsed row its height back while the panel stays in it, so that the shrinking row cuts the content off
+     * instead of the content vanishing before the row has moved. The panel is destroyed once the row has finished
+     * animating (see `finishClosing`); a row that does not animate has nothing to wait for and loses it right away.
+     */
+    private closePanel(id: string, panel: KbqAgGridRowDetailPanel): void {
+        if (panel.baseHeight === null || !this.rowElements(id).some(animatesHeight)) {
+            this.destroyPanel(id, panel);
+
+            return;
+        }
+
+        // The content is on its way out: focus goes back to the toggle now rather than once the panel is gone, and
+        // nothing in the panel can be reached until then.
+        if (panel.element.contains(this.document.activeElement)) this.toggleElement(id)?.focus();
+
+        panel.element.inert = true;
+        this.unobservePanel(panel);
+        this.panels.delete(id);
+        this.closingPanels.set(id, panel);
+        this.collapsedNodes.set(panel.node, panel.baseHeight);
+        this.scheduleHeightUpdate();
+    }
+
+    /** Hands a closing panel back to its row, expanded again before it has finished closing. */
+    private reopenPanel(id: string, panel: KbqAgGridRowDetailPanel): void {
+        const detailHeight = this.detailHeight();
+
+        // `kbqAgGridRowDetailHeight` changes reach only the open panels (see `applyDetailHeight`), and a fixed height
+        // is not observed, so the one this panel missed while closing is taken here. A measured one is reported by
+        // the observer below.
+        if (detailHeight !== undefined) panel.height = detailHeight;
+
+        panel.awaitingClose = false;
+        panel.element.inert = false;
+        this.closingPanels.delete(id);
+        this.panels.set(id, panel);
+        this.collapsedNodes.delete(panel.node);
+        this.observePanel(panel);
+        this.scheduleHeightUpdate();
+    }
+
+    /** Destroys a closing panel once its row has stopped animating to the collapsed height. */
+    private finishClosing(id: string, panel: KbqAgGridRowDetailPanel): void {
+        // Expanded again, or destroyed together with the directive, while the row was closing.
+        if (this.closingPanels.get(id) !== panel) return;
+
+        const transitions = this.rowElements(id)
+            .flatMap((element) => element.getAnimations())
+            .filter(
+                (animation) =>
+                    animation instanceof CSSTransition &&
+                    animation.transitionProperty === 'height' &&
+                    animation.playState !== 'finished'
+            );
+
+        if (transitions.length === 0) {
+            this.destroyPanel(id, panel);
+
+            return;
+        }
+
+        // A transition replaced by a newer one, when the row is resized again, settles early: the rows are checked
+        // again rather than the panel destroyed halfway. A row element AG Grid removes cancels its transition.
+        void Promise.allSettled(transitions.map(async ({ finished }) => finished)).then(() =>
+            this.finishClosing(id, panel)
+        );
     }
 
     /** Puts the panel into the row's center-section element, marking every section of the row as
@@ -1030,14 +1148,23 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
 
         for (const [node, height] of changed) node.setRowHeight(height);
 
-        if (changed.length === 0) return;
+        if (changed.length > 0) {
+            api.onRowHeightChanged();
 
-        api.onRowHeightChanged();
+            // Taller rows can push the grid into showing a vertical scrollbar, which takes its width
+            // from the center section. No public event reports it, so the width is re-read here, right
+            // after the grid has laid the new heights out.
+            this.syncViewportWidth();
+        }
 
-        // Taller rows can push the grid into showing a vertical scrollbar, which takes its width
-        // from the center section. No public event reports it, so the width is re-read here, right
-        // after the grid has laid the new heights out.
-        this.syncViewportWidth();
+        // The collapsed rows have their height back by now (`setRowHeight` restyles the row right away), so whatever
+        // animation that starts is there to be waited for.
+        for (const [id, panel] of this.closingPanels) {
+            if (panel.awaitingClose) continue;
+
+            panel.awaitingClose = true;
+            this.finishClosing(id, panel);
+        }
     }
 
     /**

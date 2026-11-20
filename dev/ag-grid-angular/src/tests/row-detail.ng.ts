@@ -217,6 +217,9 @@ const DETAIL_COMPONENT: KbqAgGridRowDetailComponent = ({ data, node }) => {
             <button type="button" data-testid="e2eStickyButton" (click)="sticky.set(!sticky())">
                 Sticky: {{ sticky() }}
             </button>
+            <button type="button" data-testid="e2eAnimateRowsButton" (click)="animateRows.set(!animateRows())">
+                Animate rows: {{ animateRows() }}
+            </button>
             <span data-testid="e2eExpandedIds">{{ expanded().join(', ') }}</span>
         </div>
         <ag-grid-angular
@@ -225,7 +228,7 @@ const DETAIL_COMPONENT: KbqAgGridRowDetailComponent = ({ data, node }) => {
             kbqAgGridTheme
             kbqAgGridThemeDisableCellFocusStyles
             kbqAgGridRowDetail
-            animateRows="false"
+            [animateRows]="animateRows()"
             [getRowId]="getRowId"
             [rowData]="rowData()"
             [columnDefs]="columnDefs"
@@ -262,6 +265,8 @@ export class DevRowDetail {
     readonly singleExpand = signal(true);
     readonly filled = signal(false);
     readonly sticky = signal(true);
+    /** Off by default, so that screenshots never catch a row halfway through its animation. */
+    readonly animateRows = signal(false);
 }
 
 const STATE_KEY = 'dev-ag-grid-row-detail-state';
