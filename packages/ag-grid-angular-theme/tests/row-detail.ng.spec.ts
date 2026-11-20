@@ -479,6 +479,33 @@ describe('KbqAgGridRowDetail', () => {
             });
         });
 
+        it('leaves a row resized while it was closing at its new height', async () => {
+            const { container, fixture } = await renderGrid();
+            const collapsedHeight = await expandRow(container, fixture);
+            const { api } = fixture.componentInstance.grid();
+            const node = api.getRowNode('a')!;
+
+            fireEvent.click(toggleOf(container, 'a'));
+
+            await waitFor(() => {
+                expect(node.rowHeight).toBe(collapsedHeight);
+            });
+
+            node.setRowHeight(collapsedHeight * 2);
+            api.onRowHeightChanged();
+            finishTransitions();
+
+            await waitFor(() => {
+                expect(container.querySelector('.test-detail')).toBeNull();
+            });
+            // The row heights are applied in the next task after the panel is gone.
+            await new Promise((resolve) => {
+                setTimeout(resolve);
+            });
+
+            expect(node.rowHeight).toBe(collapsedHeight * 2);
+        });
+
         it('hands focus back to the toggle as soon as the row starts closing', async () => {
             const { container, fixture } = await renderGrid();
 

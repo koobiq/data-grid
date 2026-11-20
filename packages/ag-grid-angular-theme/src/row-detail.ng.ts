@@ -937,8 +937,9 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
         // Focus inside the panel would go away together with the destroyed component, e.g. after a
         // close button inside it collapsed the row: it is handed back to the row's toggle below.
         const hadFocus = !this.destroyed && panel.element.contains(this.document.activeElement);
+        const open = this.panels.get(id) === panel;
 
-        if (this.panels.get(id) === panel) this.panels.delete(id);
+        if (open) this.panels.delete(id);
         if (this.closingPanels.get(id) === panel) this.closingPanels.delete(id);
 
         this.unobservePanel(panel);
@@ -951,7 +952,9 @@ export class KbqAgGridRowDetail implements KbqAgGridRowDetailToggleHost {
             rowElement.style.removeProperty(ROW_HEIGHT_PROPERTY);
         }
 
-        if (panel.baseHeight !== null) this.collapsedNodes.set(panel.node, panel.baseHeight);
+        // A closing panel's row has had its height back since `closePanel`: queuing it again would undo whatever has
+        // resized the row while it was closing.
+        if (open && panel.baseHeight !== null) this.collapsedNodes.set(panel.node, panel.baseHeight);
 
         this.scheduleHeightUpdate();
 
