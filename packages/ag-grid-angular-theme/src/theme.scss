@@ -631,16 +631,70 @@
         min-height: calc(var(--ag-grid-size) * 4);
         border-radius: var(--ag-border-radius);
         padding: var(--kbq-size-xs) var(--kbq-size-m);
-        font-family: inherit;
+
+        // The browser stylesheet resets the letter spacing and the font features of a form control instead of letting
+        // it inherit them, so a value read wider in an editor or a filter than the same value in a cell. The control
+        // takes the level in full, as `.kbq-input` and `.kbq-textarea` of @koobiq/angular-components do, with the font
+        // family and size of the cells, so that a grid with its own `--ag-font-size` sets its editors in it as well.
+        font-family: var(--ag-font-family);
+        font-size: var(--ag-font-size);
+        font-weight: var(--kbq-typography-text-normal-font-weight);
+        line-height: var(--kbq-typography-text-normal-line-height);
+        letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
+        text-transform: var(--kbq-typography-text-normal-text-transform);
+        font-feature-settings: var(--kbq-typography-text-normal-font-feature-settings);
         color: var(--ag-data-color);
 
-        &:invalid {
+        // Only an input takes the custom validity that `:invalid` reads. AG Grid marks an invalid textarea, the large
+        // text editor, with `aria-invalid` instead.
+        &:is(:invalid, [aria-invalid='true']) {
             --ag-input-focus-box-shadow: none;
             --ag-background-color: var(--kbq-background-error-less);
             --ag-data-color: var(--kbq-foreground-error);
 
             &:focus-within {
                 --ag-borders-input-invalid: solid 2px;
+            }
+        }
+    }
+}
+
+// The browser draws the picker button of a date field in an icon of its own, dark in the dark theme as well. The field
+// shows the icon and the colours of the toggle of `kbq-datepicker` of @koobiq/angular-components instead. Selected by
+// type: the date cell editors render an `ag-date-field-input`, while the date filter renders a text field of that type.
+@mixin _ag-date-field() {
+    input[class^='ag-']:is([type='date'], [type='datetime-local']) {
+        --ag-theme-koobiq-date-picker-icon-fill: var(--kbq-icon-contrast-fade);
+        --ag-theme-koobiq-date-picker-icon-fill-hover: var(--kbq-states-icon-contrast-fade-hover);
+        --ag-theme-koobiq-date-picker-icon-fill-active: var(--kbq-states-icon-contrast-fade-active);
+
+        // The calendar the button opens is drawn by the browser too, in the colour scheme of the field.
+        @include _dark-theme {
+            color-scheme: dark;
+        }
+
+        &:is(:invalid, [aria-invalid='true']) {
+            --ag-theme-koobiq-date-picker-icon-fill: var(--kbq-icon-error);
+            --ag-theme-koobiq-date-picker-icon-fill-hover: var(--kbq-states-icon-error-hover);
+            --ag-theme-koobiq-date-picker-icon-fill-active: var(--kbq-states-icon-error-active);
+        }
+
+        // kbq-calendar-o_16 of @koobiq/icons
+        &::-webkit-calendar-picker-indicator {
+            width: var(--ag-icon-size);
+            height: var(--ag-icon-size);
+            padding: 0;
+            mask: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M10.2 2H5.8V.2a.2.2 0 0 0-.2-.2H4.4a.2.2 0 0 0-.2.2V2h-2A1.2 1.2 0 0 0 1 3.2v10.6A1.2 1.2 0 0 0 2.2 15h11.6a1.2 1.2 0 0 0 1.2-1.2V3.2A1.2 1.2 0 0 0 13.8 2h-2V.2a.2.2 0 0 0-.2-.2h-1.2a.2.2 0 0 0-.2.2zM2.8 13.4a.2.2 0 0 1-.2-.2v-7c0-.11.09-.2.2-.2h10.4c.11 0 .2.09.2.2v7a.2.2 0 0 1-.2.2z"/></svg>')
+                center / contain no-repeat;
+            background: var(--ag-theme-koobiq-date-picker-icon-fill);
+            cursor: pointer;
+
+            &:hover {
+                background: var(--ag-theme-koobiq-date-picker-icon-fill-hover);
+            }
+
+            &:active {
+                background: var(--ag-theme-koobiq-date-picker-icon-fill-active);
             }
         }
     }
@@ -699,16 +753,26 @@
         border-radius: unset;
         box-shadow: unset;
 
+        // An editor starts the value at the horizontal padding of the cell, where the cell showed it, so the text does
+        // not jump sideways once editing starts. A field outside a cell keeps its own, wider padding.
         @include ag.text-input {
             border-radius: unset;
             box-shadow: unset;
             border: unset;
+            padding-left: var(--ag-cell-horizontal-padding);
+            padding-right: var(--ag-cell-horizontal-padding);
         }
 
         .ag-select .ag-picker-field-wrapper {
             border-radius: unset;
             box-shadow: unset;
             border: unset;
+        }
+
+        // AG Grid pads the wrapper with half the cell padding on the start side, and the display adds the other half.
+        .ag-select .ag-picker-field-display {
+            margin-left: calc(var(--ag-cell-horizontal-padding) / 2);
+            margin-right: calc(var(--ag-cell-horizontal-padding) / 2);
         }
     }
 }
@@ -1237,8 +1301,15 @@
         border: none;
         outline: none;
         background: transparent;
-        font-family: var(--kbq-font-family-base);
+
+        // A form control does not inherit the letter spacing and the font features, see `_ag-text-field`.
+        font-family: var(--kbq-typography-text-normal-font-family);
         font-size: var(--kbq-typography-text-normal-font-size);
+        font-weight: var(--kbq-typography-text-normal-font-weight);
+        line-height: var(--kbq-typography-text-normal-line-height);
+        letter-spacing: var(--kbq-typography-text-normal-letter-spacing);
+        text-transform: var(--kbq-typography-text-normal-text-transform);
+        font-feature-settings: var(--kbq-typography-text-normal-font-feature-settings);
         color: var(--kbq-foreground-contrast);
 
         &::placeholder {
@@ -2100,6 +2171,7 @@
     @include _ag-header-cell-border();
     @include _ag-sort-indicator();
     @include _ag-text-field();
+    @include _ag-date-field();
     @include _ag-row-border();
     @include _ag-row-full-width();
     @include _ag-cell-inline-editing();

@@ -121,6 +121,10 @@ if (isDevMode()) {
                 loadComponent: async () => import('./tests/theme.ng').then((m) => m.DevThemeNarrowColumns)
             },
             {
+                path: 'cell-editors',
+                loadComponent: async () => import('./tests/cell-editors.ng').then((m) => m.DevCellEditors)
+            },
+            {
                 path: 'loading-overlay',
                 loadComponent: async () => import('./tests/loading-overlay.ng').then((m) => m.DevLoadingOverlay)
             },
