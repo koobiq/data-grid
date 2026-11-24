@@ -399,7 +399,7 @@ export class DevRowDetailPinnedColumns {
     readonly rowData = devInjectRowData();
     readonly columnDefs: ColDef[] = [
         { field: 'severity', headerName: 'Severity', pinned: 'left', width: 160 },
-        ...COLUMN_DEFS,
+        ...COLUMN_DEFS.filter(({ field }) => field !== 'severity'),
         { field: 'alerts', headerName: 'Alerts', pinned: 'right', width: 120 }
     ];
     readonly rowSelection = ROW_SELECTION;
