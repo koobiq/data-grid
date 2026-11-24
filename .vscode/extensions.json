@@ -4,7 +4,6 @@
         "editorconfig.editorconfig",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "stylelint.vscode-stylelint",
-        "firsttris.vscode-jest-runner"
+        "stylelint.vscode-stylelint"
     ]
 }
