@@ -1,4 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { getAgGridApi } from './utils/api';
 import { isRowSelected, waitForRowSelected } from './utils/helpers';
 import { enableDarkTheme } from './utils/theme';
 
@@ -24,7 +25,7 @@ const waitForGroupsVisible = async (page: Page): Promise<void> => {
     await expect(getGroupCellInner(page, 0)).toBeVisible({ timeout: 5_000 });
 };
 
-// Locates a group header row by its rendered key (e.g. "Russia" for a "Russia (706)" label).
+// Locates a group header row by its rendered key (e.g. "High" for a "High (128)" label).
 const getGroupRowByKey = (page: Page, key: string): Locator =>
     page.locator('.ag-row').filter({ has: page.locator('.kbq-ag-grid-group-cell-renderer__key', { hasText: key }) });
 
@@ -41,9 +42,9 @@ const getDataHeaderCell = (page: Page, colId: string): Locator => page.locator(`
 
 // Every row (group or leaf) renders a cell for every column, but a group row's data-field cells
 // are empty (group rows carry none of the raw data fields) — filtering those out leaves exactly
-// the currently-visible leaf rows' Gold values, in DOM order.
-const getLeafGoldValues = async (page: Page): Promise<number[]> => {
-    const cells = await page.locator('.ag-row [col-id="gold"]').allTextContents();
+// the currently-visible leaf rows' Alerts values, in DOM order.
+const getLeafAlertsValues = async (page: Page): Promise<number[]> => {
+    const cells = await page.locator('.ag-row [col-id="alerts"]').allTextContents();
     return cells.filter((text) => text !== '').map(Number);
 };
 
@@ -88,21 +89,21 @@ const getCustomCellContentCount = (page: Page, rowIndex: number): Locator =>
 test.describe('KbqAgGridRowGroup', () => {
     // Screenshots differ across OS — always update snapshots via Docker: `yarn run e2e:docker:update-snapshots`
     test('screenshot — grouped, expanded, and with selection', async ({ page }) => {
-        // Both Country and Sport are grouped by default (see DevRowGroup.groupCols).
+        // Both Severity and Attack type are grouped by default (see DevRowGroup.groupCols).
         await page.goto('/e2e/row-group');
         await waitForGroupsVisible(page);
 
-        // Expand Russia, then its Diving sub-group.
-        await getGroupRowByKey(page, 'Russia').locator('.kbq-ag-grid-group-cell-renderer__inner').click();
-        const divingGroup = getGroupRowByKey(page, 'Diving');
-        await expect(divingGroup).toBeVisible();
-        await divingGroup.locator('.kbq-ag-grid-group-cell-renderer__inner').click();
+        // Expand High, then its Malware sub-group.
+        await getGroupRowByKey(page, 'High').locator('.kbq-ag-grid-group-cell-renderer__inner').click();
+        const malwareGroup = getGroupRowByKey(page, 'Malware');
+        await expect(malwareGroup).toBeVisible();
+        await malwareGroup.locator('.kbq-ag-grid-group-cell-renderer__inner').click();
 
-        // Select Ilya Zakharov's row.
-        const athleteRow = getDataRowByText(page, 'Ilya Zakharov');
-        await expect(athleteRow).toBeVisible();
-        await athleteRow.locator('input[type="checkbox"]:visible').click();
-        await expect(athleteRow).toHaveClass(/ag-row-selected/);
+        // Select the incident on INC-20261116-0013.
+        const titleRow = getDataRowByText(page, 'INC-20261116-0013');
+        await expect(titleRow).toBeVisible();
+        await titleRow.locator('input[type="checkbox"]:visible').click();
+        await expect(titleRow).toHaveClass(/ag-row-selected/);
 
         await expect(getScreenshotTarget(page)).toHaveScreenshot('row-group-light.png');
         await enableDarkTheme(page);
@@ -125,11 +126,11 @@ test.describe('KbqAgGridRowGroup', () => {
 
         // Both columns are grouped by default (see DevRowGroup.groupCols) — start ungrouped so
         // this test actually exercises "checking adds grouping", not just "grouping remains".
-        await getGroupCheckbox(page, 'Country').click();
-        await getGroupCheckbox(page, 'Sport').click();
+        await getGroupCheckbox(page, 'Severity').click();
+        await getGroupCheckbox(page, 'Attack type').click();
         await expect(page.locator('.kbq-ag-grid-group-cell-renderer__inner')).toHaveCount(0, { timeout: 5_000 });
 
-        await getGroupCheckbox(page, 'Country').click();
+        await getGroupCheckbox(page, 'Severity').click();
         await waitForGroupsVisible(page);
 
         // The first row should be a group header
@@ -140,13 +141,13 @@ test.describe('KbqAgGridRowGroup', () => {
         await page.goto('/e2e/row-group');
         await waitForDataLoaded(page);
 
-        await getGroupCheckbox(page, 'Country').click();
-        await waitForGroupsVisible(page);
+        await getGroupCheckbox(page, 'Severity').click();
+        await expect(getGroupRowByKey(page, 'Phishing')).toBeVisible();
 
-        // All groups are collapsed initially — no data rows visible beyond headers
-        await expect(page.locator('.kbq-ag-grid-group-cell-renderer__inner')).toHaveCount(
-            await page.locator('.ag-row').count()
-        );
+        // Every attack type starts collapsed, so no leaf rows are visible.
+        await expect(
+            page.locator('.ag-row').filter({ hasNot: page.locator('.kbq-ag-grid-group-cell-renderer__inner') })
+        ).toHaveCount(0);
 
         // Click first group to expand
         await getGroupCellInner(page, 0).click();
@@ -160,8 +161,8 @@ test.describe('KbqAgGridRowGroup', () => {
         await page.goto('/e2e/row-group');
         await waitForDataLoaded(page);
 
-        await getGroupCheckbox(page, 'Country').click();
-        await waitForGroupsVisible(page);
+        await getGroupCheckbox(page, 'Severity').click();
+        await expect(getGroupRowByKey(page, 'Phishing')).toBeVisible();
 
         // Expand first group
         await getGroupCellInner(page, 0).click();
@@ -195,7 +196,7 @@ test.describe('KbqAgGridRowGroup', () => {
     });
 
     test('two group columns produce a nested group structure', async ({ page }) => {
-        // Both Country and Sport are grouped by default (see DevRowGroup.groupCols).
+        // Both Severity and Attack type are grouped by default (see DevRowGroup.groupCols).
         await page.goto('/e2e/row-group');
         await waitForGroupsVisible(page);
 
@@ -217,8 +218,8 @@ test.describe('KbqAgGridRowGroup', () => {
         await page.goto('/e2e/row-group');
         await waitForDataLoaded(page);
 
-        await getGroupCheckbox(page, 'Country').click();
-        await waitForGroupsVisible(page);
+        await getGroupCheckbox(page, 'Severity').click();
+        await expect(getGroupRowByKey(page, 'Phishing')).toBeVisible();
 
         // Expand the first group so children are visible
         await getGroupCellInner(page, 0).click();
@@ -237,8 +238,8 @@ test.describe('KbqAgGridRowGroup', () => {
         await page.goto('/e2e/row-group');
         await waitForDataLoaded(page);
 
-        await getGroupCheckbox(page, 'Country').click();
-        await waitForGroupsVisible(page);
+        await getGroupCheckbox(page, 'Severity').click();
+        await expect(getGroupRowByKey(page, 'Phishing')).toBeVisible();
 
         await getGroupCellInner(page, 0).click();
         await expect(page.locator('.ag-row[row-index="1"]')).toBeVisible();
@@ -258,8 +259,8 @@ test.describe('KbqAgGridRowGroup', () => {
         await page.goto('/e2e/row-group');
         await waitForDataLoaded(page);
 
-        await getGroupCheckbox(page, 'Country').click();
-        await waitForGroupsVisible(page);
+        await getGroupCheckbox(page, 'Severity').click();
+        await expect(getGroupRowByKey(page, 'Phishing')).toBeVisible();
 
         // Select the first group header while it is still collapsed
         await getRowCheckbox(page, 0).click();
@@ -278,8 +279,8 @@ test.describe('KbqAgGridRowGroup', () => {
         await page.goto('/e2e/row-group');
         await waitForDataLoaded(page);
 
-        await getGroupCheckbox(page, 'Country').click();
-        await waitForGroupsVisible(page);
+        await getGroupCheckbox(page, 'Severity').click();
+        await expect(getGroupRowByKey(page, 'Phishing')).toBeVisible();
 
         // Expand the first group so children are visible
         await getGroupCellInner(page, 0).click();
@@ -308,8 +309,8 @@ test.describe('KbqAgGridRowGroup', () => {
         await page.goto('/e2e/row-group');
         await waitForDataLoaded(page);
 
-        await getGroupCheckbox(page, 'Country').click();
-        await waitForGroupsVisible(page);
+        await getGroupCheckbox(page, 'Severity').click();
+        await expect(getGroupRowByKey(page, 'Phishing')).toBeVisible();
 
         // Select the first group while it is still collapsed
         await getRowCheckbox(page, 0).click();
@@ -334,8 +335,8 @@ test.describe('KbqAgGridRowGroup', () => {
         await page.goto('/e2e/row-group');
         await waitForDataLoaded(page);
 
-        await getGroupCheckbox(page, 'Country').click();
-        await waitForGroupsVisible(page);
+        await getGroupCheckbox(page, 'Severity').click();
+        await expect(getGroupRowByKey(page, 'Phishing')).toBeVisible();
 
         // Expand the first group so children are visible
         await getGroupCellInner(page, 0).click();
@@ -360,7 +361,7 @@ test.describe('KbqAgGridRowGroup', () => {
     test('two group levels: deselecting one sub-group unchecks parent but keeps siblings selected', async ({
         page
     }) => {
-        // Both Country and Sport are grouped by default (see DevRowGroup.groupCols).
+        // Both Severity and Attack type are grouped by default (see DevRowGroup.groupCols).
         await page.goto('/e2e/row-group');
         await waitForGroupsVisible(page);
 
@@ -368,19 +369,19 @@ test.describe('KbqAgGridRowGroup', () => {
         await getGroupCellInner(page, 0).click();
         await expect(getGroupCellInner(page, 1)).toBeVisible();
 
-        // Select the country group — all sport sub-groups become selected
+        // Select the severity group — all attack type sub-groups become selected
         await getRowCheckbox(page, 0).click();
         await waitForRowSelected(page, 1);
         await waitForRowSelected(page, 2);
 
-        // Deselect the first sport sub-group
+        // Deselect the first attack type sub-group
         await getRowCheckbox(page, 1).click();
 
-        // Country group must become unchecked, first sport must be unchecked
+        // Severity group must become unchecked, first attack type must be unchecked
         await expect(page.locator('.ag-row[row-index="0"]')).not.toHaveClass(/ag-row-selected/);
         await expect(page.locator('.ag-row[row-index="1"]')).not.toHaveClass(/ag-row-selected/);
 
-        // Remaining sport siblings must still be selected
+        // Remaining attack type siblings must still be selected
         await waitForRowSelected(page, 2);
         await waitForRowSelected(page, 3);
     });
@@ -388,7 +389,7 @@ test.describe('KbqAgGridRowGroup', () => {
     test('kbqAgGridRowGroupSelectionChanged reports the full selection across collapsed groups, not just visible rows', async ({
         page
     }) => {
-        // Both Country and Sport are grouped by default (see DevRowGroup.groupCols).
+        // Both Severity and Attack type are grouped by default (see DevRowGroup.groupCols).
         await page.goto('/e2e/row-group');
         await waitForGroupsVisible(page);
 
@@ -417,7 +418,7 @@ test.describe('KbqAgGridRowGroup', () => {
     });
 
     test('expandAll expands every group at every level', async ({ page }) => {
-        // Both Country and Sport are grouped by default (see DevRowGroup.groupCols).
+        // Both Severity and Attack type are grouped by default (see DevRowGroup.groupCols).
         await page.goto('/e2e/row-group');
         await waitForGroupsVisible(page);
 
@@ -450,31 +451,31 @@ test.describe('KbqAgGridRowGroup', () => {
         await page.goto('/e2e/row-group');
         await waitForGroupsVisible(page);
 
-        await page.getByTestId('expandRussiaDivingBtn').click();
+        await page.getByTestId('expandHighMalwareBtn').click();
 
-        // Russia and its Diving sub-group are both expanded by one call — an athlete two
+        // High and its Malware sub-group are both expanded by one call — an incident two
         // levels deep becomes visible with no manual chevron clicks at all.
-        await expect(getDataRowByText(page, 'Ilya Zakharov')).toBeVisible();
+        await expect(getDataRowByText(page, 'INC-20261116-0013')).toBeVisible();
 
-        // A sibling sport under Russia must stay collapsed — only the addressed path expands.
-        const gymnasticsGroup = getGroupRowByKey(page, 'Gymnastics');
-        await expect(gymnasticsGroup).toBeVisible();
-        await expect(gymnasticsGroup.locator('.kbq-chevron-right_16')).toBeVisible();
+        // A sibling attack type under High must stay collapsed — only the addressed path expands.
+        const phishingGroup = getGroupRowByKey(page, 'Phishing');
+        await expect(phishingGroup).toBeVisible();
+        await expect(phishingGroup.locator('.kbq-chevron-right_16')).toBeVisible();
     });
 
     test('setExpanded(groupPath, false) collapses only the target group, ancestors stay expanded', async ({ page }) => {
         await page.goto('/e2e/row-group');
         await waitForGroupsVisible(page);
 
-        await page.getByTestId('expandRussiaDivingBtn').click();
-        await expect(getDataRowByText(page, 'Ilya Zakharov')).toBeVisible();
+        await page.getByTestId('expandHighMalwareBtn').click();
+        await expect(getDataRowByText(page, 'INC-20261116-0013')).toBeVisible();
 
-        await page.getByTestId('collapseRussiaDivingBtn').click();
+        await page.getByTestId('collapseHighMalwareBtn').click();
 
-        // Diving's own children are hidden again...
-        await expect(getDataRowByText(page, 'Ilya Zakharov')).toHaveCount(0);
-        // ...but Russia itself is still expanded, and the Diving group header is still shown.
-        await expect(getGroupRowByKey(page, 'Diving')).toBeVisible();
+        // Malware's own children are hidden again...
+        await expect(getDataRowByText(page, 'INC-20261116-0013')).toHaveCount(0);
+        // ...but High itself is still expanded, and the Malware group header is still shown.
+        await expect(getGroupRowByKey(page, 'Malware')).toBeVisible();
     });
 
     test('setRowSelected selects a row hidden inside a collapsed group, and it shows selected once expanded', async ({
@@ -483,34 +484,34 @@ test.describe('KbqAgGridRowGroup', () => {
         await page.goto('/e2e/row-group');
         await waitForGroupsVisible(page);
 
-        // Russia > Diving is still fully collapsed — no AG row node exists yet for this row.
-        await page.getByTestId('selectIlyaZakharovBtn').click();
+        // High > Malware is still fully collapsed — no AG row node exists yet for this row.
+        await page.getByTestId('selectMalwareIncidentBtn').click();
 
         // The selection is already reflected in the full-dataset count even though the row
         // itself isn't loaded into AG's row model.
         await expect(page.getByTestId('selectedCount')).toHaveText('1');
 
         // Expand down to the row — it comes back selected.
-        await page.getByTestId('expandRussiaDivingBtn').click();
-        const athleteRow = getDataRowByText(page, 'Ilya Zakharov');
-        await expect(athleteRow).toBeVisible();
-        await expect(athleteRow).toHaveClass(/ag-row-selected/);
+        await page.getByTestId('expandHighMalwareBtn').click();
+        const titleRow = getDataRowByText(page, 'INC-20261116-0013');
+        await expect(titleRow).toBeVisible();
+        await expect(titleRow).toHaveClass(/ag-row-selected/);
     });
 
     test('setRowSelected(id, false) deselects a row', async ({ page }) => {
         await page.goto('/e2e/row-group');
         await waitForGroupsVisible(page);
 
-        await page.getByTestId('selectIlyaZakharovBtn').click();
+        await page.getByTestId('selectMalwareIncidentBtn').click();
         await expect(page.getByTestId('selectedCount')).toHaveText('1');
 
-        await page.getByTestId('deselectIlyaZakharovBtn').click();
+        await page.getByTestId('deselectMalwareIncidentBtn').click();
         await expect(page.getByTestId('selectedCount')).toHaveText('0');
 
-        await page.getByTestId('expandRussiaDivingBtn').click();
-        const athleteRow = getDataRowByText(page, 'Ilya Zakharov');
-        await expect(athleteRow).toBeVisible();
-        await expect(athleteRow).not.toHaveClass(/ag-row-selected/);
+        await page.getByTestId('expandHighMalwareBtn').click();
+        const titleRow = getDataRowByText(page, 'INC-20261116-0013');
+        await expect(titleRow).toBeVisible();
+        await expect(titleRow).not.toHaveClass(/ag-row-selected/);
     });
 
     test('clicking the group column header cycles asc/desc/none, reordering top-level groups', async ({ page }) => {
@@ -572,8 +573,8 @@ test.describe('KbqAgGridRowGroup', () => {
         await waitForGroupsVisible(page);
 
         // Both columns are grouped by default (see DevRowGroup.groupCols) — uncheck each
-        await getGroupCheckbox(page, 'Country').click();
-        await getGroupCheckbox(page, 'Sport').click();
+        await getGroupCheckbox(page, 'Severity').click();
+        await getGroupCheckbox(page, 'Attack type').click();
 
         // Group cell renderers should no longer be present
         await expect(page.locator('.kbq-ag-grid-group-cell-renderer__inner')).toHaveCount(0, { timeout: 5_000 });
@@ -582,29 +583,29 @@ test.describe('KbqAgGridRowGroup', () => {
     test('sorting a data column reorders leaf rows within a group without scattering group headers', async ({
         page
     }) => {
-        // Both Country and Sport are grouped by default (see DevRowGroup.groupCols).
+        // Both Severity and Attack type are grouped by default (see DevRowGroup.groupCols).
         await page.goto('/e2e/row-group');
         await waitForGroupsVisible(page);
 
-        await page.getByTestId('expandRussiaDivingBtn').click();
-        await expect(getDataRowByText(page, 'Ilya Zakharov')).toBeVisible();
+        await page.getByTestId('expandHighMalwareBtn').click();
+        await expect(getDataRowByText(page, 'INC-20261116-0013')).toBeVisible();
 
         const groupCountBefore = await page.locator('.kbq-ag-grid-group-cell-renderer__inner').count();
-        const goldBefore = await getLeafGoldValues(page);
+        const alertsBefore = await getLeafAlertsValues(page);
 
-        const goldHeader = getDataHeaderCell(page, 'gold');
-        await goldHeader.locator('.ag-header-cell-label').click();
-        await expect(goldHeader).toHaveAttribute('aria-sort', 'ascending');
+        const alertsHeader = getDataHeaderCell(page, 'alerts');
+        await alertsHeader.locator('.ag-header-cell-label').click();
+        await expect(alertsHeader).toHaveAttribute('aria-sort', 'ascending');
 
         // Group headers/nesting stay identical to before the sort — this is the actual bug: a
         // native AG sort over rowData used to scatter/duplicate/lose these synthetic rows.
         await expect(page.locator('.kbq-ag-grid-group-cell-renderer__inner')).toHaveCount(groupCountBefore);
-        await expect(getGroupRowByKey(page, 'Diving')).toBeVisible();
+        await expect(getGroupRowByKey(page, 'Malware')).toBeVisible();
 
-        // The leaf rows within Diving are now actually reordered ascending by Gold.
-        await expect.poll(async () => getLeafGoldValues(page)).not.toEqual(goldBefore);
-        const goldAfter = await getLeafGoldValues(page);
-        expect(goldAfter).toEqual([...goldAfter].sort((a, b) => a - b));
+        // The leaf rows within Malware are now actually reordered ascending by Alerts.
+        await expect.poll(async () => getLeafAlertsValues(page)).not.toEqual(alertsBefore);
+        const alertsAfter = await getLeafAlertsValues(page);
+        expect(alertsAfter).toEqual([...alertsAfter].sort((a, b) => a - b));
     });
 
     test('sorting a data column and the group column are mutually exclusive', async ({ page }) => {
@@ -612,15 +613,15 @@ test.describe('KbqAgGridRowGroup', () => {
         await waitForGroupsVisible(page);
 
         const groupHeader = getGroupHeaderCell(page);
-        const goldHeader = getDataHeaderCell(page, 'gold');
+        const alertsHeader = getDataHeaderCell(page, 'alerts');
 
         await groupHeader.locator('.ag-header-cell-label').click();
         await expect(groupHeader).toHaveAttribute('aria-sort', 'ascending');
 
-        // Sorting Gold takes over as the single active sort — AG itself clears the group
+        // Sorting Alerts takes over as the single active sort — AG itself clears the group
         // column's sort state, same as a real header click would for any two native columns.
-        await goldHeader.locator('.ag-header-cell-label').click();
-        await expect(goldHeader).toHaveAttribute('aria-sort', 'ascending');
+        await alertsHeader.locator('.ag-header-cell-label').click();
+        await expect(alertsHeader).toHaveAttribute('aria-sort', 'ascending');
         await expect(groupHeader).toHaveAttribute('aria-sort', 'none');
     });
 
@@ -630,64 +631,64 @@ test.describe('KbqAgGridRowGroup', () => {
 
         // Both columns are grouped by default (see DevRowGroup.groupCols) — uncheck each so the
         // no-op comparator (grouped-only) is out of the picture entirely.
-        await getGroupCheckbox(page, 'Country').click();
-        await getGroupCheckbox(page, 'Sport').click();
+        await getGroupCheckbox(page, 'Severity').click();
+        await getGroupCheckbox(page, 'Attack type').click();
         await expect(page.locator('.kbq-ag-grid-group-cell-renderer__inner')).toHaveCount(0, { timeout: 5_000 });
 
-        const goldHeader = getDataHeaderCell(page, 'gold');
-        const goldBefore = await getLeafGoldValues(page);
+        const alertsHeader = getDataHeaderCell(page, 'alerts');
+        const alertsBefore = await getLeafAlertsValues(page);
 
-        await goldHeader.locator('.ag-header-cell-label').click();
-        await expect(goldHeader).toHaveAttribute('aria-sort', 'ascending');
-        await expect.poll(async () => getLeafGoldValues(page)).not.toEqual(goldBefore);
-        const goldAsc = await getLeafGoldValues(page);
-        expect(goldAsc).toEqual([...goldAsc].sort((a, b) => a - b));
+        await alertsHeader.locator('.ag-header-cell-label').click();
+        await expect(alertsHeader).toHaveAttribute('aria-sort', 'ascending');
+        await expect.poll(async () => getLeafAlertsValues(page)).not.toEqual(alertsBefore);
+        const alertsAsc = await getLeafAlertsValues(page);
+        expect(alertsAsc).toEqual([...alertsAsc].sort((a, b) => a - b));
 
-        await goldHeader.locator('.ag-header-cell-label').click();
-        await expect(goldHeader).toHaveAttribute('aria-sort', 'descending');
-        await expect.poll(async () => getLeafGoldValues(page)).not.toEqual(goldAsc);
-        const goldDesc = await getLeafGoldValues(page);
-        expect(goldDesc).toEqual([...goldDesc].sort((a, b) => b - a));
+        await alertsHeader.locator('.ag-header-cell-label').click();
+        await expect(alertsHeader).toHaveAttribute('aria-sort', 'descending');
+        await expect.poll(async () => getLeafAlertsValues(page)).not.toEqual(alertsAsc);
+        const alertsDesc = await getLeafAlertsValues(page);
+        expect(alertsDesc).toEqual([...alertsDesc].sort((a, b) => b - a));
     });
 
     test('data columns for active group fields are hidden from header and body', async ({ page }) => {
-        // Both Country and Sport are grouped by default (see DevRowGroup.groupCols).
+        // Both Severity and Attack type are grouped by default (see DevRowGroup.groupCols).
         await page.goto('/e2e/row-group');
         await waitForGroupsVisible(page);
 
-        await expect(getDataHeaderCell(page, 'country')).toHaveCount(0);
-        await expect(getDataHeaderCell(page, 'sport')).toHaveCount(0);
-        await expect(getDataHeaderCell(page, 'gold')).toBeVisible();
-        await expect(page.locator('.ag-row [col-id="country"]')).toHaveCount(0);
+        await expect(getDataHeaderCell(page, 'severity')).toHaveCount(0);
+        await expect(getDataHeaderCell(page, 'attackType')).toHaveCount(0);
+        await expect(getDataHeaderCell(page, 'alerts')).toBeVisible();
+        await expect(page.locator('.ag-row [col-id="severity"]')).toHaveCount(0);
     });
 
     test('un-grouping a field re-shows its data column', async ({ page }) => {
         await page.goto('/e2e/row-group');
         await waitForGroupsVisible(page);
-        await expect(getDataHeaderCell(page, 'country')).toHaveCount(0);
+        await expect(getDataHeaderCell(page, 'severity')).toHaveCount(0);
 
-        await getGroupCheckbox(page, 'Country').click();
+        await getGroupCheckbox(page, 'Severity').click();
 
-        await expect(getDataHeaderCell(page, 'country')).toBeVisible();
-        await expect(getDataHeaderCell(page, 'sport')).toHaveCount(0);
+        await expect(getDataHeaderCell(page, 'severity')).toBeVisible();
+        await expect(getDataHeaderCell(page, 'attackType')).toHaveCount(0);
     });
 
     test('adding a second group field while already grouped hides that column too', async ({ page }) => {
         await page.goto('/e2e/row-group');
         await waitForDataLoaded(page);
 
-        // Start with only Country grouped (uncheck Sport, which is grouped by default).
-        await getGroupCheckbox(page, 'Sport').click();
+        // Start with only Severity grouped (uncheck Attack type, which is grouped by default).
+        await getGroupCheckbox(page, 'Attack type').click();
         await waitForGroupsVisible(page);
-        await expect(getDataHeaderCell(page, 'country')).toHaveCount(0);
-        await expect(getDataHeaderCell(page, 'sport')).toBeVisible();
+        await expect(getDataHeaderCell(page, 'severity')).toHaveCount(0);
+        await expect(getDataHeaderCell(page, 'attackType')).toBeVisible();
 
-        // Re-check Sport: a groupCols content change while already grouped, not the initial
+        // Re-check Attack type: a groupCols content change while already grouped, not the initial
         // 0-to-non-zero boundary — the case syncGroupFieldVisibility exists to cover.
-        await getGroupCheckbox(page, 'Sport').click();
+        await getGroupCheckbox(page, 'Attack type').click();
 
-        await expect(getDataHeaderCell(page, 'sport')).toHaveCount(0);
-        await expect(getDataHeaderCell(page, 'country')).toHaveCount(0);
+        await expect(getDataHeaderCell(page, 'attackType')).toHaveCount(0);
+        await expect(getDataHeaderCell(page, 'severity')).toHaveCount(0);
     });
 
     test.describe('kbqAgGridRowGroupCellContent', () => {
@@ -761,7 +762,7 @@ test.describe('KbqAgGridRowGroup', () => {
             await waitForGroupsVisible(page);
 
             // Expand the first top-level group — row 1 becomes its first (still-collapsed)
-            // nested Sport sub-group, not the *next* top-level country header.
+            // nested Attack type sub-group, not the *next* top-level severity header.
             const firstGroupKey =
                 (await page.locator('.kbq-ag-grid-group-cell-renderer__key').first().textContent()) ?? '';
             await getGroupCellInner(page, 0).click();
@@ -800,8 +801,8 @@ test.describe('KbqAgGridRowGroup', () => {
             await page.reload();
             await waitForGroupsVisible(page);
 
-            // Select Ilya Zakharov while Russia > Diving is still fully collapsed.
-            await page.getByTestId('selectIlyaZakharovBtn').click();
+            // Select INC-20261116-0013 while High > Malware is still fully collapsed.
+            await page.getByTestId('selectMalwareIncidentBtn').click();
             await expect(page.getByTestId('selectedCount')).toHaveText('1');
             await expect.poll(async () => getStoredSelectedIds(page)).not.toBeNull();
 
@@ -813,10 +814,10 @@ test.describe('KbqAgGridRowGroup', () => {
             await expect(page.getByTestId('selectedCount')).toHaveText('1', { timeout: 10_000 });
 
             // Expand down to the row — it comes back visually selected too.
-            await page.getByTestId('expandRussiaDivingBtn').click();
-            const athleteRow = getDataRowByText(page, 'Ilya Zakharov');
-            await expect(athleteRow).toBeVisible();
-            await expect(athleteRow).toHaveClass(/ag-row-selected/);
+            await page.getByTestId('expandHighMalwareBtn').click();
+            const titleRow = getDataRowByText(page, 'INC-20261116-0013');
+            await expect(titleRow).toBeVisible();
+            await expect(titleRow).toHaveClass(/ag-row-selected/);
         });
 
         test('reset group state does not clear the persisted selection — selection is independent of grouping', async ({
@@ -827,7 +828,7 @@ test.describe('KbqAgGridRowGroup', () => {
             await page.reload();
             await waitForGroupsVisible(page);
 
-            await page.getByTestId('selectIlyaZakharovBtn').click();
+            await page.getByTestId('selectMalwareIncidentBtn').click();
             await expect.poll(async () => getStoredSelectedIds(page)).not.toBeNull();
 
             await page.getByTestId('resetRowGroupStateBtn').click();
@@ -839,4 +840,18 @@ test.describe('KbqAgGridRowGroup', () => {
             await expect(page.getByTestId('selectedCount')).toHaveText('1');
         });
     });
+});
+
+test('groups incidents by operator, including unassigned incidents', async ({ page }) => {
+    await page.goto('/e2e/row-group');
+    await waitForGroupsVisible(page);
+    const api = await getAgGridApi(page);
+    await api.evaluate((grid) => grid.ensureColumnVisible('operator'));
+    await expect(page.locator('.ag-row[row-index="0"] [col-id="operator"]')).toHaveText('');
+    await api.evaluate((grid) => grid.ensureColumnVisible('KbqAgGridRowGroup'));
+    await getGroupCheckbox(page, 'Severity').uncheck();
+    await getGroupCheckbox(page, 'Attack type').uncheck();
+    await getGroupCheckbox(page, 'Operator').check();
+    await expect(getGroupRowByKey(page, 'Unassigned')).toBeVisible();
+    await expect(getGroupRowByKey(page, 'Anna Petrova')).toBeVisible();
 });

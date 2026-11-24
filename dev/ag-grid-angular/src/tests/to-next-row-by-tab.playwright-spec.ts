@@ -18,24 +18,24 @@ const scrollToLastRow = async (page: Page): Promise<number> => {
 test.describe('KbqAgGridToNextRowByTab', () => {
     test('Tab moves focus to the next row', async ({ page }) => {
         await page.goto('/e2e/to-next-row-by-tab');
-        await getCell(page, 0, 'athlete').focus();
+        await getCell(page, 0, 'title').focus();
         await page.keyboard.press('Tab');
-        expect(await isCellFocused(page, 1, 'athlete')).toBe(true);
+        expect(await isCellFocused(page, 1, 'title')).toBe(true);
     });
 
     test('Shift+Tab moves focus to the previous row', async ({ page }) => {
         await page.goto('/e2e/to-next-row-by-tab');
-        await getCell(page, 2, 'athlete').focus();
+        await getCell(page, 2, 'title').focus();
         await page.keyboard.press('Shift+Tab');
-        expect(await isCellFocused(page, 1, 'athlete')).toBe(true);
+        expect(await isCellFocused(page, 1, 'title')).toBe(true);
     });
 
     test('Tab moves focus from the penultimate row to the last row', async ({ page }) => {
         await page.goto('/e2e/to-next-row-by-tab');
         const lastRowIndex = await scrollToLastRow(page);
-        await getCell(page, lastRowIndex - 1, 'athlete').focus();
+        await getCell(page, lastRowIndex - 1, 'title').focus();
         await page.keyboard.press('Tab');
-        expect(await isCellFocused(page, lastRowIndex, 'athlete')).toBe(true);
+        expect(await isCellFocused(page, lastRowIndex, 'title')).toBe(true);
     });
 
     test('Tab on the last row moves focus away from the cells', async ({ page }) => {
@@ -45,7 +45,7 @@ test.describe('KbqAgGridToNextRowByTab', () => {
         });
         await page.goto('/e2e/to-next-row-by-tab');
         const lastRowIndex = await scrollToLastRow(page);
-        const lastRowCell = getCell(page, lastRowIndex, 'athlete');
+        const lastRowCell = getCell(page, lastRowIndex, 'title');
         await lastRowCell.focus();
         await expect(lastRowCell).toBeFocused();
         await page.keyboard.press('Tab');
@@ -58,18 +58,16 @@ test.describe('KbqAgGridToNextRowByTab', () => {
 
     test('Shift+Tab on the first row moves focus to the header', async ({ page }) => {
         await page.goto('/e2e/to-next-row-by-tab');
-        await getCell(page, 0, 'athlete').focus();
+        await getCell(page, 0, 'title').focus();
         await page.keyboard.press('Shift+Tab');
-        await expect(
-            page.getByTestId('e2eScreenshotTarget').locator('.ag-header-cell[col-id="athlete"]')
-        ).toBeFocused();
+        await expect(page.getByTestId('e2eScreenshotTarget').locator('.ag-header-cell[col-id="title"]')).toBeFocused();
     });
 
     test('does not navigate to next row when disabled', async ({ page }) => {
         await page.goto('/e2e/to-next-row-by-tab');
         await getToNextRowByTabToggle(page).evaluate((label: HTMLLabelElement) => label.click());
-        await getCell(page, 0, 'athlete').focus();
+        await getCell(page, 0, 'title').focus();
         await page.keyboard.press('Tab');
-        expect(await isCellFocused(page, 0, 'age')).toBe(true);
+        expect(await isCellFocused(page, 0, 'riskScore')).toBe(true);
     });
 });

@@ -72,13 +72,13 @@ test.describe('KbqAgGridFilterState', () => {
             await page.goto('/e2e/filter-state');
             await clearFilterState(page);
 
-            await page.locator(floatingFilterInput('athlete')).fill('Michael');
+            await page.locator(floatingFilterInput('title')).fill('VPN');
 
             await expectFilterValue({
                 page,
                 getter: getFilterStateFromLocalStorage,
-                colId: 'athlete',
-                value: 'Michael'
+                colId: 'title',
+                value: 'VPN'
             });
         });
 
@@ -86,29 +86,29 @@ test.describe('KbqAgGridFilterState', () => {
             await page.goto('/e2e/filter-state');
             await clearFilterState(page);
 
-            await page.locator(floatingFilterInput('athlete')).fill('Michael');
+            await page.locator(floatingFilterInput('title')).fill('VPN');
 
             await expectFilterValue({
                 page,
                 getter: getFilterStateFromLocalStorage,
-                colId: 'athlete',
-                value: 'Michael'
+                colId: 'title',
+                value: 'VPN'
             });
 
             await page.reload();
 
-            await expect(page.locator(floatingFilterInput('athlete'))).toHaveValue('Michael', { timeout: 10_000 });
+            await expect(page.locator(floatingFilterInput('title'))).toHaveValue('VPN', { timeout: 10_000 });
         });
 
         test('removes filter state from localStorage when filter is cleared', async ({ page }) => {
             await page.goto('/e2e/filter-state');
             await clearFilterState(page);
 
-            await page.locator(floatingFilterInput('athlete')).fill('Michael');
+            await page.locator(floatingFilterInput('title')).fill('VPN');
 
             await expect.poll(async () => getFilterStateFromLocalStorage(page)).not.toBeNull();
 
-            await page.locator(floatingFilterInput('athlete')).clear();
+            await page.locator(floatingFilterInput('title')).clear();
 
             await expect.poll(async () => getFilterStateFromLocalStorage(page)).toBeNull();
         });
@@ -119,13 +119,13 @@ test.describe('KbqAgGridFilterState', () => {
                 {
                     key: filterStateStorageKey,
                     value: JSON.stringify({
-                        athlete: { filterType: 'text', type: 'contains', filter: 'Phelps' }
+                        title: { filterType: 'text', type: 'contains', filter: 'PowerShell' }
                     })
                 }
             );
             await page.goto('/e2e/filter-state');
 
-            await expect(page.locator(floatingFilterInput('athlete'))).toHaveValue('Phelps', { timeout: 10_000 });
+            await expect(page.locator(floatingFilterInput('title'))).toHaveValue('PowerShell', { timeout: 10_000 });
         });
     });
 
@@ -133,41 +133,41 @@ test.describe('KbqAgGridFilterState', () => {
         test('saves filter state to URL when filter is applied', async ({ page }) => {
             await page.goto('/e2e/filter-state-query-params');
 
-            await page.locator(floatingFilterInput('athlete')).fill('Michael');
+            await page.locator(floatingFilterInput('title')).fill('VPN');
 
             await expectFilterValue({
                 page,
                 getter: getFilterStateFromUrl,
-                colId: 'athlete',
-                value: 'Michael'
+                colId: 'title',
+                value: 'VPN'
             });
         });
 
         test('restores filter state from URL on page reload', async ({ page }) => {
             await page.goto('/e2e/filter-state-query-params');
 
-            await page.locator(floatingFilterInput('athlete')).fill('Michael');
+            await page.locator(floatingFilterInput('title')).fill('VPN');
 
             await expectFilterValue({
                 page,
                 getter: getFilterStateFromUrl,
-                colId: 'athlete',
-                value: 'Michael'
+                colId: 'title',
+                value: 'VPN'
             });
 
             await page.reload();
 
-            await expect(page.locator(floatingFilterInput('athlete'))).toHaveValue('Michael', { timeout: 10_000 });
+            await expect(page.locator(floatingFilterInput('title'))).toHaveValue('VPN', { timeout: 10_000 });
         });
 
         test('removes filter state from URL when filter is cleared', async ({ page }) => {
             await page.goto('/e2e/filter-state-query-params');
 
-            await page.locator(floatingFilterInput('athlete')).fill('Michael');
+            await page.locator(floatingFilterInput('title')).fill('VPN');
 
             await expect.poll(async () => getFilterStateFromUrl(page)).not.toBeNull();
 
-            await page.locator(floatingFilterInput('athlete')).clear();
+            await page.locator(floatingFilterInput('title')).clear();
 
             await expect.poll(async () => getFilterStateFromUrl(page)).toBeNull();
         });
@@ -175,11 +175,11 @@ test.describe('KbqAgGridFilterState', () => {
         test('applies pre-existing filter state from URL on page load', async ({ page }) => {
             await page.goto(
                 buildFilterUrl({
-                    athlete: { filterType: 'text', type: 'contains', filter: 'Phelps' }
+                    title: { filterType: 'text', type: 'contains', filter: 'PowerShell' }
                 })
             );
 
-            await expect(page.locator(floatingFilterInput('athlete'))).toHaveValue('Phelps', { timeout: 10_000 });
+            await expect(page.locator(floatingFilterInput('title'))).toHaveValue('PowerShell', { timeout: 10_000 });
         });
     });
 });

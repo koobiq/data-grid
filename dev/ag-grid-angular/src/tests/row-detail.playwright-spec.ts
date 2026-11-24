@@ -49,7 +49,7 @@ const waitForDetails = async (page: Page, count = 1): Promise<void> => {
     const grids = page.getByTestId('e2eRowDetailGrid');
     const gridCount = await grids.count();
 
-    if (gridCount > 0) await expect(grids.locator('.ag-row')).toHaveCount(gridCount * 4);
+    if (gridCount > 0) await expect(grids.locator('.ag-row')).toHaveCount(gridCount * 3);
 
     // The row is given the height of its panel one task later, so without this a screenshot can
     // catch the row still at its collapsed height.
@@ -182,8 +182,8 @@ const getStateFromUrl = async (page: Page): Promise<string[] | null> =>
 const buildStateUrl = (ids: string[]): string =>
     `/e2e/row-detail-state-query-params?${STATE_KEY}=${encodeURIComponent(JSON.stringify(ids))}`;
 
-/** Id of the first row in `olympic-winners.json`, used to preload state into the URL. */
-const FIRST_ROW_ID = '4f32fc42-54ea-4afe-bcb3-d3e15fff11a5';
+/** Id of the first row in `security-incidents.json`, used to preload state into the URL. */
+const FIRST_ROW_ID = '5c11c4fd-558e-50ae-981e-78ef81232075';
 
 test.describe('KbqAgGridRowDetail', () => {
     test.describe('expanding', () => {

@@ -72,9 +72,9 @@ test.describe('KbqAgGridTheme cell editors', () => {
     // The browser resets the letter spacing and the font features of a form control instead of letting it inherit
     // them, so a value read wider while it was edited than the same value in a cell.
     test('sets the value in an editor in the typography of the cell text', async ({ page }) => {
-        const cellTypography = await getCell(page, EDITED_ROW_INDEX, 'athlete').evaluate(readTypography);
+        const cellTypography = await getCell(page, EDITED_ROW_INDEX, 'title').evaluate(readTypography);
 
-        for (const colKey of ['athlete', 'age', 'dateObject', 'isoDate', 'sport', 'country']) {
+        for (const colKey of ['title', 'riskScore', 'reviewBy', 'detectedOn', 'comment', 'severity']) {
             await startEditing(page, colKey);
 
             expect(await getEditorControl(page).evaluate(readTypography), colKey).toEqual(cellTypography);
@@ -85,7 +85,7 @@ test.describe('KbqAgGridTheme cell editors', () => {
     });
 
     test('starts the value in an inline editor where the cell showed it', async ({ page }) => {
-        for (const colKey of ['athlete', 'age', 'dateObject', 'isoDate', 'country']) {
+        for (const colKey of ['title', 'riskScore', 'reviewBy', 'detectedOn', 'severity']) {
             const cellTextStart = await getCell(page, EDITED_ROW_INDEX, colKey).evaluate(readTextStart);
 
             await startEditing(page, colKey);
@@ -98,46 +98,46 @@ test.describe('KbqAgGridTheme cell editors', () => {
     });
 
     test('text editor', async ({ page }) => {
-        await startEditing(page, 'athlete');
+        await startEditing(page, 'title');
         await page.keyboard.press('End');
         await expectScreenshots(page, 'text');
     });
 
     test('text editor with an invalid value', async ({ page }) => {
-        await startEditing(page, 'athlete');
+        await startEditing(page, 'title');
         await page.keyboard.press('End');
-        await page.keyboard.type(' 2');
+        await getEditorControl(page).fill('');
         await expect(getEditorControl(page)).toHaveAttribute('aria-invalid', 'true');
         await expectScreenshots(page, 'text-invalid');
     });
 
     test('number editor', async ({ page }) => {
-        await startEditing(page, 'age');
+        await startEditing(page, 'riskScore');
         await page.keyboard.press('End');
         await expectScreenshots(page, 'number');
     });
 
     test('number editor with an invalid value', async ({ page }) => {
-        await startEditing(page, 'age');
+        await startEditing(page, 'riskScore');
         await getEditorControl(page).fill('150');
         await expect(getEditorControl(page)).toHaveAttribute('aria-invalid', 'true');
         await expectScreenshots(page, 'number-invalid');
     });
 
     test('date editor', async ({ page }) => {
-        await startEditing(page, 'dateObject');
+        await startEditing(page, 'reviewBy');
         await expectScreenshots(page, 'date');
     });
 
     test('date editor with an invalid value', async ({ page }) => {
-        await startEditing(page, 'dateObject');
-        await getEditorControl(page).fill('2020-01-01');
+        await startEditing(page, 'reviewBy');
+        await getEditorControl(page).fill('2027-01-01');
         await expect(getEditorControl(page)).toHaveAttribute('aria-invalid', 'true');
         await expectScreenshots(page, 'date-invalid');
     });
 
     test('date string editor', async ({ page }) => {
-        await startEditing(page, 'isoDate');
+        await startEditing(page, 'detectedOn');
         await expectScreenshots(page, 'date-string');
     });
 
@@ -147,7 +147,7 @@ test.describe('KbqAgGridTheme cell editors', () => {
         await (
             await getAgGridApi(page)
         ).evaluate((api) => api.setGridOption('defaultColDef', { editable: true, filter: true }));
-        await page.locator('.ag-header-cell[col-id="dateObject"] .ag-header-cell-filter-button').click();
+        await page.locator('.ag-header-cell[col-id="reviewBy"] .ag-header-cell-filter-button').click();
         // The second field, the end of a range, stays hidden until the range condition is chosen.
         await expect(page.locator('.ag-filter .ag-date-filter input[type="date"]').first()).toBeVisible();
         // Takes the pointer off the header, which the click left hovered.
@@ -156,30 +156,30 @@ test.describe('KbqAgGridTheme cell editors', () => {
     });
 
     test('large text editor', async ({ page }) => {
-        await startEditing(page, 'sport');
+        await startEditing(page, 'comment');
         await page.keyboard.press('End');
         await expectScreenshots(page, 'large-text');
     });
 
     test('large text editor with an invalid value', async ({ page }) => {
-        await startEditing(page, 'sport');
+        await startEditing(page, 'comment');
         await page.keyboard.press('End');
-        await page.keyboard.type(' 2');
+        await getEditorControl(page).fill('   ');
         await expect(getEditorControl(page)).toHaveAttribute('aria-invalid', 'true');
         await expectScreenshots(page, 'large-text-invalid');
     });
 
     test('select editor', async ({ page }) => {
-        await startEditing(page, 'country');
+        await startEditing(page, 'severity');
         await page.locator('.ag-cell-inline-editing .ag-picker-field-wrapper').click();
-        await expect(page.getByRole('option', { name: 'United States', exact: true })).toHaveClass(/ag-active-item/);
+        await expect(page.getByRole('option', { name: 'Critical', exact: true })).toHaveClass(/ag-active-item/);
         // Takes the pointer off the row, which the click left hovered.
         await page.mouse.move(0, 0);
         await expectScreenshots(page, 'select');
     });
 
     test('checkbox editor', async ({ page }) => {
-        await startEditing(page, 'medalist');
+        await startEditing(page, 'escalated');
         await expectScreenshots(page, 'checkbox');
     });
 });

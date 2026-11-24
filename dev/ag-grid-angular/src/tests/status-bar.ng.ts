@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '
 import { KBQ_AG_GRID_STATUS_BAR_PARAMS, KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry, RowSelectionOptions } from 'ag-grid-community';
-import { devInjectRowData } from '../row-data';
+import { devIncidentColumns, devInjectRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -48,14 +48,14 @@ export class DevStatusBarCellComponent {
     }
 }
 
-const COLUMN_DEFS: ColDef[] = [
-    { field: 'athlete', headerName: 'Athlete' },
-    { field: 'age', headerName: 'Age' },
-    { field: 'country', headerName: 'Country' },
-    { field: 'year', headerName: 'Year' },
-    { field: 'date', headerName: 'Date' },
-    { field: 'sport', headerName: 'Sport' }
-];
+const COLUMN_DEFS: ColDef[] = devIncidentColumns(
+    'title',
+    'riskScore',
+    'severity',
+    'status',
+    'detectedOn',
+    'attackType'
+);
 
 const ROW_SELECTION: RowSelectionOptions = {
     mode: 'multiRow',

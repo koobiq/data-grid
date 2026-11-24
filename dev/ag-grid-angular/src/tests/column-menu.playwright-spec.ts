@@ -54,8 +54,11 @@ test.describe('KbqAgGridColumnMenu', () => {
         // Wait for row data to load via HTTP before manipulating grid state.
         await page.locator('.ag-row[row-index]').first().waitFor();
         await api.evaluate((gridApi) => {
-            gridApi.setColumnsPinned(['athlete'], 'left');
-            gridApi.setColumnsVisible(['year', 'sport', 'gold', 'silver', 'bronze', 'total'], false);
+            gridApi.setColumnsPinned(['title'], 'left');
+            gridApi.setColumnsVisible(
+                ['status', 'attackType', 'alerts', 'reviewBy', 'comment', 'affectedHosts'],
+                false
+            );
         });
         await openPanel(page);
         await page.keyboard.press('ArrowDown');
@@ -72,28 +75,28 @@ test.describe('KbqAgGridColumnMenu', () => {
         await page.goto('/e2e/column-menu');
         await openPanel(page);
 
-        await getRow(getSection(page, 'Visible'), 'Country').locator('.kbq-column-menu-checkbox').click();
+        await getRow(getSection(page, 'Visible'), 'Severity').locator('.kbq-column-menu-checkbox').click();
 
-        await expect(page.locator('.ag-header-cell[col-id="country"]')).toBeHidden();
+        await expect(page.locator('.ag-header-cell[col-id="severity"]')).toBeHidden();
     });
 
     test('showing a hidden column via panel removes it from the Hidden section', async ({ page }) => {
         await page.goto('/e2e/column-menu');
         const api = await getAgGridApi(page);
-        await api.evaluate((gridApi) => gridApi.setColumnsVisible(['country'], false));
+        await api.evaluate((gridApi) => gridApi.setColumnsVisible(['severity'], false));
 
         await openPanel(page);
 
-        const hiddenCountry = getRow(getSection(page, 'Hidden'), 'Country');
-        await expect(hiddenCountry).toBeVisible();
-        await hiddenCountry.click();
+        const hiddenSeverity = getRow(getSection(page, 'Hidden'), 'Severity');
+        await expect(hiddenSeverity).toBeVisible();
+        await hiddenSeverity.click();
 
-        // Column virtualization may push Country off-screen after it is moved to the last position,
+        // Column virtualization may push Severity off-screen after it is moved to the last position,
         // so verify via the column state API rather than the grid DOM.
         await expect
             .poll(async () => {
                 const state = await api.evaluate((gridApi) =>
-                    gridApi.getColumnState().find((s) => s.colId === 'country')
+                    gridApi.getColumnState().find((s) => s.colId === 'severity')
                 );
                 return state?.hide;
             })
@@ -104,21 +107,21 @@ test.describe('KbqAgGridColumnMenu', () => {
         await page.goto('/e2e/column-menu');
         await openPanel(page);
 
-        const athleteCheckbox = getRow(getSection(page, 'Visible'), 'Athlete').locator('.kbq-column-menu-checkbox');
-        await expect(athleteCheckbox).toHaveAttribute('aria-disabled', 'true');
+        const titleCheckbox = getRow(getSection(page, 'Visible'), 'Title').locator('.kbq-column-menu-checkbox');
+        await expect(titleCheckbox).toHaveAttribute('aria-disabled', 'true');
 
-        await getRow(getSection(page, 'Visible'), 'Athlete').click();
+        await getRow(getSection(page, 'Visible'), 'Title').click();
 
-        await expect(page.locator('.ag-header-cell[col-id="athlete"]')).toBeVisible();
+        await expect(page.locator('.ag-header-cell[col-id="title"]')).toBeVisible();
     });
 
     test('pinning a column left via panel moves its header cell to the pinned-left container', async ({ page }) => {
         await page.goto('/e2e/column-menu');
         await openPanel(page);
 
-        await getRow(getSection(page, 'Visible'), 'Athlete').locator(`[title="${LABEL_PIN_LEFT}"]`).click();
+        await getRow(getSection(page, 'Visible'), 'Title').locator(`[title="${LABEL_PIN_LEFT}"]`).click();
 
-        await expect(page.locator('.ag-pinned-left-header .ag-header-cell[col-id="athlete"]')).toBeVisible();
+        await expect(page.locator('.ag-pinned-left-header .ag-header-cell[col-id="title"]')).toBeVisible();
     });
 
     test('unpinning Date (pre-pinned right) via panel removes it from the pinned-right area', async ({ page }) => {
@@ -126,12 +129,14 @@ test.describe('KbqAgGridColumnMenu', () => {
         const api = await getAgGridApi(page);
         await openPanel(page);
 
-        await getRow(getSection(page, 'Pinned Right'), 'Date').locator(`[title="${LABEL_UNPIN}"]`).click();
+        await getRow(getSection(page, 'Pinned Right'), 'Detected on').locator(`[title="${LABEL_UNPIN}"]`).click();
 
-        await expect(page.locator('.ag-pinned-right-header .ag-header-cell[col-id="date"]')).toBeHidden();
+        await expect(page.locator('.ag-pinned-right-header .ag-header-cell[col-id="detectedOn"]')).toBeHidden();
         await expect
             .poll(async () => {
-                const state = await api.evaluate((gridApi) => gridApi.getColumnState().find((s) => s.colId === 'date'));
+                const state = await api.evaluate((gridApi) =>
+                    gridApi.getColumnState().find((s) => s.colId === 'detectedOn')
+                );
                 return state?.pinned;
             })
             .toBeFalsy();
@@ -142,40 +147,42 @@ test.describe('KbqAgGridColumnMenu', () => {
         const api = await getAgGridApi(page);
 
         await api.evaluate((gridApi) => {
-            gridApi.setColumnsVisible(['age'], false);
-            gridApi.setColumnsPinned(['athlete'], 'left');
+            gridApi.setColumnsVisible(['riskScore'], false);
+            gridApi.setColumnsPinned(['title'], 'left');
         });
 
         await openPanel(page);
 
         await expect(page.locator('.kbq-column-menu-section-label', { hasText: 'Pinned Left' })).toBeVisible();
-        await expect(getSection(page, 'Hidden').locator('.kbq-column-menu-row', { hasText: 'Age' })).toBeVisible();
+        await expect(
+            getSection(page, 'Hidden').locator('.kbq-column-menu-row', { hasText: 'Risk score' })
+        ).toBeVisible();
 
         await page.locator('.kbq-column-menu-reset-btn').click();
 
-        await expect(page.locator('.ag-header-cell[col-id="age"]')).toBeVisible();
-        await expect(page.locator('.ag-pinned-left-header .ag-header-cell[col-id="athlete"]')).toBeHidden();
-        await expect(page.locator('.ag-pinned-right-header .ag-header-cell[col-id="date"]')).toBeVisible();
+        await expect(page.locator('.ag-header-cell[col-id="riskScore"]')).toBeVisible();
+        await expect(page.locator('.ag-pinned-left-header .ag-header-cell[col-id="title"]')).toBeHidden();
+        await expect(page.locator('.ag-pinned-right-header .ag-header-cell[col-id="detectedOn"]')).toBeVisible();
     });
 
     test('drag-and-drop reorders columns within the visible section', async ({ page }) => {
         await page.goto('/e2e/column-menu');
         await openPanel(page);
 
-        const athleteLeftBefore = await getHeaderCellLeft(page, 'athlete');
-        const countryLeftBefore = await getHeaderCellLeft(page, 'country');
-        expect(athleteLeftBefore).toBeLessThan(countryLeftBefore);
+        const titleLeftBefore = await getHeaderCellLeft(page, 'title');
+        const severityLeftBefore = await getHeaderCellLeft(page, 'severity');
+        expect(titleLeftBefore).toBeLessThan(severityLeftBefore);
 
         const visibleSection = getSection(page, 'Visible');
         await drag(page, getDragHandle(visibleSection, 0), visibleSection.locator('.kbq-column-menu-row').nth(2));
 
         await expect
             .poll(async () => {
-                const [athleteLeft, countryLeft] = await Promise.all([
-                    getHeaderCellLeft(page, 'athlete'),
-                    getHeaderCellLeft(page, 'country')
+                const [titleLeft, severityLeft] = await Promise.all([
+                    getHeaderCellLeft(page, 'title'),
+                    getHeaderCellLeft(page, 'severity')
                 ]);
-                return athleteLeft > countryLeft;
+                return titleLeft > severityLeft;
             })
             .toBe(true);
     });
@@ -184,7 +191,7 @@ test.describe('KbqAgGridColumnMenu', () => {
         await page.goto('/e2e/column-menu');
         const api = await getAgGridApi(page);
 
-        await api.evaluate((gridApi) => gridApi.setColumnsPinned(['athlete'], 'left'));
+        await api.evaluate((gridApi) => gridApi.setColumnsPinned(['title'], 'left'));
 
         await openPanel(page);
 
@@ -202,7 +209,7 @@ test.describe('KbqAgGridColumnMenu', () => {
         await expect
             .poll(async () => {
                 const state = await api.evaluate((gridApi) =>
-                    gridApi.getColumnState().find((s) => s.colId === 'athlete')
+                    gridApi.getColumnState().find((s) => s.colId === 'title')
                 );
                 return state?.pinned;
             })

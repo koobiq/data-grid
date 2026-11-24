@@ -107,7 +107,7 @@ test.describe('KbqAgGridRowSelectionState', () => {
         });
 
         test('applies pre-existing selection from URL on page load', async ({ page }) => {
-            await page.goto(buildStateUrl(['4f32fc42-54ea-4afe-bcb3-d3e15fff11a5']));
+            await page.goto(buildStateUrl(['5c11c4fd-558e-50ae-981e-78ef81232075']));
 
             await waitForRowSelected(page, 0);
         });

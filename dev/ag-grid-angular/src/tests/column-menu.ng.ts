@@ -50,15 +50,15 @@ export class DevColumnMenu {
         headerCheckbox: true
     };
     readonly columnDefs: ColDef[] = [
-        { field: 'athlete', headerName: 'Athlete', filter: true, lockVisible: true },
-        { field: 'age', headerName: 'Age', filter: true, lockVisible: true },
-        { field: 'country', headerName: 'Country (header name with text overflow and ellipsis)', filter: true },
-        { field: 'year', headerName: 'Year', filter: true },
-        { field: 'date', headerName: 'Date', filter: true, pinned: 'right' },
-        { field: 'sport', headerName: 'Sport', filter: true },
-        { field: 'gold', headerName: 'Gold', filter: true },
-        { field: 'silver', headerName: 'Silver', filter: true },
-        { field: 'bronze', headerName: 'Bronze (header name with text overflow and ellipsis)', filter: true },
-        { field: 'total', headerName: 'Total', filter: true }
+        { field: 'title', headerName: 'Title', filter: true, lockVisible: true },
+        { field: 'riskScore', headerName: 'Risk score', filter: true, lockVisible: true },
+        { field: 'severity', headerName: 'Severity (header name with text overflow and ellipsis)', filter: true },
+        { field: 'status', headerName: 'Status', filter: true },
+        { field: 'detectedOn', headerName: 'Detected on', filter: true, pinned: 'right' },
+        { field: 'attackType', headerName: 'Attack type', filter: true },
+        { field: 'alerts', headerName: 'Alerts', filter: true },
+        { field: 'reviewBy', headerName: 'Review by', filter: true },
+        { field: 'comment', headerName: 'Comment (header name with text overflow and ellipsis)', filter: true },
+        { field: 'affectedHosts', headerName: 'Affected hosts', filter: true }
     ];
 }

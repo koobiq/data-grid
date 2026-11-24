@@ -2,9 +2,9 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { getAgGridApi } from './utils/api';
 
 const externalFilterStateStorageKey = 'dev-ag-grid-external-filter-state';
-const OPTION = 'Swimming';
+const OPTION = 'Phishing';
 
-const getSportSelect = (page: Page): Locator => page.getByTestId('e2eSportSelect');
+const getAttackTypeSelect = (page: Page): Locator => page.getByTestId('e2eAttackTypeSelect');
 const getResetButton = (page: Page): Locator => page.getByTestId('e2eResetExternalFilterState');
 
 const getStoredExternalFilterState = async (page: Page): Promise<string | null> =>
@@ -42,7 +42,7 @@ test.describe('KbqAgGridExternalFilterState', () => {
             await page.goto('/e2e/external-filter-state');
             await clearStoredExternalFilterState(page);
 
-            await getSportSelect(page).selectOption(OPTION);
+            await getAttackTypeSelect(page).selectOption(OPTION);
 
             await expect
                 .poll(async () => {
@@ -61,7 +61,7 @@ test.describe('KbqAgGridExternalFilterState', () => {
             );
             await page.goto('/e2e/external-filter-state');
 
-            await expect(getSportSelect(page)).toHaveValue(OPTION, { timeout: 10_000 });
+            await expect(getAttackTypeSelect(page)).toHaveValue(OPTION, { timeout: 10_000 });
         });
 
         test('filters rows when external filter is restored from localStorage', async ({ page }) => {
@@ -79,10 +79,10 @@ test.describe('KbqAgGridExternalFilterState', () => {
             await page.goto('/e2e/external-filter-state');
             await clearStoredExternalFilterState(page);
 
-            await getSportSelect(page).selectOption(OPTION);
+            await getAttackTypeSelect(page).selectOption(OPTION);
             await expect.poll(async () => getStoredExternalFilterState(page)).not.toBeNull();
 
-            await getSportSelect(page).selectOption('');
+            await getAttackTypeSelect(page).selectOption('');
 
             await expect.poll(async () => getStoredExternalFilterState(page)).toBeNull();
         });
@@ -91,13 +91,13 @@ test.describe('KbqAgGridExternalFilterState', () => {
             await page.goto('/e2e/external-filter-state');
             await clearStoredExternalFilterState(page);
 
-            await getSportSelect(page).selectOption(OPTION);
+            await getAttackTypeSelect(page).selectOption(OPTION);
             await expect.poll(async () => getStoredExternalFilterState(page)).not.toBeNull();
 
             await getResetButton(page).click();
 
             expect(await getStoredExternalFilterState(page)).toBeNull();
-            await expect(getSportSelect(page)).toHaveValue('');
+            await expect(getAttackTypeSelect(page)).toHaveValue('');
         });
     });
 
@@ -105,7 +105,7 @@ test.describe('KbqAgGridExternalFilterState', () => {
         test('saves external filter value to URL when filter is set', async ({ page }) => {
             await page.goto('/e2e/external-filter-state-query-params');
 
-            await getSportSelect(page).selectOption(OPTION);
+            await getAttackTypeSelect(page).selectOption(OPTION);
 
             await expect.poll(async () => getExternalFilterStateFromUrl(page)).toBe(OPTION);
         });
@@ -113,7 +113,7 @@ test.describe('KbqAgGridExternalFilterState', () => {
         test('restores external filter from URL on page load', async ({ page }) => {
             await page.goto(buildExternalFilterUrl(OPTION));
 
-            await expect(getSportSelect(page)).toHaveValue(OPTION, { timeout: 10_000 });
+            await expect(getAttackTypeSelect(page)).toHaveValue(OPTION, { timeout: 10_000 });
         });
 
         test('filters rows when external filter is restored from URL', async ({ page }) => {
@@ -126,10 +126,10 @@ test.describe('KbqAgGridExternalFilterState', () => {
         test('removes external filter state from URL when filter is cleared', async ({ page }) => {
             await page.goto('/e2e/external-filter-state-query-params');
 
-            await getSportSelect(page).selectOption(OPTION);
+            await getAttackTypeSelect(page).selectOption(OPTION);
             await expect.poll(async () => getExternalFilterStateFromUrl(page)).toBe(OPTION);
 
-            await getSportSelect(page).selectOption('');
+            await getAttackTypeSelect(page).selectOption('');
 
             await expect.poll(async () => getExternalFilterStateFromUrl(page)).toBeNull();
         });
@@ -137,13 +137,13 @@ test.describe('KbqAgGridExternalFilterState', () => {
         test('reset() clears external filter and removes state from URL', async ({ page }) => {
             await page.goto('/e2e/external-filter-state-query-params');
 
-            await getSportSelect(page).selectOption(OPTION);
+            await getAttackTypeSelect(page).selectOption(OPTION);
             await expect.poll(async () => getExternalFilterStateFromUrl(page)).toBe(OPTION);
 
             await getResetButton(page).click();
 
             await expect.poll(async () => getExternalFilterStateFromUrl(page)).toBeNull();
-            await expect(getSportSelect(page)).toHaveValue('');
+            await expect(getAttackTypeSelect(page)).toHaveValue('');
         });
     });
 });

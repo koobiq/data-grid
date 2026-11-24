@@ -6,18 +6,18 @@ import {
 } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, GetRowIdFunc, ModuleRegistry, RowSelectionOptions } from 'ag-grid-community';
-import { DevRowData, devInjectRowData } from '../row-data';
+import { devIncidentColumns, devInjectRowData, DevRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-const COLUMN_DEFS: ColDef[] = [
-    { field: 'athlete', headerName: 'Athlete' },
-    { field: 'age', headerName: 'Age' },
-    { field: 'country', headerName: 'Country' },
-    { field: 'year', headerName: 'Year' },
-    { field: 'date', headerName: 'Date' },
-    { field: 'sport', headerName: 'Sport' }
-];
+const COLUMN_DEFS: ColDef[] = devIncidentColumns(
+    'title',
+    'riskScore',
+    'severity',
+    'status',
+    'detectedOn',
+    'attackType'
+);
 
 const ROW_SELECTION: RowSelectionOptions = {
     mode: 'multiRow',

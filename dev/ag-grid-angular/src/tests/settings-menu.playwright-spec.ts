@@ -83,8 +83,8 @@ test.describe('KbqAgGridSettingsMenu', () => {
         await api.evaluate((gridApi) =>
             gridApi.applyColumnState({
                 state: [
-                    { colId: 'athlete', sort: 'asc', sortIndex: 0 },
-                    { colId: 'age', sort: 'desc', sortIndex: 1 }
+                    { colId: 'title', sort: 'asc', sortIndex: 0 },
+                    { colId: 'riskScore', sort: 'desc', sortIndex: 1 }
                 ]
             })
         );
@@ -98,9 +98,9 @@ test.describe('KbqAgGridSettingsMenu', () => {
     test('sort screen visual', async ({ page }) => {
         await page.setViewportSize({ width: 768, height: 700 });
         await openSortScreen(page);
-        await getSortRow(page, 'Athlete').click();
-        await getSortRow(page, 'Age').click();
-        await getSortRow(page, 'Athlete').hover();
+        await getSortRow(page, 'Title').click();
+        await getSortRow(page, 'Risk score').click();
+        await getSortRow(page, 'Title').hover();
 
         await expect(page.getByTestId('e2eScreenshotTarget')).toHaveScreenshot('settings-menu-sort-light.png');
         await enableDarkTheme(page);
@@ -131,39 +131,39 @@ test.describe('KbqAgGridSettingsMenu', () => {
 
     test('enabling sorting from the menu sorts the grid', async ({ page }) => {
         await openSortScreen(page);
-        await getSortRow(page, 'Athlete').click();
+        await getSortRow(page, 'Title').click();
 
-        await expect.poll(async () => getSortState(page)).toEqual([{ colId: 'athlete', sort: 'asc', sortIndex: 0 }]);
-        await expect(page.locator('.ag-header-cell[col-id="athlete"] .ag-sort-ascending-icon')).toBeVisible();
+        await expect.poll(async () => getSortState(page)).toEqual([{ colId: 'title', sort: 'asc', sortIndex: 0 }]);
+        await expect(page.locator('.ag-header-cell[col-id="title"] .ag-sort-ascending-icon')).toBeVisible();
     });
 
     test('enabling sorting for several columns applies multi-column sorting in click order', async ({ page }) => {
         await openSortScreen(page);
-        await getSortRow(page, 'Athlete').click();
-        await getSortRow(page, 'Age').click();
+        await getSortRow(page, 'Title').click();
+        await getSortRow(page, 'Risk score').click();
 
         await expect
             .poll(async () => getSortState(page))
             .toEqual([
-                { colId: 'athlete', sort: 'asc', sortIndex: 0 },
-                { colId: 'age', sort: 'asc', sortIndex: 1 }
+                { colId: 'title', sort: 'asc', sortIndex: 0 },
+                { colId: 'riskScore', sort: 'asc', sortIndex: 1 }
             ]);
     });
 
     test('the direction button switches the sort direction', async ({ page }) => {
         await openSortScreen(page);
-        await getSortRow(page, 'Athlete').click();
-        await getSortRow(page, 'Athlete').locator('.kbq-sort-menu-direction-btn').click();
+        await getSortRow(page, 'Title').click();
+        await getSortRow(page, 'Title').locator('.kbq-sort-menu-direction-btn').click();
 
-        await expect.poll(async () => getSortState(page)).toEqual([{ colId: 'athlete', sort: 'desc', sortIndex: 0 }]);
+        await expect.poll(async () => getSortState(page)).toEqual([{ colId: 'title', sort: 'desc', sortIndex: 0 }]);
     });
 
     test('the direction button is disabled for a column with a single sorting order', async ({ page }) => {
         await openSortScreen(page);
-        // DevSettingsMenu defines `sortingOrder: ['asc']` for the Year column.
-        await getSortRow(page, 'Year').click();
+        // DevSettingsMenu defines `sortingOrder: ['asc']` for the Status column.
+        await getSortRow(page, 'Status').click();
 
-        const button = getSortRow(page, 'Year').locator('.kbq-sort-menu-direction-btn');
+        const button = getSortRow(page, 'Status').locator('.kbq-sort-menu-direction-btn');
 
         await expect(button).toHaveAttribute('aria-disabled', 'true');
         await expect(button).toHaveAttribute('title', /.+/);
@@ -173,38 +173,38 @@ test.describe('KbqAgGridSettingsMenu', () => {
         // eslint-disable-next-line playwright/no-force-option
         await button.click({ force: true });
 
-        await expect.poll(async () => getSortState(page)).toEqual([{ colId: 'year', sort: 'asc', sortIndex: 0 }]);
+        await expect.poll(async () => getSortState(page)).toEqual([{ colId: 'status', sort: 'asc', sortIndex: 0 }]);
     });
 
     test('columns without sorting are not listed', async ({ page }) => {
         await openSortScreen(page);
 
-        // DevSettingsMenu defines `sortable: false` for the Sport column.
-        await expect(getSortRow(page, 'Sport')).toHaveCount(0);
-        await expect(getSortRow(page, 'Athlete')).toHaveCount(1);
+        // DevSettingsMenu defines `sortable: false` for the Attack type column.
+        await expect(getSortRow(page, 'Attack type')).toHaveCount(0);
+        await expect(getSortRow(page, 'Title')).toHaveCount(1);
     });
 
     test('dragging a sorted column changes the multi-column sorting order', async ({ page }) => {
         await openSortScreen(page);
-        await getSortRow(page, 'Athlete').click();
-        await getSortRow(page, 'Age').click();
+        await getSortRow(page, 'Title').click();
+        await getSortRow(page, 'Risk score').click();
 
-        const age = getSortRow(page, 'Age');
-        await age.hover();
+        const riskScore = getSortRow(page, 'Risk score');
+        await riskScore.hover();
 
-        await drag(page, age.locator('.kbq-column-menu-drag-handle'), getSortRow(page, 'Athlete'));
+        await drag(page, riskScore.locator('.kbq-column-menu-drag-handle'), getSortRow(page, 'Title'));
 
         await expect
             .poll(async () => getSortState(page))
             .toEqual([
-                { colId: 'age', sort: 'asc', sortIndex: 0 },
-                { colId: 'athlete', sort: 'asc', sortIndex: 1 }
+                { colId: 'riskScore', sort: 'asc', sortIndex: 0 },
+                { colId: 'title', sort: 'asc', sortIndex: 1 }
             ]);
     });
 
     test('the reset button restores the default sorting', async ({ page }) => {
         await openSortScreen(page);
-        await getSortRow(page, 'Athlete').click();
+        await getSortRow(page, 'Title').click();
 
         await expect.poll(async () => getSortState(page)).toHaveLength(1);
 
@@ -218,10 +218,10 @@ test.describe('KbqAgGridSettingsMenu', () => {
         const initialOrder = await api.evaluate((gridApi) => gridApi.getAllGridColumns().map((col) => col.getColId()));
 
         await api.evaluate((gridApi) => {
-            gridApi.setColumnsVisible(['country'], false);
-            gridApi.setColumnsPinned(['athlete'], 'left');
-            gridApi.moveColumns(['gold'], 1);
-            gridApi.applyColumnState({ state: [{ colId: 'age', sort: 'desc' }] });
+            gridApi.setColumnsVisible(['severity'], false);
+            gridApi.setColumnsPinned(['title'], 'left');
+            gridApi.moveColumns(['alerts'], 1);
+            gridApi.applyColumnState({ state: [{ colId: 'riskScore', sort: 'desc' }] });
         });
 
         await openMenu(page);
@@ -236,28 +236,28 @@ test.describe('KbqAgGridSettingsMenu', () => {
                 api.evaluate((gridApi) =>
                     gridApi
                         .getColumnState()
-                        .filter(({ colId }) => ['country', 'athlete', 'date', 'age'].includes(colId))
+                        .filter(({ colId }) => ['severity', 'title', 'detectedOn', 'riskScore'].includes(colId))
                         .map(({ colId, hide, pinned, sort }) => ({ colId, hide, pinned, sort }))
                 )
             )
             .toEqual([
-                { colId: 'athlete', hide: false, pinned: null, sort: null },
-                { colId: 'age', hide: false, pinned: null, sort: 'desc' },
-                { colId: 'country', hide: false, pinned: null, sort: null },
-                { colId: 'date', hide: false, pinned: 'right', sort: null }
+                { colId: 'title', hide: false, pinned: null, sort: null },
+                { colId: 'riskScore', hide: false, pinned: null, sort: 'desc' },
+                { colId: 'severity', hide: false, pinned: null, sort: null },
+                { colId: 'detectedOn', hide: false, pinned: 'right', sort: null }
             ]);
         await expect(page.locator('.kbq-column-menu-panel-footer')).toHaveCount(0);
     });
 
     test('the sorting item shows the applied sorting and the counter of the remaining ones', async ({ page }) => {
         await openSortScreen(page);
-        await getSortRow(page, 'Athlete').click();
-        await getSortRow(page, 'Age').click();
+        await getSortRow(page, 'Title').click();
+        await getSortRow(page, 'Risk score').click();
         await page.locator(`.kbq-settings-menu-header-btn[title="${LABEL_BACK}"]`).click();
 
         const item = getItem(page, ITEM_SORT);
 
-        await expect(item.locator('.kbq-settings-menu-item-value')).toHaveText('Athlete');
+        await expect(item.locator('.kbq-settings-menu-item-value')).toHaveText('Title');
         await expect(item.locator('.kbq-settings-menu-item-counter')).toHaveText('+1');
     });
 
@@ -309,24 +309,26 @@ test.describe('KbqAgGridSettingsMenu', () => {
         await openSortScreen(page);
         await page.keyboard.press('ArrowDown');
 
-        await expect(getSortRowCheckbox(page, 'Age')).toBeFocused();
+        await expect(getSortRowCheckbox(page, 'Affected hosts')).toBeFocused();
 
         await page.keyboard.press('Enter');
 
-        await expect.poll(async () => getSortState(page)).toEqual([{ colId: 'age', sort: 'asc', sortIndex: 0 }]);
-        await expect(getSortRowCheckbox(page, 'Age')).toBeFocused();
+        await expect
+            .poll(async () => getSortState(page))
+            .toEqual([{ colId: 'affectedHosts', sort: 'asc', sortIndex: 0 }]);
+        await expect(getSortRowCheckbox(page, 'Affected hosts')).toBeFocused();
     });
 
     test('Enter on the direction button switches the direction without removing the sort', async ({ page }) => {
         await openSortScreen(page);
-        await getSortRow(page, 'Athlete').click();
+        await getSortRow(page, 'Title').click();
 
-        await expect(getSortRowCheckbox(page, 'Athlete')).toBeFocused();
+        await expect(getSortRowCheckbox(page, 'Title')).toBeFocused();
 
         await page.keyboard.press('ArrowRight');
         await page.keyboard.press('Enter');
 
-        await expect.poll(async () => getSortState(page)).toEqual([{ colId: 'athlete', sort: 'desc', sortIndex: 0 }]);
+        await expect.poll(async () => getSortState(page)).toEqual([{ colId: 'title', sort: 'desc', sortIndex: 0 }]);
     });
 
     test('running a leaf item from the keyboard returns the focus to the trigger', async ({ page }) => {

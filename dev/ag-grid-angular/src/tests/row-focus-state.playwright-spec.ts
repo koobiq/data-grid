@@ -45,33 +45,33 @@ test.describe('KbqAgGridRowFocusState', () => {
             await page.goto('/e2e/row-focus-state');
             await clearRowFocusState(page);
 
-            await getCell(page, 0, 'athlete').click();
+            await getCell(page, 0, 'title').click();
 
-            await expect.poll(async () => (await getRowFocusState(page))?.colId).toBe('athlete');
+            await expect.poll(async () => (await getRowFocusState(page))?.colId).toBe('title');
         });
 
         test('restores the active cell from localStorage on page reload', async ({ page }) => {
             await page.goto('/e2e/row-focus-state');
             await clearRowFocusState(page);
 
-            await getCell(page, 2, 'country').click();
-            await expect.poll(async () => (await getRowFocusState(page))?.colId).toBe('country');
+            await getCell(page, 2, 'severity').click();
+            await expect.poll(async () => (await getRowFocusState(page))?.colId).toBe('severity');
 
             await page.reload();
 
-            await expect.poll(async () => isCellFocused(page, 2, 'country')).toBe(true);
+            await expect.poll(async () => isCellFocused(page, 2, 'severity')).toBe(true);
         });
 
         test('reset clears the active cell and stored state', async ({ page }) => {
             await page.goto('/e2e/row-focus-state');
             await clearRowFocusState(page);
 
-            await getCell(page, 0, 'athlete').click();
-            await expect.poll(async () => isCellFocused(page, 0, 'athlete')).toBe(true);
+            await getCell(page, 0, 'title').click();
+            await expect.poll(async () => isCellFocused(page, 0, 'title')).toBe(true);
 
             await page.getByRole('button', { name: 'Reset state' }).click();
 
-            await expect.poll(async () => isCellFocused(page, 0, 'athlete')).toBe(false);
+            await expect.poll(async () => isCellFocused(page, 0, 'title')).toBe(false);
             await expect.poll(async () => getRowFocusState(page)).toBeNull();
         });
     });
@@ -80,26 +80,26 @@ test.describe('KbqAgGridRowFocusState', () => {
         test('saves the active cell to URL when a cell is clicked', async ({ page }) => {
             await page.goto('/e2e/row-focus-state-query-params');
 
-            await getCell(page, 0, 'athlete').click();
+            await getCell(page, 0, 'title').click();
 
-            await expect.poll(async () => (await getRowFocusStateFromUrl(page))?.colId).toBe('athlete');
+            await expect.poll(async () => (await getRowFocusStateFromUrl(page))?.colId).toBe('title');
         });
 
         test('restores the active cell from URL on page reload', async ({ page }) => {
             await page.goto('/e2e/row-focus-state-query-params');
 
-            await getCell(page, 2, 'country').click();
-            await expect.poll(async () => (await getRowFocusStateFromUrl(page))?.colId).toBe('country');
+            await getCell(page, 2, 'severity').click();
+            await expect.poll(async () => (await getRowFocusStateFromUrl(page))?.colId).toBe('severity');
 
             await page.reload();
 
-            await expect.poll(async () => isCellFocused(page, 2, 'country')).toBe(true);
+            await expect.poll(async () => isCellFocused(page, 2, 'severity')).toBe(true);
         });
 
         test('applies pre-existing active cell from URL on page load', async ({ page }) => {
-            await page.goto(buildStateUrl({ rowId: '4f32fc42-54ea-4afe-bcb3-d3e15fff11a5', colId: 'athlete' }));
+            await page.goto(buildStateUrl({ rowId: '5c11c4fd-558e-50ae-981e-78ef81232075', colId: 'title' }));
 
-            await expect.poll(async () => isCellFocused(page, 0, 'athlete')).toBe(true);
+            await expect.poll(async () => isCellFocused(page, 0, 'title')).toBe(true);
         });
     });
 });

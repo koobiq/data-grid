@@ -7,7 +7,7 @@ test.describe('KbqAgGridSelectRowsByCtrlClick', () => {
     test('Ctrl+Click selects an unselected row', async ({ page }) => {
         await page.goto('/e2e/select-rows-by-ctrl-click');
         await expect.poll(async () => isRowSelected(page, 0)).toBe(false);
-        await getCell(page, 0, 'athlete').click({ modifiers: ['ControlOrMeta'] });
+        await getCell(page, 0, 'title').click({ modifiers: ['ControlOrMeta'] });
         await expect.poll(async () => isRowSelected(page, 0)).toBe(true);
     });
 
@@ -15,14 +15,14 @@ test.describe('KbqAgGridSelectRowsByCtrlClick', () => {
         await page.goto('/e2e/select-rows-by-ctrl-click');
         await toggleRowSelection(page, 4);
         await expect.poll(async () => isRowSelected(page, 4)).toBe(true);
-        await getCell(page, 4, 'athlete').click({ modifiers: ['ControlOrMeta'] });
+        await getCell(page, 4, 'title').click({ modifiers: ['ControlOrMeta'] });
         await expect.poll(async () => isRowSelected(page, 4)).toBe(false);
     });
 
     test('does not toggle selection when disabled', async ({ page }) => {
         await page.goto('/e2e/select-rows-by-ctrl-click');
         await getSelectRowsByCtrlClickToggle(page).evaluate((label: HTMLLabelElement) => label.click());
-        await getCell(page, 0, 'athlete').click({ modifiers: ['ControlOrMeta'] });
+        await getCell(page, 0, 'title').click({ modifiers: ['ControlOrMeta'] });
         await expect.poll(async () => isRowSelected(page, 0)).toBe(false);
     });
 });

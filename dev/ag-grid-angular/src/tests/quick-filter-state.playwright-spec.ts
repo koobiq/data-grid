@@ -33,35 +33,35 @@ test.describe('KbqAgGridQuickFilterState', () => {
             await page.goto('/e2e/quick-filter-state');
             await clearStoredQuickFilterState(page);
 
-            await getQuickFilterInput(page).fill('Michael');
+            await getQuickFilterInput(page).fill('VPN');
 
-            await expect.poll(async () => getStoredQuickFilterState(page)).toBe('Michael');
+            await expect.poll(async () => getStoredQuickFilterState(page)).toBe('VPN');
         });
 
         test('restores quick filter text from localStorage on page load', async ({ page }) => {
             await page.addInitScript(
                 ({ key, value }: { key: string; value: string }) => localStorage.setItem(key, value),
-                { key: quickFilterStateStorageKey, value: 'Michael' }
+                { key: quickFilterStateStorageKey, value: 'VPN' }
             );
             await page.goto('/e2e/quick-filter-state');
 
-            expect(await getActiveQuickFilter(page)).toBe('Michael');
+            expect(await getActiveQuickFilter(page)).toBe('VPN');
         });
 
         test('syncs input value with restored quick filter on page load', async ({ page }) => {
             await page.addInitScript(
                 ({ key, value }: { key: string; value: string }) => localStorage.setItem(key, value),
-                { key: quickFilterStateStorageKey, value: 'Michael' }
+                { key: quickFilterStateStorageKey, value: 'VPN' }
             );
             await page.goto('/e2e/quick-filter-state');
 
-            await expect(getQuickFilterInput(page)).toHaveValue('Michael');
+            await expect(getQuickFilterInput(page)).toHaveValue('VPN');
         });
 
         test('filters rows when quick filter is restored from localStorage', async ({ page }) => {
             await page.addInitScript(
                 ({ key, value }: { key: string; value: string }) => localStorage.setItem(key, value),
-                { key: quickFilterStateStorageKey, value: 'Michael' }
+                { key: quickFilterStateStorageKey, value: 'VPN' }
             );
             await page.goto('/e2e/quick-filter-state');
 
@@ -74,8 +74,8 @@ test.describe('KbqAgGridQuickFilterState', () => {
             await page.goto('/e2e/quick-filter-state');
             await clearStoredQuickFilterState(page);
 
-            await getQuickFilterInput(page).fill('Michael');
-            await expect.poll(async () => getStoredQuickFilterState(page)).toBe('Michael');
+            await getQuickFilterInput(page).fill('VPN');
+            await expect.poll(async () => getStoredQuickFilterState(page)).toBe('VPN');
 
             await getQuickFilterInput(page).fill('');
 
@@ -86,8 +86,8 @@ test.describe('KbqAgGridQuickFilterState', () => {
             await page.goto('/e2e/quick-filter-state');
             await clearStoredQuickFilterState(page);
 
-            await getQuickFilterInput(page).fill('Michael');
-            await expect.poll(async () => getStoredQuickFilterState(page)).toBe('Michael');
+            await getQuickFilterInput(page).fill('VPN');
+            await expect.poll(async () => getStoredQuickFilterState(page)).toBe('VPN');
 
             await getResetButton(page).click();
 
@@ -101,25 +101,25 @@ test.describe('KbqAgGridQuickFilterState', () => {
         test('saves quick filter text to URL when text is typed', async ({ page }) => {
             await page.goto('/e2e/quick-filter-state-query-params');
 
-            await getQuickFilterInput(page).fill('Michael');
+            await getQuickFilterInput(page).fill('VPN');
 
-            await expect.poll(async () => getQuickFilterStateFromUrl(page)).toBe('Michael');
+            await expect.poll(async () => getQuickFilterStateFromUrl(page)).toBe('VPN');
         });
 
         test('restores quick filter text from URL on page load', async ({ page }) => {
-            await page.goto(buildQuickFilterUrl('Michael'));
+            await page.goto(buildQuickFilterUrl('VPN'));
 
-            expect(await getActiveQuickFilter(page)).toBe('Michael');
+            expect(await getActiveQuickFilter(page)).toBe('VPN');
         });
 
         test('syncs input value with restored quick filter from URL on page load', async ({ page }) => {
-            await page.goto(buildQuickFilterUrl('Michael'));
+            await page.goto(buildQuickFilterUrl('VPN'));
 
-            await expect(getQuickFilterInput(page)).toHaveValue('Michael');
+            await expect(getQuickFilterInput(page)).toHaveValue('VPN');
         });
 
         test('filters rows when quick filter is restored from URL', async ({ page }) => {
-            await page.goto(buildQuickFilterUrl('Michael'));
+            await page.goto(buildQuickFilterUrl('VPN'));
 
             await expect.poll(async () => getDisplayedRowCount(page), { timeout: 10_000 }).toBeGreaterThan(0);
             await expect(page.locator('.ag-row')).not.toHaveCount(0);
@@ -129,8 +129,8 @@ test.describe('KbqAgGridQuickFilterState', () => {
         test('removes quick filter state from URL when text is cleared', async ({ page }) => {
             await page.goto('/e2e/quick-filter-state-query-params');
 
-            await getQuickFilterInput(page).fill('Michael');
-            await expect.poll(async () => getQuickFilterStateFromUrl(page)).toBe('Michael');
+            await getQuickFilterInput(page).fill('VPN');
+            await expect.poll(async () => getQuickFilterStateFromUrl(page)).toBe('VPN');
 
             await getQuickFilterInput(page).fill('');
 
@@ -140,8 +140,8 @@ test.describe('KbqAgGridQuickFilterState', () => {
         test('reset() clears quick filter and removes state from URL', async ({ page }) => {
             await page.goto('/e2e/quick-filter-state-query-params');
 
-            await getQuickFilterInput(page).fill('Michael');
-            await expect.poll(async () => getQuickFilterStateFromUrl(page)).toBe('Michael');
+            await getQuickFilterInput(page).fill('VPN');
+            await expect.poll(async () => getQuickFilterStateFromUrl(page)).toBe('VPN');
 
             await getResetButton(page).click();
 

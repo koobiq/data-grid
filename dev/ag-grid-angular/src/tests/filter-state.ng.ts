@@ -2,22 +2,9 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { KbqAgGridFilterStateQueryParamsStore, KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry } from 'ag-grid-community';
-import { devInjectRowData } from '../row-data';
+import { DEV_INCIDENT_COLUMNS, devInjectRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
-
-const COLUMN_DEFS: ColDef[] = [
-    { field: 'athlete', headerName: 'Athlete' },
-    { field: 'age', headerName: 'Age' },
-    { field: 'country', headerName: 'Country' },
-    { field: 'year', headerName: 'Year' },
-    { field: 'date', headerName: 'Date' },
-    { field: 'sport', headerName: 'Sport' },
-    { field: 'gold', headerName: 'Gold' },
-    { field: 'silver', headerName: 'Silver' },
-    { field: 'bronze', headerName: 'Bronze' },
-    { field: 'total', headerName: 'Total' }
-];
 
 const DEFAULT_COL_DEF: ColDef = {
     filter: true,
@@ -64,7 +51,7 @@ const STATE_KEY = 'dev-ag-grid-filter-state';
 export class DevFilterState {
     readonly rowData = devInjectRowData();
     readonly stateKey = STATE_KEY;
-    readonly columnDefs = COLUMN_DEFS;
+    readonly columnDefs = DEV_INCIDENT_COLUMNS;
     readonly defaultColDef = DEFAULT_COL_DEF;
 }
 
@@ -106,6 +93,6 @@ export class DevFilterStateQueryParams {
     readonly rowData = devInjectRowData();
     readonly store = inject(KbqAgGridFilterStateQueryParamsStore);
     readonly stateKey = STATE_KEY;
-    readonly columnDefs = COLUMN_DEFS;
+    readonly columnDefs = DEV_INCIDENT_COLUMNS;
     readonly defaultColDef = DEFAULT_COL_DEF;
 }

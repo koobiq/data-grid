@@ -1,4 +1,4 @@
-74d78dd4-048c-4aae-8a3c-4b6ef9a84571	Michael Phelps	27	United States	2012	12/08/2012	Swimming	4	2	0	6
-2bcd52c9-c9ee-4179-9777-3ee61f035c5b	Aleksey Nemov	24	Russia	2000	01/10/2000	Gymnastics	2	1	3	6
-b9b8c4f0-6f97-4b23-8b5d-a2bef9501521	Alicia Coutts	24	Australia	2012	12/08/2012	Swimming	1	3	1	5
-74e33606-686f-4e4e-8e09-b04a8aa0f1ab	Ryan Lochte	27	United States	2012	12/08/2012	Swimming	2	2	1	5
+07c207d2-24d0-5268-8520-7dbc4138cd57	INC-20260927-0003	Suspicious PowerShell execution	Alexey Smirnov	ws-042.example.com	Medium	Resolved	Malware	2026-09-27	2026-09-30	53	42	5	false	Endpoint isolated for investigation.
+2d18c1d3-4907-59a4-9efe-a17927b0197f	INC-20261023-0005	Unexpected administrator sign-in	Anna Petrova	vpn.example.com	High	In progress	Suspicious access	2026-10-23	2026-10-24	82	27	8	true	Owner contacted to verify the session.
+c0aeee6c-cdf6-56af-85b0-ae3b03cc8179	INC-20261105-0006	Suspicious attachment received	Alexey Smirnov	ws-042.example.com	Critical	Resolved	Phishing	2026-11-05	2026-11-07	99	44	4	true	Message retained for analysis.
+f391aeeb-202e-5702-a42f-2abb360cf378	INC-20260912-0008	Malicious file detected		fs-01.example.com	Low	In progress	Malware	2026-09-12	2026-09-16	18	29	7	false	Endpoint isolated for investigation.

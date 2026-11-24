@@ -12,20 +12,23 @@ import {
 } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry, SelectionChangedEvent } from 'ag-grid-community';
-import { devInjectRowData } from '../row-data';
+import { DEV_UNASSIGNED_OPERATOR, devIncidentColumns, devInjectRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-const COLUMN_DEFS: ColDef[] = [
-    { field: 'athlete', headerName: 'Athlete' },
-    { field: 'country', headerName: 'Country' },
-    { field: 'sport', headerName: 'Sport' },
-    { field: 'year', headerName: 'Year' },
-    { field: 'gold', headerName: 'Gold' },
-    { field: 'silver', headerName: 'Silver' },
-    { field: 'bronze', headerName: 'Bronze' },
-    { field: 'total', headerName: 'Total' }
-];
+const COLUMN_DEFS: ColDef[] = devIncidentColumns(
+    'incidentNumber',
+    'severity',
+    'attackType',
+    'status',
+    'alerts',
+    'reviewBy',
+    'comment',
+    'affectedHosts',
+    'title',
+    'source',
+    'operator'
+);
 
 const DEFAULT_COL_DEF: ColDef = {
     resizable: true,
@@ -85,17 +88,17 @@ class DevRowGroupCustomCellContent implements KbqAgGridRowGroupCellContent {
         <div>
             <button type="button" data-testid="expandAllBtn" (click)="expandAll()">Expand all</button>
             <button type="button" data-testid="collapseAllBtn" (click)="collapseAll()">Collapse all</button>
-            <button type="button" data-testid="expandRussiaDivingBtn" (click)="expandRussiaDiving()">
-                Expand Russia &gt; Diving
+            <button type="button" data-testid="expandHighMalwareBtn" (click)="expandHighMalware()">
+                Expand High &gt; Malware
             </button>
-            <button type="button" data-testid="collapseRussiaDivingBtn" (click)="collapseRussiaDiving()">
-                Collapse Russia &gt; Diving
+            <button type="button" data-testid="collapseHighMalwareBtn" (click)="collapseHighMalware()">
+                Collapse High &gt; Malware
             </button>
-            <button type="button" data-testid="selectIlyaZakharovBtn" (click)="setIlyaZakharovSelected(true)">
-                Select Ilya Zakharov
+            <button type="button" data-testid="selectMalwareIncidentBtn" (click)="setMalwareIncidentSelected(true)">
+                Select INC-20261116-0013
             </button>
-            <button type="button" data-testid="deselectIlyaZakharovBtn" (click)="setIlyaZakharovSelected(false)">
-                Deselect Ilya Zakharov
+            <button type="button" data-testid="deselectMalwareIncidentBtn" (click)="setMalwareIncidentSelected(false)">
+                Deselect INC-20261116-0013
             </button>
             <button type="button" data-testid="sortGroupColAscBtn" (click)="sortGroupColAsc()">
                 Sort group column asc
@@ -142,7 +145,11 @@ class DevRowGroupCustomCellContent implements KbqAgGridRowGroupCellContent {
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DevRowGroup {
-    readonly rowData = devInjectRowData();
+    private readonly incidents = devInjectRowData();
+    // The grouping directive uses raw field values as group labels.
+    readonly rowData = computed(() =>
+        this.incidents().map((row) => ({ ...row, operator: row.operator ?? DEV_UNASSIGNED_OPERATOR }))
+    );
     readonly columnDefs = COLUMN_DEFS;
     readonly defaultColDef = DEFAULT_COL_DEF;
     protected readonly useCustomCellContent = model(false);
@@ -150,7 +157,7 @@ export class DevRowGroup {
         this.useCustomCellContent() ? DevRowGroupCustomCellContent : undefined
     );
     protected readonly rowId: KbqAgGridRowGroupRowId = (row) => String(row.id);
-    protected readonly groupCols = signal<string[]>(['country', 'sport']);
+    protected readonly groupCols = signal<string[]>(['severity', 'attackType']);
     protected readonly rowSelection = { mode: 'multiRow', checkboxes: true } as const;
     protected readonly selectedRows = signal<Record<string, unknown>[]>([]);
     protected readonly collapsedStateKey = 'dev-ag-grid-row-group-collapsed-state';
@@ -171,16 +178,16 @@ export class DevRowGroup {
         this.group().collapseAll();
     }
 
-    protected expandRussiaDiving(): void {
-        this.group().setExpanded(['Russia', 'Diving'], true);
+    protected expandHighMalware(): void {
+        this.group().setExpanded(['High', 'Malware'], true);
     }
 
-    protected collapseRussiaDiving(): void {
-        this.group().setExpanded(['Russia', 'Diving'], false);
+    protected collapseHighMalware(): void {
+        this.group().setExpanded(['High', 'Malware'], false);
     }
 
-    protected setIlyaZakharovSelected(selected: boolean): void {
-        const row = this.rowData().find((r) => r.athlete === 'Ilya Zakharov');
+    protected setMalwareIncidentSelected(selected: boolean): void {
+        const row = this.rowData().find((r) => r.incidentNumber === 'INC-20261116-0013');
         if (row) this.group().setRowSelected(row.id, selected);
     }
 

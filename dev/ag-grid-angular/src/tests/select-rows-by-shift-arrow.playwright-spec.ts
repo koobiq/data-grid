@@ -6,7 +6,7 @@ const getSelectRowsByShiftArrowToggle = (page: Page): Locator => page.getByTestI
 test.describe('KbqAgGridSelectRowsByShiftArrow', () => {
     test('Shift+Down selects the focused row and the next row', async ({ page }) => {
         await page.goto('/e2e/select-rows-by-shift-arrow');
-        await getCell(page, 0, 'athlete').focus();
+        await getCell(page, 0, 'title').focus();
         await page.keyboard.press('Shift+ArrowDown');
         await expect.poll(async () => isRowSelected(page, 0)).toBe(true);
         await expect.poll(async () => isRowSelected(page, 1)).toBe(true);
@@ -14,7 +14,7 @@ test.describe('KbqAgGridSelectRowsByShiftArrow', () => {
 
     test('Shift+Up selects the focused row and the previous row', async ({ page }) => {
         await page.goto('/e2e/select-rows-by-shift-arrow');
-        await getCell(page, 2, 'athlete').focus();
+        await getCell(page, 2, 'title').focus();
         await page.keyboard.press('Shift+ArrowUp');
         await expect.poll(async () => isRowSelected(page, 0)).toBe(false);
         await expect.poll(async () => isRowSelected(page, 1)).toBe(true);
@@ -24,7 +24,7 @@ test.describe('KbqAgGridSelectRowsByShiftArrow', () => {
 
     test('repeated Shift+Down extends the selection', async ({ page }) => {
         await page.goto('/e2e/select-rows-by-shift-arrow');
-        await getCell(page, 1, 'athlete').focus();
+        await getCell(page, 1, 'title').focus();
         await page.keyboard.press('Shift+ArrowDown');
         await page.keyboard.press('Shift+ArrowDown');
         await expect.poll(async () => isRowSelected(page, 0)).toBe(false);
@@ -37,7 +37,7 @@ test.describe('KbqAgGridSelectRowsByShiftArrow', () => {
     test('does not select rows when disabled', async ({ page }) => {
         await page.goto('/e2e/select-rows-by-shift-arrow');
         await getSelectRowsByShiftArrowToggle(page).evaluate((label: HTMLLabelElement) => label.click());
-        await getCell(page, 0, 'athlete').focus();
+        await getCell(page, 0, 'title').focus();
         await page.keyboard.press('Shift+ArrowDown');
         await expect.poll(async () => isRowSelected(page, 0)).toBe(false);
         await expect.poll(async () => isRowSelected(page, 1)).toBe(false);

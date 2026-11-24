@@ -2,4 +2,4 @@
 .yarn/releases
 
 # Mock data
-dev/ag-grid-angular/public/olympic-winners.json
+dev/ag-grid-angular/public/security-incidents.json
