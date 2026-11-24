@@ -183,7 +183,7 @@ test.describe('KbqAgGridInfiniteSelection', () => {
         await page.goto('/e2e/infinite-selection');
         await waitForDataLoaded(page);
 
-        await getCell(page, 0, 'athlete').click();
+        await getCell(page, 0, 'title').click();
         await page.keyboard.press('Control+a');
 
         await waitForRowSelected(page, 0);
@@ -198,7 +198,7 @@ test.describe('KbqAgGridInfiniteSelection', () => {
         await page.goto('/e2e/infinite-selection');
         await waitForDataLoaded(page);
 
-        await getCell(page, 0, 'athlete').click();
+        await getCell(page, 0, 'title').click();
         await page.keyboard.press('Control+a');
         await waitForRowSelected(page, 0);
 
@@ -216,7 +216,7 @@ test.describe('KbqAgGridInfiniteSelection', () => {
         await page.goto('/e2e/infinite-selection');
         await waitForDataLoaded(page);
 
-        await getCell(page, 0, 'athlete').click();
+        await getCell(page, 0, 'title').click();
         await page.keyboard.press('Control+a'); // select all → checked
         await waitForRowSelected(page, 0);
         await toggleRowSelection(page, 0); // uncheck row 0 → indeterminate

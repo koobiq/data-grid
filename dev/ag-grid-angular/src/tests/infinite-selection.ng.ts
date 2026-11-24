@@ -14,17 +14,11 @@ import {
     ModuleRegistry,
     RowSelectionOptions
 } from 'ag-grid-community';
-import { devInjectDatasource, DevRowData } from '../row-data';
+import { devIncidentColumns, devInjectDatasource, DevRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-const COLUMN_DEFS: ColDef[] = [
-    { field: 'athlete', headerName: 'Athlete' },
-    { field: 'age', headerName: 'Age' },
-    { field: 'country', headerName: 'Country' },
-    { field: 'year', headerName: 'Year' },
-    { field: 'sport', headerName: 'Sport' }
-];
+const COLUMN_DEFS: ColDef[] = devIncidentColumns('title', 'riskScore', 'severity', 'status', 'attackType');
 
 @Component({
     standalone: true,

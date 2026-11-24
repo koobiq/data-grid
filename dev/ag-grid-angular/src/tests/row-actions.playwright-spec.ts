@@ -14,8 +14,8 @@ test.describe('KbqAgGridRowActions', () => {
         ).evaluate((api) => {
             api.applyColumnState({
                 state: [
-                    { colId: 'athlete', pinned: 'left' },
-                    { colId: 'total', pinned: 'right' }
+                    { colId: 'title', pinned: 'left' },
+                    { colId: 'affectedHosts', pinned: 'right' }
                 ]
             });
         });

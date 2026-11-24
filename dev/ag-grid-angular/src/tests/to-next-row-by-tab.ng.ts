@@ -3,18 +3,18 @@ import { FormsModule } from '@angular/forms';
 import { KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry } from 'ag-grid-community';
-import { devInjectRowData } from '../row-data';
+import { devIncidentColumns, devInjectRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-const COLUMN_DEFS: ColDef[] = [
-    { field: 'athlete', headerName: 'Athlete' },
-    { field: 'age', headerName: 'Age' },
-    { field: 'country', headerName: 'Country' },
-    { field: 'year', headerName: 'Year' },
-    { field: 'date', headerName: 'Date' },
-    { field: 'sport', headerName: 'Sport' }
-];
+const COLUMN_DEFS: ColDef[] = devIncidentColumns(
+    'title',
+    'riskScore',
+    'severity',
+    'status',
+    'detectedOn',
+    'attackType'
+);
 
 @Component({
     standalone: true,

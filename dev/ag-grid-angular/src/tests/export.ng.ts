@@ -1,26 +1,13 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
-import { AllCommunityModule, ColDef, GridApi, GridReadyEvent, ModuleRegistry } from 'ag-grid-community';
+import { AllCommunityModule, GridApi, GridReadyEvent, ModuleRegistry } from 'ag-grid-community';
 import { jsPDF } from 'jspdf';
 import { autoTable } from 'jspdf-autotable';
 import writeXlsxFile from 'write-excel-file/browser';
-import { devInjectRowData } from '../row-data';
+import { DEV_INCIDENT_COLUMNS, devInjectRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
-
-const COLUMN_DEFS: ColDef[] = [
-    { field: 'athlete', headerName: 'Athlete' },
-    { field: 'age', headerName: 'Age' },
-    { field: 'country', headerName: 'Country' },
-    { field: 'year', headerName: 'Year' },
-    { field: 'date', headerName: 'Date' },
-    { field: 'sport', headerName: 'Sport' },
-    { field: 'gold', headerName: 'Gold' },
-    { field: 'silver', headerName: 'Silver' },
-    { field: 'bronze', headerName: 'Bronze' },
-    { field: 'total', headerName: 'Total' }
-];
 
 type ExportTable = {
     headers: string[];
@@ -64,7 +51,7 @@ type ExportTable = {
 })
 export class DevExport {
     protected readonly rowData = devInjectRowData();
-    protected readonly columnDefs = COLUMN_DEFS;
+    protected readonly columnDefs = DEV_INCIDENT_COLUMNS;
     private api!: GridApi;
     private readonly filename = 'export';
 

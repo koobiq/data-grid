@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { KBQ_AG_GRID_ROW_ACTIONS_PARAMS, KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry } from 'ag-grid-community';
-import { devInjectRowData } from '../row-data';
+import { DEV_INCIDENT_COLUMNS, devInjectRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -67,16 +67,5 @@ export class DevRowActionsCellComponent {
 export class DevRowActions {
     readonly rowData = devInjectRowData();
     readonly rowActionsComponent = DevRowActionsCellComponent;
-    readonly columnDefs: ColDef[] = [
-        { field: 'athlete', headerName: 'Athlete' },
-        { field: 'age', headerName: 'Age' },
-        { field: 'country', headerName: 'Country' },
-        { field: 'year', headerName: 'Year' },
-        { field: 'date', headerName: 'Date' },
-        { field: 'sport', headerName: 'Sport' },
-        { field: 'gold', headerName: 'Gold' },
-        { field: 'silver', headerName: 'Silver' },
-        { field: 'bronze', headerName: 'Bronze' },
-        { field: 'total', headerName: 'Total' }
-    ];
+    readonly columnDefs: ColDef[] = DEV_INCIDENT_COLUMNS;
 }

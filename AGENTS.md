@@ -79,7 +79,7 @@ packages/
 
 dev/
 └── ag-grid-angular/                        # Demo app for development and E2E testing
-    ├── public/olympic-winners.json         # Row data used by the demo and the E2E components
+    ├── public/security-incidents.json         # Row data used by the demo and the E2E components
     ├── src/main.ts                         # Application entry point and /e2e/* routes (dev mode only)
     ├── src/overview.ng.ts                  # Showcase page (route /)
     └── src/tests/                          # Playwright E2E tests
@@ -138,7 +138,7 @@ Directives that persist per-row state (selection, focus, group collapse) require
 
 - `/` loads `overview.ng.ts`, the public showcase deployed to https://data-grid-next.web.app by `deploy-next.yml` on every push to `main`. PRs get a temporary Firebase preview built with `--configuration=development` so that the E2E routes are included.
 - `/e2e/<feature>` routes are added in `main.ts` only under `isDevMode()`. Each lazy-loads a `Dev<Feature>` component from `src/tests/<feature>.ng.ts`; one component per scenario (e.g. `DevColumnState` and `DevColumnStateQueryParams`), each with a minimal grid and `data-testid="e2eScreenshotTarget"` on the grid element.
-- Row data is fetched over HTTP from `public/olympic-winners.json` through `devInjectRowData()`, so tests wait for `.ag-row[row-index]` before touching the grid.
+- Row data is fetched over HTTP from `public/security-incidents.json` through `devInjectRowData()`, so tests wait for `.ag-row[row-index]` before touching the grid.
 - The `/e2e/*` pages load nothing from outside the dev server (`dev-app.playwright-spec.ts` checks it): a third-party request holds up the load event every navigation waits for, and its answer can change the layout. Keep such resources, like the GitHub badge, on the overview page rather than in `index.html`.
 - `src/tests/utils/api.ts` reaches the `GridApi` through Angular's dev-mode `window.ng.getComponent()`. It is the only way to drive grid state that has no Community-edition UI (hiding columns, applying column state).
 

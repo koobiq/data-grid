@@ -2,20 +2,20 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { KbqAgGridSkeletonCellRenderer, KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ICellRendererParams, ModuleRegistry } from 'ag-grid-community';
-import { devInjectDatasource } from '../row-data';
+import { devIncidentColumns, devInjectDatasource } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-const COLUMN_DEFS: ColDef[] = [
-    { field: 'athlete', headerName: 'Athlete' },
-    { field: 'age', headerName: 'Age' },
-    { field: 'country', headerName: 'Country' },
-    { field: 'year', headerName: 'Year' },
-    { field: 'sport', headerName: 'Sport' },
-    { field: 'gold', headerName: 'Gold' },
-    { field: 'silver', headerName: 'Silver' },
-    { field: 'bronze', headerName: 'Bronze' }
-];
+const COLUMN_DEFS: ColDef[] = devIncidentColumns(
+    'title',
+    'riskScore',
+    'severity',
+    'status',
+    'attackType',
+    'alerts',
+    'reviewBy',
+    'comment'
+);
 
 @Component({
     standalone: true,

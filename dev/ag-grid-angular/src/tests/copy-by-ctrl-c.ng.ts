@@ -8,23 +8,10 @@ import {
     KbqAgGridThemeModule
 } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
-import { AllCommunityModule, ColDef, GridApi, ModuleRegistry, RowSelectionOptions } from 'ag-grid-community';
-import { devInjectRowData } from '../row-data';
+import { AllCommunityModule, GridApi, ModuleRegistry, RowSelectionOptions } from 'ag-grid-community';
+import { DEV_INCIDENT_COLUMNS, devInjectRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
-
-const COLUMN_DEFS: ColDef[] = [
-    { field: 'athlete', headerName: 'Athlete' },
-    { field: 'age', headerName: 'Age' },
-    { field: 'country', headerName: 'Country' },
-    { field: 'year', headerName: 'Year' },
-    { field: 'date', headerName: 'Date' },
-    { field: 'sport', headerName: 'Sport' },
-    { field: 'gold', headerName: 'Gold' },
-    { field: 'silver', headerName: 'Silver' },
-    { field: 'bronze', headerName: 'Bronze' },
-    { field: 'total', headerName: 'Total' }
-];
 
 const ROW_SELECTION: RowSelectionOptions = {
     mode: 'multiRow',
@@ -82,7 +69,7 @@ const COPY_FORMAT_OPTIONS = ['tsv', 'csv', 'json', 'custom'] as const;
 })
 export class DevCopyByCtrlC {
     readonly rowData = devInjectRowData();
-    readonly columnDefs = COLUMN_DEFS;
+    readonly columnDefs = DEV_INCIDENT_COLUMNS;
     readonly rowSelection = ROW_SELECTION;
     readonly copyFormatOptions = COPY_FORMAT_OPTIONS;
     readonly copyByCtrlC = model(true);

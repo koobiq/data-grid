@@ -39,16 +39,16 @@ import {
     DragStoppedEvent,
     FirstDataRenderedEvent,
     FullWidthCellKeyDownEvent,
+    GetRowIdFunc,
     GridApi,
     GridReadyEvent,
-    ITooltipParams,
     ModuleRegistry,
     RowDragEvent,
     RowSelectionOptions,
     SelectionChangedEvent
 } from 'ag-grid-community';
 import { delay, take } from 'rxjs';
-import { devInjectRowData, DevRowData } from './row-data';
+import { DEV_REVIEW_DATE_COLUMN, devIncidentColumn, devInjectEditableIncidents, DevRowData } from './row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -134,7 +134,12 @@ export class DevAgGridStatusBarComponent {
     template: `
         <header class="dev-header">
             <a href="https://github.com/koobiq/data-grid" target="_blank" rel="noopener noreferrer">
-                <img src="https://img.shields.io/github/stars/koobiq/data-grid?style=social" alt="GitHub" />
+                <img
+                    src="https://img.shields.io/github/stars/koobiq/data-grid?style=social"
+                    alt="GitHub"
+                    width="80"
+                    height="20"
+                />
             </a>
         </header>
         <details class="dev-accordion" data-testid="e2eOptionsAccordion">
@@ -310,6 +315,7 @@ export class DevAgGridStatusBarComponent {
             [rowSelection]="rowSelection()"
             [defaultColDef]="defaultColDef()"
             [rowData]="rowData()"
+            [getRowId]="getRowId"
             [rowDragManaged]="rowDrag()"
             [rowDragMultiRow]="rowDrag()"
             [suppressMoveWhenRowDragging]="suppressMoveWhenRowDragging()"
@@ -349,6 +355,10 @@ export class DevAgGridStatusBarComponent {
         .dev-header {
             display: flex;
             justify-content: flex-end;
+        }
+
+        .dev-header img {
+            object-fit: contain;
         }
 
         .dev-accordion {
@@ -457,102 +467,38 @@ export class DevOverview {
                   checkboxes
               };
     });
-    readonly columnDefs = computed<ColDef[]>(() => {
-        const tooltip = this.tooltip();
-        const rowDrag = this.rowDrag();
-        const pinFirstColumn = this.pinFirstColumn();
-        const pinLastColumn = this.pinLastColumn();
-
-        return [
+    /** Keeps selection attached to the incident when its other fields change. */
+    protected readonly getRowId: GetRowIdFunc<DevRowData> = ({ data }) => data.id;
+    readonly columnDefs = computed<ColDef<DevRowData>[]>(() => {
+        const columns: ColDef<DevRowData>[] = [
             {
-                field: 'athlete',
-                headerName: 'Athlete',
-                headerTooltip: tooltip ? 'Tooltip for Athlete Column Header' : undefined,
-                tooltipValueGetter: ({ data }: ITooltipParams<DevRowData>): string | null =>
-                    tooltip ? 'Tooltip for Athlete Cell: ' + data!.country : null,
-                rowDrag: rowDrag
-                    ? (parameter): boolean => {
-                          const rowIndex = parameter.node.rowIndex!;
-                          return rowIndex !== 1 && rowIndex !== 2;
-                      }
-                    : false,
-                pinned: pinFirstColumn ? 'left' : false
+                ...devIncidentColumn('incidentNumber'),
+                initialWidth: 185,
+                rowDrag: this.rowDrag() && (({ node }): boolean => node.rowIndex !== 1 && node.rowIndex !== 2),
+                pinned: this.pinFirstColumn() ? 'left' : false
             },
-            {
-                field: 'age',
-                headerName: 'Age',
-                headerTooltip: tooltip ? 'Tooltip for Age Column Header' : undefined,
-                tooltipValueGetter: ({ data }: ITooltipParams<DevRowData>): string | null =>
-                    tooltip ? 'Tooltip for Age Cell: ' + data!.athlete : null,
-                cellEditor: 'agNumberCellEditor'
-            },
-            {
-                field: 'country',
-                headerName: 'Country',
-                headerTooltip: tooltip ? 'Tooltip for Country Column Header' : undefined,
-                tooltipValueGetter: ({ data }: ITooltipParams<DevRowData>): string | null =>
-                    tooltip ? 'Tooltip for Country Cell: ' + data!.athlete : null
-            },
-            {
-                field: 'year',
-                headerName: 'Year',
-                headerTooltip: tooltip ? 'Tooltip for Year Column Header' : undefined,
-                tooltipValueGetter: ({ data }: ITooltipParams<DevRowData>): string | null =>
-                    tooltip ? 'Tooltip for Year Cell: ' + data!.athlete : null
-            },
-            {
-                field: 'date',
-                headerName: 'Date',
-                headerTooltip: tooltip ? 'Tooltip for Date Column Header' : undefined,
-                tooltipValueGetter: ({ data }: ITooltipParams<DevRowData>): string | null =>
-                    tooltip ? 'Tooltip for Date Cell: ' + data!.athlete : null,
-                cellEditor: 'agDateCellEditor'
-            },
-            {
-                field: 'sport',
-                headerName: 'Sport',
-                headerTooltip: tooltip ? 'Tooltip for Sport Column Header' : undefined,
-                tooltipValueGetter: ({ data }: ITooltipParams<DevRowData>): string | null =>
-                    tooltip ? 'Tooltip for Sport Cell: ' + data!.athlete : null,
-                cellEditor: 'agLargeTextCellEditor'
-            },
-            {
-                field: 'gold',
-                headerName: 'Gold',
-                headerTooltip: tooltip ? 'Tooltip for Gold Column Header' : undefined,
-                tooltipValueGetter: ({ data }: ITooltipParams<DevRowData>): string | null =>
-                    tooltip ? 'Tooltip for Gold Cell: ' + data!.athlete : null,
-                cellEditor: 'agSelectCellEditor',
-                cellEditorParams: {
-                    values: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
-                }
-            },
-            {
-                field: 'silver',
-                headerName: 'Silver',
-                headerTooltip: tooltip ? 'Tooltip for Silver Column Header' : undefined,
-                tooltipValueGetter: ({ data }: ITooltipParams<DevRowData>): string | null =>
-                    tooltip ? 'Tooltip for Silver Cell: ' + data!.athlete : null,
-                cellEditor: 'agNumberCellEditor'
-            },
-            {
-                field: 'bronze',
-                headerName: 'Bronze',
-                headerTooltip: tooltip ? 'Tooltip for Bronze Column Header' : undefined,
-                tooltipValueGetter: ({ data }: ITooltipParams<DevRowData>): string | null =>
-                    tooltip ? 'Tooltip for Bronze Cell: ' + data!.athlete : null,
-                cellEditor: 'agNumberCellEditor'
-            },
-            {
-                field: 'total',
-                headerName: 'Total',
-                headerTooltip: tooltip ? 'Tooltip for Total Column Header' : undefined,
-                tooltipValueGetter: ({ data }: ITooltipParams<DevRowData>): string | null =>
-                    tooltip ? 'Tooltip for Total Cell: ' + data!.athlete : null,
-                cellEditor: 'agNumberCellEditor',
-                pinned: pinLastColumn ? 'right' : false
-            }
+            { ...devIncidentColumn('title'), initialWidth: 250 },
+            { ...devIncidentColumn('severity'), initialWidth: 110 },
+            { ...devIncidentColumn('status'), initialWidth: 115 },
+            { ...devIncidentColumn('operator'), initialWidth: 140 },
+            { ...devIncidentColumn('source'), initialWidth: 165 },
+            { ...devIncidentColumn('detectedOn'), initialWidth: 135 },
+            devIncidentColumn('attackType'),
+            DEV_REVIEW_DATE_COLUMN,
+            devIncidentColumn('comment'),
+            devIncidentColumn('riskScore'),
+            devIncidentColumn('alerts'),
+            devIncidentColumn('affectedHosts'),
+            { ...devIncidentColumn('escalated'), pinned: this.pinLastColumn() ? 'right' : false }
         ];
+
+        return this.tooltip()
+            ? columns.map((column) => ({
+                  ...column,
+                  headerTooltip: column.headerName ?? column.field,
+                  tooltipField: column.field
+              }))
+            : columns;
     });
     readonly defaultColDef = computed<ColDef>(() => {
         return {
@@ -566,7 +512,7 @@ export class DevOverview {
             lockPosition: this.lockPosition()
         };
     });
-    readonly rowData = devInjectRowData();
+    readonly rowData = devInjectEditableIncidents();
 
     constructor() {
         toObservable(this.lightTheme)
@@ -640,7 +586,7 @@ export class DevOverview {
 
         const { api } = event;
 
-        api.setFocusedCell(0, 'athlete');
+        api.setFocusedCell(0, 'incidentNumber');
 
         api.forEachNode((node) => {
             if (node.rowIndex === 4 || node.rowIndex === 5) {

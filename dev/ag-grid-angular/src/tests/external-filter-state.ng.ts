@@ -7,17 +7,11 @@ import {
 } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, IRowNode, ModuleRegistry } from 'ag-grid-community';
-import { devInjectRowData, DevRowData } from '../row-data';
+import { devIncidentColumns, devInjectRowData, DevRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-const COLUMN_DEFS: ColDef[] = [
-    { field: 'athlete', headerName: 'Athlete' },
-    { field: 'sport', headerName: 'Sport' },
-    { field: 'age', headerName: 'Age' },
-    { field: 'country', headerName: 'Country' },
-    { field: 'year', headerName: 'Year' }
-];
+const COLUMN_DEFS: ColDef[] = devIncidentColumns('title', 'attackType', 'riskScore', 'severity', 'status');
 
 const STATE_KEY = 'dev-ag-grid-external-filter-state';
 
@@ -27,10 +21,10 @@ const STATE_KEY = 'dev-ag-grid-external-filter-state';
     selector: 'dev-external-filter-state',
     template: `
         <div class="dev-toolbar">
-            <select data-testid="e2eSportSelect" [(ngModel)]="filterValue">
-                <option value="" [selected]="!filterValue()">All Sports</option>
-                @for (sport of sports(); track sport) {
-                    <option [value]="sport" [selected]="filterValue() === sport">{{ sport }}</option>
+            <select data-testid="e2eAttackTypeSelect" [(ngModel)]="filterValue">
+                <option value="" [selected]="!filterValue()">All attack types</option>
+                @for (attackType of attackTypes(); track attackType) {
+                    <option [value]="attackType" [selected]="filterValue() === attackType">{{ attackType }}</option>
                 }
             </select>
             <button type="button" data-testid="e2eResetExternalFilterState" (click)="filterState.reset()">
@@ -68,9 +62,9 @@ export class DevExternalFilterState {
     readonly rowData = devInjectRowData();
     readonly store = inject(KbqAgGridExternalFilterStateLocalStorageStore);
     readonly stateKey = STATE_KEY;
-    readonly sports = computed(() => [...new Set(this.rowData().map((row) => row.sport))].sort());
+    readonly attackTypes = computed(() => [...new Set(this.rowData().map((row) => row.attackType))].sort());
     readonly filterValue = model<string | null>(null);
-    readonly filterPass = (node: IRowNode<DevRowData>): boolean => node.data?.sport === this.filterValue();
+    readonly filterPass = (node: IRowNode<DevRowData>): boolean => node.data?.attackType === this.filterValue();
     readonly columnDefs = COLUMN_DEFS;
 }
 
@@ -80,10 +74,10 @@ export class DevExternalFilterState {
     selector: 'dev-external-filter-state-query-params',
     template: `
         <div class="dev-toolbar">
-            <select data-testid="e2eSportSelect" [(ngModel)]="filterValue">
-                <option value="" [selected]="!filterValue()">All Sports</option>
-                @for (sport of sports(); track sport) {
-                    <option [value]="sport" [selected]="filterValue() === sport">{{ sport }}</option>
+            <select data-testid="e2eAttackTypeSelect" [(ngModel)]="filterValue">
+                <option value="" [selected]="!filterValue()">All attack types</option>
+                @for (attackType of attackTypes(); track attackType) {
+                    <option [value]="attackType" [selected]="filterValue() === attackType">{{ attackType }}</option>
                 }
             </select>
             <button type="button" data-testid="e2eResetExternalFilterState" (click)="filterState.reset()">
@@ -121,8 +115,8 @@ export class DevExternalFilterStateQueryParams {
     readonly rowData = devInjectRowData();
     readonly store = inject(KbqAgGridExternalFilterStateQueryParamsStore);
     readonly stateKey = STATE_KEY;
-    readonly sports = computed(() => [...new Set(this.rowData().map((row) => row.sport))].sort());
+    readonly attackTypes = computed(() => [...new Set(this.rowData().map((row) => row.attackType))].sort());
     readonly filterValue = model<string | null>(null);
-    readonly filterPass = (node: IRowNode<DevRowData>): boolean => node.data?.sport === this.filterValue();
+    readonly filterPass = (node: IRowNode<DevRowData>): boolean => node.data?.attackType === this.filterValue();
     readonly columnDefs = COLUMN_DEFS;
 }

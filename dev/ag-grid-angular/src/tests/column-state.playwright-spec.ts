@@ -58,30 +58,30 @@ test.describe('KbqAgGridColumnState', () => {
         test('saves sort state to localStorage when column header is clicked', async ({ page }) => {
             await page.goto('/e2e/column-state');
             await clearColumnState(page);
-            await page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-label').click();
+            await page.locator('.ag-header-cell[col-id="title"] .ag-header-cell-label').click();
 
             const state = await getColumnState(page);
-            const athleteState = state?.find((s) => s.colId === 'athlete');
+            const titleState = state?.find((s) => s.colId === 'title');
 
-            expect(athleteState?.sort).toBe('asc');
-            expect(athleteState?.sortIndex).toBe(0);
+            expect(titleState?.sort).toBe('asc');
+            expect(titleState?.sortIndex).toBe(0);
         });
 
         test('restores sort state from localStorage on page reload', async ({ page }) => {
             await page.goto('/e2e/column-state');
             await clearColumnState(page);
-            await page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-label').click();
+            await page.locator('.ag-header-cell[col-id="title"] .ag-header-cell-label').click();
             await page.reload();
             await waitForRows(page);
 
-            await expect(page.locator('.ag-header-cell[col-id="athlete"][aria-sort="ascending"]')).toBeVisible();
+            await expect(page.locator('.ag-header-cell[col-id="title"][aria-sort="ascending"]')).toBeVisible();
         });
 
         test('saves column width to localStorage when column is resized', async ({ page }) => {
             await page.goto('/e2e/column-state');
             await clearColumnState(page);
 
-            const headerCell = page.locator('.ag-header-cell[col-id="athlete"]');
+            const headerCell = page.locator('.ag-header-cell[col-id="title"]');
             const resizer = headerCell.locator('.ag-header-cell-resize');
 
             const initialWidth = await headerCell.evaluate((el: Element) => el.getBoundingClientRect().width);
@@ -97,7 +97,7 @@ test.describe('KbqAgGridColumnState', () => {
             await expect
                 .poll(async () => {
                     const state = await getColumnState(page);
-                    return state?.find((s) => s.colId === 'athlete')?.width;
+                    return state?.find((s) => s.colId === 'title')?.width;
                 })
                 .toBeGreaterThan(initialWidth);
         });
@@ -106,7 +106,7 @@ test.describe('KbqAgGridColumnState', () => {
             await page.goto('/e2e/column-state');
             await clearColumnState(page);
 
-            const resizer = page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-resize');
+            const resizer = page.locator('.ag-header-cell[col-id="title"] .ag-header-cell-resize');
             const bounds = await resizer.boundingBox();
 
             expect(bounds).not.toBeNull();
@@ -117,7 +117,7 @@ test.describe('KbqAgGridColumnState', () => {
             await page.mouse.up();
 
             const widthBeforeReload = await page
-                .locator('.ag-header-cell[col-id="athlete"]')
+                .locator('.ag-header-cell[col-id="title"]')
                 .evaluate((el: Element) => Math.round(el.getBoundingClientRect().width));
 
             await page.reload();
@@ -126,7 +126,7 @@ test.describe('KbqAgGridColumnState', () => {
             await expect
                 .poll(async () =>
                     page
-                        .locator('.ag-header-cell[col-id="athlete"]')
+                        .locator('.ag-header-cell[col-id="title"]')
                         .evaluate((el: Element) => Math.round(el.getBoundingClientRect().width))
                 )
                 .toBe(widthBeforeReload);
@@ -136,57 +136,57 @@ test.describe('KbqAgGridColumnState', () => {
             await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
                 key: columnStateStorageKey,
                 value: JSON.stringify([
-                    { colId: 'athlete', hide: false, width: 200, sort: 'desc', sortIndex: 0 },
-                    { colId: 'age', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'country', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'year', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'date', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'sport', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'gold', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'silver', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'bronze', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'total', hide: false, width: 200, sort: null, sortIndex: null }
+                    { colId: 'title', hide: false, width: 200, sort: 'desc', sortIndex: 0 },
+                    { colId: 'riskScore', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'severity', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'status', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'detectedOn', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'attackType', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'alerts', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'reviewBy', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'comment', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'affectedHosts', hide: false, width: 200, sort: null, sortIndex: null }
                 ])
             });
             await page.goto('/e2e/column-state');
             await waitForRows(page);
 
-            await expect(page.locator('.ag-header-cell[col-id="athlete"][aria-sort="descending"]')).toBeVisible();
+            await expect(page.locator('.ag-header-cell[col-id="title"][aria-sort="descending"]')).toBeVisible();
         });
 
         test('applies pre-existing column order from localStorage on page load', async ({ page }) => {
             await page.addInitScript(({ key, value }) => localStorage.setItem(key, value), {
                 key: columnStateStorageKey,
                 value: JSON.stringify([
-                    { colId: 'country', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'athlete', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'age', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'year', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'date', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'sport', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'gold', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'silver', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'bronze', hide: false, width: 200, sort: null, sortIndex: null },
-                    { colId: 'total', hide: false, width: 200, sort: null, sortIndex: null }
+                    { colId: 'severity', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'title', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'riskScore', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'status', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'detectedOn', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'attackType', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'alerts', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'reviewBy', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'comment', hide: false, width: 200, sort: null, sortIndex: null },
+                    { colId: 'affectedHosts', hide: false, width: 200, sort: null, sortIndex: null }
                 ])
             });
             await page.goto('/e2e/column-state');
             await waitForRows(page);
 
             // AG Grid uses absolute positioning, so visual order is determined by CSS left, not DOM order.
-            // Country should appear to the left of Athlete after the saved order is restored.
+            // Severity should appear to the left of Title after the saved order is restored.
             await expect
                 .poll(async () => {
-                    const [countryLeft, athleteLeft] = await Promise.all([
+                    const [severityLeft, titleLeft] = await Promise.all([
                         page
-                            .locator('.ag-header-cell[col-id="country"]')
+                            .locator('.ag-header-cell[col-id="severity"]')
                             .evaluate((el: Element) => el.getBoundingClientRect().left),
                         page
-                            .locator('.ag-header-cell[col-id="athlete"]')
+                            .locator('.ag-header-cell[col-id="title"]')
                             .evaluate((el: Element) => el.getBoundingClientRect().left)
                     ]);
 
-                    return countryLeft < athleteLeft;
+                    return severityLeft < titleLeft;
                 })
                 .toBe(true);
         });
@@ -195,12 +195,12 @@ test.describe('KbqAgGridColumnState', () => {
             await page.goto('/e2e/column-state');
             await clearColumnState(page);
 
-            await setColumnsVisible(page, ['athlete'], false);
+            await setColumnsVisible(page, ['title'], false);
 
             await expect
                 .poll(async () => {
                     const state = await getColumnState(page);
-                    return state?.find((s) => s.colId === 'athlete')?.hide;
+                    return state?.find((s) => s.colId === 'title')?.hide;
                 })
                 .toBe(true);
         });
@@ -211,60 +211,60 @@ test.describe('KbqAgGridColumnState', () => {
                 {
                     key: columnStateStorageKey,
                     value: JSON.stringify([
-                        { colId: 'athlete', hide: true, width: 200, sort: null, sortIndex: null },
-                        { colId: 'age', hide: false, width: 200, sort: null, sortIndex: null },
-                        { colId: 'country', hide: false, width: 200, sort: null, sortIndex: null },
-                        { colId: 'year', hide: false, width: 200, sort: null, sortIndex: null },
-                        { colId: 'date', hide: false, width: 200, sort: null, sortIndex: null },
-                        { colId: 'sport', hide: false, width: 200, sort: null, sortIndex: null },
-                        { colId: 'gold', hide: false, width: 200, sort: null, sortIndex: null },
-                        { colId: 'silver', hide: false, width: 200, sort: null, sortIndex: null },
-                        { colId: 'bronze', hide: false, width: 200, sort: null, sortIndex: null },
-                        { colId: 'total', hide: false, width: 200, sort: null, sortIndex: null }
+                        { colId: 'title', hide: true, width: 200, sort: null, sortIndex: null },
+                        { colId: 'riskScore', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'severity', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'status', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'detectedOn', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'attackType', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'alerts', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'reviewBy', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'comment', hide: false, width: 200, sort: null, sortIndex: null },
+                        { colId: 'affectedHosts', hide: false, width: 200, sort: null, sortIndex: null }
                     ])
                 }
             );
             await page.goto('/e2e/column-state');
             await waitForRows(page);
 
-            await expect(page.locator('.ag-header-cell[col-id="athlete"]')).toBeHidden();
+            await expect(page.locator('.ag-header-cell[col-id="title"]')).toBeHidden();
         });
     });
 
     test.describe('KbqAgGridColumnStateQueryParamsStore', () => {
         test('saves sort state to URL when column header is clicked', async ({ page }) => {
             await page.goto('/e2e/column-state-query-params');
-            await page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-label').click();
+            await page.locator('.ag-header-cell[col-id="title"] .ag-header-cell-label').click();
 
             await expect
                 .poll(async () => {
                     const state = await getColumnStateFromUrl(page);
-                    return state?.find((s) => s.colId === 'athlete')?.sort;
+                    return state?.find((s) => s.colId === 'title')?.sort;
                 })
                 .toBe('asc');
         });
 
         test('restores sort state from URL on page reload', async ({ page }) => {
             await page.goto('/e2e/column-state-query-params');
-            await page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-label').click();
+            await page.locator('.ag-header-cell[col-id="title"] .ag-header-cell-label').click();
 
             await expect
                 .poll(async () => {
                     const state = await getColumnStateFromUrl(page);
-                    return state?.find((s) => s.colId === 'athlete')?.sort;
+                    return state?.find((s) => s.colId === 'title')?.sort;
                 })
                 .toBe('asc');
 
             await page.reload();
             await waitForRows(page);
 
-            await expect(page.locator('.ag-header-cell[col-id="athlete"][aria-sort="ascending"]')).toBeVisible();
+            await expect(page.locator('.ag-header-cell[col-id="title"][aria-sort="ascending"]')).toBeVisible();
         });
 
         test('saves column width to URL when column is resized', async ({ page }) => {
             await page.goto('/e2e/column-state-query-params');
 
-            const headerCell = page.locator('.ag-header-cell[col-id="athlete"]');
+            const headerCell = page.locator('.ag-header-cell[col-id="title"]');
             const resizer = headerCell.locator('.ag-header-cell-resize');
 
             const initialWidth = await headerCell.evaluate((el: Element) => el.getBoundingClientRect().width);
@@ -280,7 +280,7 @@ test.describe('KbqAgGridColumnState', () => {
             await expect
                 .poll(async () => {
                     const state = await getColumnStateFromUrl(page);
-                    return state?.find((s) => s.colId === 'athlete')?.width;
+                    return state?.find((s) => s.colId === 'title')?.width;
                 })
                 .toBeGreaterThan(initialWidth);
         });
@@ -288,7 +288,7 @@ test.describe('KbqAgGridColumnState', () => {
         test('restores column width from URL on page reload', async ({ page }) => {
             await page.goto('/e2e/column-state-query-params');
 
-            const resizer = page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-resize');
+            const resizer = page.locator('.ag-header-cell[col-id="title"] .ag-header-cell-resize');
             const bounds = await resizer.boundingBox();
 
             expect(bounds).not.toBeNull();
@@ -299,7 +299,7 @@ test.describe('KbqAgGridColumnState', () => {
             await page.mouse.up();
 
             const widthBeforeReload = await page
-                .locator('.ag-header-cell[col-id="athlete"]')
+                .locator('.ag-header-cell[col-id="title"]')
                 .evaluate((el: Element) => Math.round(el.getBoundingClientRect().width));
 
             // The store persists to the URL asynchronously (router navigation) and isn't awaited
@@ -308,7 +308,7 @@ test.describe('KbqAgGridColumnState', () => {
             await expect
                 .poll(async () => {
                     const state = await getColumnStateFromUrl(page);
-                    return state?.find((s) => s.colId === 'athlete')?.width;
+                    return state?.find((s) => s.colId === 'title')?.width;
                 })
                 .toBe(widthBeforeReload);
 
@@ -318,7 +318,7 @@ test.describe('KbqAgGridColumnState', () => {
             await expect
                 .poll(async () =>
                     page
-                        .locator('.ag-header-cell[col-id="athlete"]')
+                        .locator('.ag-header-cell[col-id="title"]')
                         .evaluate((el: Element) => Math.round(el.getBoundingClientRect().width))
                 )
                 .toBe(widthBeforeReload);
@@ -327,54 +327,54 @@ test.describe('KbqAgGridColumnState', () => {
         test('applies pre-existing sort state from URL on page load', async ({ page }) => {
             await page.goto(
                 buildStateUrl([
-                    { colId: 'athlete', width: 200, sort: 'desc', sortIndex: 0 },
-                    { colId: 'age', width: 200 },
-                    { colId: 'country', width: 200 },
-                    { colId: 'year', width: 200 },
-                    { colId: 'date', width: 200 },
-                    { colId: 'sport', width: 200 },
-                    { colId: 'gold', width: 200 },
-                    { colId: 'silver', width: 200 },
-                    { colId: 'bronze', width: 200 },
-                    { colId: 'total', width: 200 }
+                    { colId: 'title', width: 200, sort: 'desc', sortIndex: 0 },
+                    { colId: 'riskScore', width: 200 },
+                    { colId: 'severity', width: 200 },
+                    { colId: 'status', width: 200 },
+                    { colId: 'detectedOn', width: 200 },
+                    { colId: 'attackType', width: 200 },
+                    { colId: 'alerts', width: 200 },
+                    { colId: 'reviewBy', width: 200 },
+                    { colId: 'comment', width: 200 },
+                    { colId: 'affectedHosts', width: 200 }
                 ])
             );
             await waitForRows(page);
 
-            await expect(page.locator('.ag-header-cell[col-id="athlete"][aria-sort="descending"]')).toBeVisible();
+            await expect(page.locator('.ag-header-cell[col-id="title"][aria-sort="descending"]')).toBeVisible();
         });
 
         test('applies pre-existing column order from URL on page load', async ({ page }) => {
             await page.goto(
                 buildStateUrl([
-                    { colId: 'country', width: 200 },
-                    { colId: 'athlete', width: 200 },
-                    { colId: 'age', width: 200 },
-                    { colId: 'year', width: 200 },
-                    { colId: 'date', width: 200 },
-                    { colId: 'sport', width: 200 },
-                    { colId: 'gold', width: 200 },
-                    { colId: 'silver', width: 200 },
-                    { colId: 'bronze', width: 200 },
-                    { colId: 'total', width: 200 }
+                    { colId: 'severity', width: 200 },
+                    { colId: 'title', width: 200 },
+                    { colId: 'riskScore', width: 200 },
+                    { colId: 'status', width: 200 },
+                    { colId: 'detectedOn', width: 200 },
+                    { colId: 'attackType', width: 200 },
+                    { colId: 'alerts', width: 200 },
+                    { colId: 'reviewBy', width: 200 },
+                    { colId: 'comment', width: 200 },
+                    { colId: 'affectedHosts', width: 200 }
                 ])
             );
             await waitForRows(page);
 
             // AG Grid uses absolute positioning, so visual order is determined by CSS left, not DOM order.
-            // Country should appear to the left of Athlete after the saved order is restored.
+            // Severity should appear to the left of Title after the saved order is restored.
             await expect
                 .poll(async () => {
-                    const [countryLeft, athleteLeft] = await Promise.all([
+                    const [severityLeft, titleLeft] = await Promise.all([
                         page
-                            .locator('.ag-header-cell[col-id="country"]')
+                            .locator('.ag-header-cell[col-id="severity"]')
                             .evaluate((el: Element) => el.getBoundingClientRect().left),
                         page
-                            .locator('.ag-header-cell[col-id="athlete"]')
+                            .locator('.ag-header-cell[col-id="title"]')
                             .evaluate((el: Element) => el.getBoundingClientRect().left)
                     ]);
 
-                    return countryLeft < athleteLeft;
+                    return severityLeft < titleLeft;
                 })
                 .toBe(true);
         });
@@ -382,12 +382,12 @@ test.describe('KbqAgGridColumnState', () => {
         test('saves column visibility to URL when column is hidden', async ({ page }) => {
             await page.goto('/e2e/column-state-query-params');
 
-            await setColumnsVisible(page, ['athlete'], false);
+            await setColumnsVisible(page, ['title'], false);
 
             await expect
                 .poll(async () => {
                     const state = await getColumnStateFromUrl(page);
-                    return state?.find((s) => s.colId === 'athlete')?.hide;
+                    return state?.find((s) => s.colId === 'title')?.hide;
                 })
                 .toBe(true);
         });
@@ -395,21 +395,21 @@ test.describe('KbqAgGridColumnState', () => {
         test('restores column visibility from URL on page load', async ({ page }) => {
             await page.goto(
                 buildStateUrl([
-                    { colId: 'athlete', hide: true, width: 200 },
-                    { colId: 'age', width: 200 },
-                    { colId: 'country', width: 200 },
-                    { colId: 'year', width: 200 },
-                    { colId: 'date', width: 200 },
-                    { colId: 'sport', width: 200 },
-                    { colId: 'gold', width: 200 },
-                    { colId: 'silver', width: 200 },
-                    { colId: 'bronze', width: 200 },
-                    { colId: 'total', width: 200 }
+                    { colId: 'title', hide: true, width: 200 },
+                    { colId: 'riskScore', width: 200 },
+                    { colId: 'severity', width: 200 },
+                    { colId: 'status', width: 200 },
+                    { colId: 'detectedOn', width: 200 },
+                    { colId: 'attackType', width: 200 },
+                    { colId: 'alerts', width: 200 },
+                    { colId: 'reviewBy', width: 200 },
+                    { colId: 'comment', width: 200 },
+                    { colId: 'affectedHosts', width: 200 }
                 ])
             );
             await waitForRows(page);
 
-            await expect(page.locator('.ag-header-cell[col-id="athlete"]')).toBeHidden();
+            await expect(page.locator('.ag-header-cell[col-id="title"]')).toBeHidden();
         });
     });
 });

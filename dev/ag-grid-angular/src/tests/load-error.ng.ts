@@ -22,7 +22,7 @@ import {
     RowSelectionOptions,
     SelectionColumnDef
 } from 'ag-grid-community';
-import { DevRowData } from '../row-data';
+import { devInjectRowData, DevRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -45,41 +45,22 @@ const readRequestDelay = (value: string | null): number => {
 /** Skeleton rows the grid draws before the first page arrives. */
 const INITIAL_ROW_COUNT = 3;
 
-/**
- * Generated here rather than taken from `devInjectRowData()`, which fetches a 2.7 MB
- * `olympic-winners.json`. Several e2e tests open this page, each in its own browser context and
- * cache, and under a parallel run that download cost more than the scenario and timed them out.
- */
-const ROW_DATA: DevRowData[] = Array.from({ length: 1000 }, (_, index) => ({
-    id: String(index),
-    athlete: `Athlete ${index}`,
-    age: 20 + (index % 20),
-    country: `Country ${index % 30}`,
-    year: 2000 + (index % 16),
-    date: `0${(index % 9) + 1}/01/${2000 + (index % 16)}`,
-    sport: `Sport ${index % 12}`,
-    gold: index % 4,
-    silver: index % 3,
-    bronze: index % 5,
-    total: (index % 4) + (index % 3) + (index % 5)
-}));
-
 const COLUMN_DEFS: ColDef[] = [
-    { field: 'athlete', headerName: 'Athlete', width: 180 },
-    { field: 'country', headerName: 'Country', width: 160 },
-    { field: 'sport', headerName: 'Sport', width: 160 },
-    { field: 'year', headerName: 'Year', width: 110 },
-    { field: 'date', headerName: 'Date', width: 140 },
-    { field: 'age', headerName: 'Age', width: 100 },
-    { field: 'gold', headerName: 'Gold', width: 100 },
-    { field: 'silver', headerName: 'Silver', width: 100 },
-    { field: 'bronze', headerName: 'Bronze', width: 110 },
-    { field: 'total', headerName: 'Total', width: 100 }
+    { field: 'title', headerName: 'Title', width: 180 },
+    { field: 'severity', headerName: 'Severity', width: 160 },
+    { field: 'attackType', headerName: 'Attack type', width: 160 },
+    { field: 'status', headerName: 'Status', width: 110 },
+    { field: 'detectedOn', headerName: 'Detected on', width: 140 },
+    { field: 'riskScore', headerName: 'Risk score', width: 100 },
+    { field: 'alerts', headerName: 'Alerts', width: 100 },
+    { field: 'reviewBy', headerName: 'Review by', width: 100 },
+    { field: 'comment', headerName: 'Comment', width: 110 },
+    { field: 'affectedHosts', headerName: 'Affected hosts', width: 100 }
 ];
 
 /** Columns the toggle pins. First and last, so the banner has to cover both sections. */
-const PINNED_LEFT = ['ag-Grid-SelectionColumn', 'athlete'];
-const PINNED_RIGHT = ['total'];
+const PINNED_LEFT = ['ag-Grid-SelectionColumn', 'title'];
+const PINNED_RIGHT = ['affectedHosts'];
 
 /** Pinned along with the first column, so the checkbox stays at the left edge of the grid. */
 const SELECTION_COLUMN_DEF: SelectionColumnDef = {
@@ -159,7 +140,7 @@ export class DevLoadErrorTextRow implements ICellRendererAngularComp {
             animateRows="false"
             [columnDefs]="columnDefs"
             [defaultColDef]="defaultColDef"
-            [datasource]="datasource"
+            [datasource]="rowData().length ? datasource : undefined"
             [rowSelection]="rowSelection"
             [selectionColumnDef]="selectionColumnDef"
             [isFullWidthRow]="isFullWidthRow"
@@ -202,6 +183,7 @@ export class DevLoadError {
 
     private api?: GridApi;
 
+    protected readonly rowData = devInjectRowData();
     protected readonly pageSize = PAGE_SIZE;
     protected readonly initialRowCount = INITIAL_ROW_COUNT;
     protected readonly columnDefs = COLUMN_DEFS;
@@ -295,7 +277,7 @@ export class DevLoadError {
                 return;
             }
 
-            const rows = ROW_DATA.slice(params.startRow, params.endRow);
+            const rows = this.rowData().slice(params.startRow, params.endRow);
 
             this.pageCache.set(params.startRow, rows);
             this.succeed(params, rows);
@@ -305,7 +287,7 @@ export class DevLoadError {
     }
 
     private succeed(params: IGetRowsParams, rows: DevRowData[]): void {
-        const total = ROW_DATA.length;
+        const total = this.rowData().length;
         const lastRow = params.endRow >= total ? total : -1;
 
         params.successCallback(rows, lastRow);

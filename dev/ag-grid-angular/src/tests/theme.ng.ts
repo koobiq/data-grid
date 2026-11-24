@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry, RowSelectionOptions } from 'ag-grid-community';
-import { devInjectRowData } from '../row-data';
+import { devIncidentColumns, devInjectRowData } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -18,21 +18,21 @@ const DEFAULT_COL_DEF: ColDef = {
     resizable: true
 };
 
-const COLUMN_DEFS: ColDef[] = [
-    { field: 'athlete', headerName: 'Athlete' },
-    { field: 'year', headerName: 'Year' },
-    { field: 'date', headerName: 'Date' },
-    { field: 'country', headerName: 'Country' },
-    { field: 'age', headerName: 'Age' },
-    { field: 'sport', headerName: 'Sport' },
-    { field: 'gold', headerName: 'Gold' },
-    { field: 'silver', headerName: 'Silver' },
-    { field: 'bronze', headerName: 'Bronze' },
-    { field: 'total', headerName: 'Total' }
-];
+const COLUMN_DEFS: ColDef[] = devIncidentColumns(
+    'title',
+    'status',
+    'detectedOn',
+    'severity',
+    'riskScore',
+    'attackType',
+    'alerts',
+    'reviewBy',
+    'comment',
+    'affectedHosts'
+);
 
 /** Columns the pinned columns page pins, by field. */
-const PINNED_COLUMNS: Record<string, ColDef['pinned']> = { athlete: 'left', total: 'right' };
+const PINNED_COLUMNS: Record<string, ColDef['pinned']> = { title: 'left', affectedHosts: 'right' };
 
 const PAGE_STYLES = `
     :host {
@@ -138,9 +138,9 @@ export class DevThemeNarrowColumns {
     // Narrow enough to leave empty space at every viewport the e2e tests use, with a pinned column
     // to keep the gap between the last column and the pinned section in the shot.
     readonly columnDefs: ColDef[] = [
-        { field: 'athlete', headerName: 'Athlete', width: 200 },
-        { field: 'year', headerName: 'Year', width: 100 },
-        { field: 'country', headerName: 'Country', width: 160 },
-        { field: 'total', headerName: 'Total', width: 120, pinned: 'right' }
+        { field: 'title', headerName: 'Title', width: 200 },
+        { field: 'status', headerName: 'Status', width: 100 },
+        { field: 'severity', headerName: 'Severity', width: 160 },
+        { field: 'affectedHosts', headerName: 'Affected hosts', width: 120, pinned: 'right' }
     ];
 }

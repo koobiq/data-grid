@@ -21,7 +21,7 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
         await page.goto('/e2e/copy-by-ctrl-c');
         await clearClipboard(page);
         await setClipboardText(page, 'test');
-        await getCell(page, 0, 'athlete').focus();
+        await getCell(page, 0, 'title').focus();
         await pressCtrlC(page);
         expect(await getClipboardText(page)).toBe('test');
     });
@@ -35,7 +35,7 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
         await toggleRowSelection(page, 7);
         // Wait for AG Grid to apply selection state before reading it in the copy handler.
         await waitForRowSelected(page, 7);
-        await getCell(page, 4, 'athlete').focus();
+        await getCell(page, 4, 'title').focus();
         await pressCtrlC(page);
         await expect.poll(async () => getClipboardText(page)).not.toBe('');
         expect(await getClipboardText(page)).toMatchSnapshot('selected-rows-tsv.txt');
@@ -51,7 +51,7 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
         await toggleRowSelection(page, 7);
         // Wait for AG Grid to apply selection state before reading it in the copy handler.
         await waitForRowSelected(page, 7);
-        await getCell(page, 4, 'athlete').focus();
+        await getCell(page, 4, 'title').focus();
         await pressCtrlC(page);
         await expect.poll(async () => getClipboardText(page)).not.toBe('');
         expect(await getClipboardText(page)).toMatchSnapshot('selected-rows-csv.txt');
@@ -67,7 +67,7 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
         await toggleRowSelection(page, 7);
         // Wait for AG Grid to apply selection state before reading it in the copy handler.
         await waitForRowSelected(page, 7);
-        await getCell(page, 4, 'athlete').focus();
+        await getCell(page, 4, 'title').focus();
         await pressCtrlC(page);
         await expect.poll(async () => getClipboardText(page)).not.toBe('');
         expect(await getClipboardText(page)).toMatchSnapshot('selected-rows-json.txt');
@@ -82,7 +82,7 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
         // Wait for AG Grid to apply selection state before reading it in the copy handler.
         await waitForRowSelected(page, 8);
         await waitForRowSelected(page, 9);
-        await getCell(page, 4, 'athlete').focus();
+        await getCell(page, 4, 'title').focus();
         await pressCtrlC(page);
         await expect.poll(async () => getClipboardText(page)).not.toBe('');
         expect(await getClipboardText(page)).toBe('Custom Copy Formatter Output. Selected Nodes: 2.');
@@ -91,16 +91,16 @@ test.describe('KbqAgGridCopyByCtrlC', () => {
     test('does not copy when text is selected on the page', async ({ page }) => {
         await page.goto('/e2e/copy-by-ctrl-c');
         await clearClipboard(page);
-        await getCell(page, 4, 'athlete').click({ clickCount: 3 }); // Selects the cell text
+        await getCell(page, 4, 'title').click({ clickCount: 3 }); // Selects the cell text
         await pressCtrlC(page);
-        expect(await getClipboardText(page)).toMatch('Aleksey Nemov');
+        expect(await getClipboardText(page)).toMatch('Unexpected administrator sign-in');
     });
 
     test('does not copy when directive is disabled', async ({ page }) => {
         await page.goto('/e2e/copy-by-ctrl-c');
         await clearClipboard(page);
         await getCopyByCtrlCToggle(page).evaluate((label: HTMLLabelElement) => label.click());
-        await getCell(page, 4, 'athlete').focus();
+        await getCell(page, 4, 'title').focus();
         await pressCtrlC(page);
         expect(await getClipboardText(page)).toBe('');
     });

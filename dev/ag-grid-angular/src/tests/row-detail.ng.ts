@@ -22,21 +22,21 @@ ModuleRegistry.registerModules([AllCommunityModule]);
 /** Renderer of the toggle column, checking that the expand toggle wraps an existing renderer. */
 @Component({
     standalone: true,
-    selector: 'dev-athlete-cell',
+    selector: 'dev-title-cell',
     template: `
-        <b>{{ athlete() }}</b>
+        <b>{{ title() }}</b>
     `,
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DevAthleteCell implements ICellRendererAngularComp {
-    readonly athlete = signal('');
+export class DevTitleCell implements ICellRendererAngularComp {
+    readonly title = signal('');
 
     agInit(params: ICellRendererParams): void {
         this.refresh(params);
     }
 
     refresh(params: ICellRendererParams): boolean {
-        this.athlete.set(String(params.value ?? ''));
+        this.title.set(String(params.value ?? ''));
 
         return true;
     }
@@ -102,15 +102,15 @@ export class DevRowDetailSummary {
         const data = this.params.data as DevRowData;
 
         return [
-            { label: 'Athlete', value: data.athlete },
-            { label: 'Country', value: data.country },
-            { label: 'Sport', value: data.sport },
-            { label: 'Age', value: data.age },
-            { label: 'Year', value: data.year },
-            { label: 'Date', value: data.date },
-            { label: 'Gold', value: data.gold },
-            { label: 'Silver', value: data.silver },
-            { label: 'Bronze', value: data.bronze }
+            { label: 'Title', value: data.title },
+            { label: 'Severity', value: data.severity },
+            { label: 'Attack type', value: data.attackType },
+            { label: 'Risk score', value: data.riskScore },
+            { label: 'Status', value: data.status },
+            { label: 'Detected on', value: data.detectedOn },
+            { label: 'Alerts', value: data.alerts },
+            { label: 'Review by', value: data.reviewBy },
+            { label: 'Comment', value: data.comment }
         ];
     });
 }
@@ -147,7 +147,7 @@ export class DevRowDetailGrid {
     private readonly params = inject(KBQ_AG_GRID_ROW_DETAIL_PARAMS);
 
     readonly columnDefs: ColDef[] = [
-        { field: 'medal', headerName: 'Medal', flex: 1 },
+        { field: 'metric', headerName: 'Metric', flex: 1 },
         { field: 'count', headerName: 'Count', flex: 1 }
     ];
 
@@ -156,22 +156,21 @@ export class DevRowDetailGrid {
         const data = this.params.data as DevRowData;
 
         return [
-            { medal: 'Gold', count: data.gold },
-            { medal: 'Silver', count: data.silver },
-            { medal: 'Bronze', count: data.bronze },
-            { medal: 'Total', count: data.total }
+            { metric: 'Risk score', count: data.riskScore },
+            { metric: 'Alerts', count: data.alerts },
+            { metric: 'Affected hosts', count: data.affectedHosts }
         ];
     });
 }
 
 const COLUMN_DEFS: ColDef[] = [
-    { field: 'athlete', headerName: 'Athlete', cellRenderer: DevAthleteCell, width: 220 },
-    { field: 'age', headerName: 'Age' },
-    { field: 'country', headerName: 'Country' },
-    { field: 'year', headerName: 'Year' },
-    { field: 'date', headerName: 'Date' },
-    { field: 'sport', headerName: 'Sport' },
-    { field: 'total', headerName: 'Total' }
+    { field: 'title', headerName: 'Title', cellRenderer: DevTitleCell, width: 220 },
+    { field: 'riskScore', headerName: 'Risk score' },
+    { field: 'severity', headerName: 'Severity' },
+    { field: 'status', headerName: 'Status' },
+    { field: 'detectedOn', headerName: 'Detected on' },
+    { field: 'attackType', headerName: 'Attack type' },
+    { field: 'affectedHosts', headerName: 'Affected hosts' }
 ];
 
 const ROW_SELECTION: RowSelectionOptions = {
@@ -184,7 +183,7 @@ const GET_ROW_ID: GetRowIdFunc<DevRowData> = (params) => params.data.id;
 
 /**
  * Both detail components side by side: odd rows show the nested grid, even rows the text card.
- * Rows with no athlete age (nothing to tell about them) cannot be expanded at all.
+ * Incidents without affected hosts have no detail panel.
  *
  * Keyed on `sourceRowIndex`, the row's place in the data, rather than on `rowIndex`, its place on
  * screen: sorting or filtering would otherwise hand an expanded row a different component and the
@@ -192,9 +191,9 @@ const GET_ROW_ID: GetRowIdFunc<DevRowData> = (params) => params.data.id;
  */
 const DETAIL_COMPONENT: KbqAgGridRowDetailComponent = ({ data, node }) => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const { age } = data as DevRowData;
+    const { affectedHosts } = data as DevRowData;
 
-    if (!age) return null;
+    if (!affectedHosts) return null;
 
     return node.sourceRowIndex % 2 === 1 ? DevRowDetailGrid : DevRowDetailSummary;
 };
@@ -399,9 +398,9 @@ export class DevRowDetailStateQueryParams {
 export class DevRowDetailPinnedColumns {
     readonly rowData = devInjectRowData();
     readonly columnDefs: ColDef[] = [
-        { field: 'country', headerName: 'Country', pinned: 'left', width: 160 },
-        ...COLUMN_DEFS,
-        { field: 'gold', headerName: 'Gold', pinned: 'right', width: 120 }
+        { field: 'severity', headerName: 'Severity', pinned: 'left', width: 160 },
+        ...COLUMN_DEFS.filter(({ field }) => field !== 'severity'),
+        { field: 'alerts', headerName: 'Alerts', pinned: 'right', width: 120 }
     ];
     readonly rowSelection = ROW_SELECTION;
     readonly getRowId = GET_ROW_ID;

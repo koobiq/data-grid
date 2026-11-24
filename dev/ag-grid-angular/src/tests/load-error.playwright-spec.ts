@@ -156,7 +156,7 @@ test.describe('KbqAgGridLoadError', () => {
         await page.goto('/e2e/load-error');
         await scrollUntilError(page);
 
-        await page.locator('.ag-header-cell[col-id="athlete"]').click();
+        await page.locator('.ag-header-cell[col-id="title"]').click();
 
         // Sorting is server side here, so AG Grid throws the cache away and asks for everything
         // again. The failure was about the previous query, and `setRowCount(n, true)` goes with it.

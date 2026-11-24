@@ -1,83 +1,68 @@
-import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, IErrorValidationParams, ModuleRegistry } from 'ag-grid-community';
-import { DevRowData, devInjectRowData } from '../row-data';
+import { DEV_REVIEW_DATE_COLUMN, DEV_SEVERITIES, DevRowData, devInjectEditableIncidents } from '../row-data';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-type DevCellEditorsRow = DevRowData & {
-    dateObject: Date;
-    isoDate: string;
-    medalist: boolean;
-};
+const devRequireText = ({ value }: IErrorValidationParams<DevRowData, string>): string[] | null =>
+    value?.trim() ? null : ['Enter a value'];
 
-/** Turns the `dd/mm/yyyy` date of the row data into the `yyyy-mm-dd` string AG Grid reads dates from. */
-const devToIsoDate = (date: string): string => date.split('/').reverse().join('-');
-
-/** Reads a `dd/mm/yyyy` date as local midnight: `new Date('yyyy-mm-dd')` is UTC midnight, a day off west of UTC. */
-const devToDate = (date: string): Date => {
-    const [day, month, year] = date.split('/').map(Number);
-
-    return new Date(year, month - 1, day);
-};
-
-/** Rejects a value with a digit in it, which gives the text editors an invalid state to show. */
-const devValidateNoDigits = ({ value }: IErrorValidationParams<DevCellEditorsRow, string>): string[] | null =>
-    value && /\d/.test(value) ? ['The value must not contain digits'] : null;
-
-const DEFAULT_COL_DEF: ColDef<DevCellEditorsRow> = {
+const DEFAULT_COL_DEF: ColDef<DevRowData> = {
     editable: true
 };
 
 // One column per editor provided by AG Grid Community, with the constraints its invalid state is reached through.
-const COLUMN_DEFS: ColDef<DevCellEditorsRow>[] = [
+const COLUMN_DEFS: ColDef<DevRowData>[] = [
     {
-        field: 'athlete',
+        field: 'title',
         headerName: 'Text',
         width: 170,
         cellEditor: 'agTextCellEditor',
-        cellEditorParams: { getValidationErrors: devValidateNoDigits }
+        cellEditorParams: { getValidationErrors: devRequireText }
     },
     {
-        field: 'age',
+        field: 'riskScore',
         headerName: 'Number',
         width: 100,
         cellEditor: 'agNumberCellEditor',
         cellEditorParams: { min: 0, max: 100 }
     },
     {
-        field: 'dateObject',
+        ...DEV_REVIEW_DATE_COLUMN,
         headerName: 'Date',
         width: 150,
-        cellDataType: 'date',
         cellEditor: 'agDateCellEditor',
-        cellEditorParams: { max: new Date(2012, 11, 31) }
+        cellEditorParams: { max: new Date(2026, 11, 31) }
     },
     {
-        field: 'isoDate',
+        field: 'detectedOn',
         headerName: 'Date string',
         width: 150,
         cellDataType: 'dateString',
         cellEditor: 'agDateStringCellEditor'
     },
     {
-        field: 'sport',
+        field: 'comment',
         headerName: 'Large text',
         width: 130,
         cellEditor: 'agLargeTextCellEditor',
         cellEditorPopup: true,
-        cellEditorParams: { getValidationErrors: devValidateNoDigits }
+        cellEditorParams: {
+            getValidationErrors: ({ value }: IErrorValidationParams<DevRowData, string>): string[] | null =>
+                value && !value.trim() ? ['Enter a comment or clear the field'] : null
+        }
     },
     {
-        field: 'country',
+        field: 'severity',
         headerName: 'Select',
         width: 160,
         cellEditor: 'agSelectCellEditor',
-        cellEditorParams: { values: ['Australia', 'Russia', 'United States'] }
+        cellEditorParams: { values: DEV_SEVERITIES }
     },
     {
-        field: 'medalist',
+        field: 'escalated',
         headerName: 'Checkbox',
         width: 110,
         cellDataType: 'boolean',
@@ -114,16 +99,7 @@ const COLUMN_DEFS: ColDef<DevCellEditorsRow>[] = [
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DevCellEditors {
-    private readonly olympicWinners = devInjectRowData();
-
-    protected readonly rowData = computed((): DevCellEditorsRow[] =>
-        this.olympicWinners().map((row) => ({
-            ...row,
-            dateObject: devToDate(row.date),
-            isoDate: devToIsoDate(row.date),
-            medalist: row.gold > 0
-        }))
-    );
+    protected readonly rowData = devInjectEditableIncidents();
     protected readonly columnDefs = COLUMN_DEFS;
     protected readonly defaultColDef = DEFAULT_COL_DEF;
 }

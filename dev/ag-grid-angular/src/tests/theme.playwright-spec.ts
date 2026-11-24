@@ -43,14 +43,14 @@ test.describe('KbqAgGridAngularTheme', () => {
             api.setGridOption('pagination', true);
             api.applyColumnState({
                 state: [
-                    { colId: 'year', sort: 'asc', sortIndex: 1 },
-                    { colId: 'date', sort: 'asc', sortIndex: 2 }
+                    { colId: 'status', sort: 'asc', sortIndex: 1 },
+                    { colId: 'detectedOn', sort: 'asc', sortIndex: 2 }
                 ]
             });
         });
         await toggleRowSelection(page, 4);
         await toggleRowSelection(page, 5);
-        await getCell(page, 0, 'athlete').click();
+        await getCell(page, 0, 'title').click();
         await expect(page.locator('.ag-paging-panel')).toBeVisible();
         await expect(getScreenshotTarget(page)).toHaveScreenshot('theme-default-light.png');
         await enableDarkTheme(page);
@@ -66,11 +66,11 @@ test.describe('KbqAgGridAngularTheme', () => {
         await (
             await getAgGridApi(page)
         ).evaluate((api) => {
-            api.setFocusedCell(0, 'athlete');
+            api.setFocusedCell(0, 'title');
             api.applyColumnState({
                 state: [
-                    { colId: 'athlete', pinned: 'left' },
-                    { colId: 'total', pinned: 'right' }
+                    { colId: 'title', pinned: 'left' },
+                    { colId: 'affectedHosts', pinned: 'right' }
                 ]
             });
         });
@@ -90,8 +90,8 @@ test.describe('KbqAgGridAngularTheme', () => {
         // Wait for async row data and the generated selection column before capturing the grid.
         await page.locator('.ag-row[row-index]').first().waitFor();
         await page.locator('.ag-header-cell input[type="checkbox"]').first().waitFor();
-        await page.locator('.ag-header-cell[col-id="athlete"]').hover();
-        await page.locator('.ag-header-cell[col-id="athlete"] .ag-header-cell-filter-button').click();
+        await page.locator('.ag-header-cell[col-id="title"]').hover();
+        await page.locator('.ag-header-cell[col-id="title"] .ag-header-cell-filter-button').click();
         await page.locator('.ag-menu .ag-filter-select').click();
         await page.getByRole('option', { name: 'Contains', exact: true }).waitFor();
         // Navigate to "Equals" by keyboard (rather than hover) to deterministically capture
@@ -109,7 +109,7 @@ test.describe('KbqAgGridAngularTheme', () => {
         await page.addInitScript(() => {
             const lefts = new Set<string>();
             const sample = (): void => {
-                const header = document.querySelector('.ag-header-cell[col-id="athlete"]');
+                const header = document.querySelector('.ag-header-cell[col-id="title"]');
 
                 if (header) {
                     lefts.add(getComputedStyle(header).left);
@@ -214,7 +214,7 @@ test.describe('KbqAgGridAngularTheme', () => {
         expect(selected.active[0]).not.toBe(plain.active[0]);
 
         // Pressing a cell moves the focus into the row, and the pinned part is the pressed one this time.
-        const focused = await press(getCell(page, 2, 'total'));
+        const focused = await press(getCell(page, 2, 'affectedHosts'));
 
         expect(focused.active).toEqual([focused.active[0], focused.active[0]]);
         expect(focused.active[0]).not.toBe(selected.active[0]);
@@ -245,8 +245,8 @@ test.describe('KbqAgGridAngularTheme', () => {
         await (
             await getAgGridApi(page)
         ).evaluate((api) => {
-            api.applyColumnState({ state: [{ colId: 'athlete', pinned: 'left' }] });
-            api.setFocusedCell(1, 'country');
+            api.applyColumnState({ state: [{ colId: 'title', pinned: 'left' }] });
+            api.setFocusedCell(1, 'severity');
         });
         await expect(getRow(page, 1)).toHaveCount(2);
         const [unfocusedBackground] = await getRowBackgrounds(page, 2);
@@ -255,7 +255,7 @@ test.describe('KbqAgGridAngularTheme', () => {
         expect(focusedBackgrounds).toEqual([focusedBackgrounds[0], focusedBackgrounds[0]]);
         expect(focusedBackgrounds[0]).not.toBe(unfocusedBackground);
 
-        await getCell(page, 1, 'country').blur();
+        await getCell(page, 1, 'severity').blur();
 
         expect(await getRowBackgrounds(page, 1)).toEqual([unfocusedBackground, unfocusedBackground]);
     });
@@ -269,13 +269,13 @@ test.describe('KbqAgGridAngularTheme', () => {
         ).evaluate((api) => {
             api.getDisplayedRowAtIndex(1)?.setSelected(true);
             api.getDisplayedRowAtIndex(3)?.setSelected(true);
-            api.setFocusedCell(1, 'athlete');
+            api.setFocusedCell(1, 'title');
         });
         const selectedBackgrounds = await getRowBackgrounds(page, 3);
 
         expect(await getRowBackgrounds(page, 1)).not.toEqual(selectedBackgrounds);
 
-        await getCell(page, 1, 'athlete').blur();
+        await getCell(page, 1, 'title').blur();
 
         expect(await getRowBackgrounds(page, 1)).toEqual(selectedBackgrounds);
     });
